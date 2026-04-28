@@ -1,0 +1,27 @@
+import { getServerEnv } from '../env.js';
+import { allowCors, sendError, sendJson } from '../http.js';
+
+export async function runtimeConfigHandler(req, res) {
+  allowCors(res);
+
+  if (req.method === 'OPTIONS') {
+    res.statusCode = 204;
+    res.end();
+    return;
+  }
+
+  if (req.method !== 'GET') {
+    sendError(res, 405, 'Method not allowed.');
+    return;
+  }
+
+  const { nvidiaApiKey, geminiApiKey, dailyApiKey, adminEmail } = getServerEnv();
+  const aiProvider = nvidiaApiKey ? 'nvidia' : geminiApiKey ? 'gemini' : null;
+
+  sendJson(res, 200, {
+    aiTutorEnabled: Boolean(aiProvider),
+    aiProvider,
+    dailyEnabled: Boolean(dailyApiKey),
+    adminConfigured: Boolean(adminEmail),
+  });
+}

@@ -1,0 +1,324 @@
+/* ============================
+   senJr — Leaderboard Styles
+   ============================ */
+
+.leaderboard-page {
+  padding-bottom: 5rem;
+}
+
+/* ── Header ── */
+.lb-header {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.lb-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(2rem, 4vw, 2.75rem);
+  font-weight: 800;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.lb-subtitle {
+  font-size: 1.1rem;
+  color: var(--text-muted);
+}
+
+.lb-subtitle strong {
+  color: var(--accent-saffron);
+  font-family: var(--font-mono);
+}
+
+/* ── Tabs ── */
+.lb-tabs {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+.lb-tab {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.85rem 2rem;
+  border-radius: 50px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.lb-tab:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.lb-tab.active {
+  background: linear-gradient(135deg, rgba(255, 107, 0, 0.15), rgba(255, 107, 0, 0.05));
+  border-color: var(--accent-saffron);
+  color: var(--accent-saffron);
+  box-shadow: 0 0 20px rgba(255, 107, 0, 0.15);
+}
+
+.lb-tab-icon {
+  font-size: 1.2rem;
+}
+
+/* ── Table Wrapper ── */
+.lb-table-wrapper {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0;
+  overflow: hidden;
+}
+
+/* ── Rows ── */
+.lb-row {
+  display: grid;
+  grid-template-columns: 70px 1.5fr 1fr 1fr 0.8fr;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  transition: all 0.3s ease;
+  animation: fadeInRow 0.4s ease both;
+}
+
+@keyframes fadeInRow {
+  from { opacity: 0; transform: translateX(-10px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.lb-row:last-child {
+  border-bottom: none;
+}
+
+.lb-row:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+/* ── Header Row ── */
+.lb-header-row {
+  background: rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0.85rem 1.5rem;
+  animation: none;
+}
+
+.lb-header-row .lb-col {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* ── Top 3 Special Glows ── */
+.lb-top-1 {
+  background: linear-gradient(90deg, rgba(255, 215, 0, 0.08), transparent);
+  border-left: 3px solid #FFD700;
+}
+
+.lb-top-2 {
+  background: linear-gradient(90deg, rgba(192, 192, 192, 0.06), transparent);
+  border-left: 3px solid #C0C0C0;
+}
+
+.lb-top-3 {
+  background: linear-gradient(90deg, rgba(205, 127, 50, 0.06), transparent);
+  border-left: 3px solid #CD7F32;
+}
+
+/* ── Highlight current user ── */
+.lb-me {
+  background: rgba(255, 107, 0, 0.06) !important;
+  border: 1px solid rgba(255, 107, 0, 0.2);
+  border-radius: 8px;
+  margin: 4px 8px;
+}
+
+/* ── Column Styles ── */
+.lb-col {
+  display: flex;
+  align-items: center;
+}
+
+.lb-rank {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--text-secondary);
+  justify-content: center;
+}
+
+.lb-user {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.lb-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 800;
+  font-size: 1.1rem;
+  font-family: 'Space Grotesk', sans-serif;
+  flex-shrink: 0;
+}
+
+.lb-user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.lb-name {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lb-college {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.lb-stat {
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+}
+
+.lb-stat-value {
+  font-family: var(--font-mono);
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--accent-saffron);
+}
+
+.lb-stat-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.lb-level-badge {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.3rem 0.75rem;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.lb-streak {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--text-primary);
+}
+
+/* ── Empty State ── */
+.lb-empty {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: var(--text-muted);
+  font-size: 1.1rem;
+}
+
+/* ── My Rank Footer ── */
+.lb-my-rank {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  background: linear-gradient(90deg, rgba(255, 107, 0, 0.08), rgba(255, 107, 0, 0.02));
+  border-top: 2px solid rgba(255, 107, 0, 0.2);
+  margin-top: 0.5rem;
+}
+
+.lb-my-rank-text {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1rem;
+  color: var(--text-primary);
+}
+
+.lb-my-rank-text strong {
+  color: var(--accent-saffron);
+  font-size: 1.2rem;
+}
+
+.lb-my-rank-xp {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--accent-saffron);
+  font-size: 1.1rem;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .lb-row {
+    grid-template-columns: 50px 1.2fr 0.8fr 0.8fr;
+    padding: 0.85rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  .lb-streak,
+  .lb-header-row .lb-streak {
+    display: none;
+  }
+
+  .lb-tabs {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+
+  .lb-tab {
+    justify-content: center;
+  }
+
+  .lb-avatar {
+    width: 34px;
+    height: 34px;
+    font-size: 0.9rem;
+  }
+
+  .lb-stat-value {
+    font-size: 1.1rem;
+  }
+
+  .lb-my-rank {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .lb-row {
+    grid-template-columns: 40px 1fr 0.7fr;
+  }
+
+  .lb-level,
+  .lb-header-row .lb-level {
+    display: none;
+  }
+}

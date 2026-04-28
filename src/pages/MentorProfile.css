@@ -1,0 +1,636 @@
+/* ===================================
+   senJr — Mentor Profile Styles
+   =================================== */
+
+.mentor-profile-page {
+  padding-bottom: 8rem;
+  /* space for sticky bar */
+}
+
+.profile-wrapper {
+  max-width: 1000px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* ─── Hero Section ─── */
+.profile-hero {
+  padding: 3rem;
+  background: linear-gradient(135deg, rgba(255, 107, 0, 0.05) 0%, rgba(19, 25, 41, 1) 100%);
+  border-top: 4px solid var(--accent-saffron);
+}
+
+.hero-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 2rem;
+}
+
+.hero-avatar {
+  width: 7rem;
+  height: 7rem;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 3rem;
+  font-weight: 700;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  border: 4px solid rgba(255, 255, 255, 0.1);
+}
+
+.hero-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.mentor-name {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 2.25rem;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.verification-badge.inline {
+  font-size: 0.8rem;
+  padding: 0.3rem 0.6rem;
+  background: rgba(52, 168, 83, 0.1);
+  border: 1px solid rgba(52, 168, 83, 0.3);
+  color: #34A853;
+  margin-bottom: 0;
+}
+
+.mentor-education {
+  font-size: 1rem;
+  color: var(--text-secondary);
+}
+
+.mentor-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.lang-badge {
+  font-size: 0.8rem;
+  padding: 0.3rem 0.8rem;
+  background: rgba(66, 133, 244, 0.1);
+  border: 1px solid rgba(66, 133, 244, 0.3);
+  color: #4285F4;
+  border-radius: 99px;
+  font-weight: 600;
+}
+
+.subject-pill {
+  font-size: 0.8rem;
+  padding: 0.3rem 0.8rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  border-radius: 99px;
+}
+
+.mentor-about {
+  margin-top: 1rem;
+  padding-left: 1.25rem;
+  border-left: 3px solid rgba(255, 107, 0, 0.5);
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: var(--text-primary);
+  opacity: 0.9;
+  font-style: italic;
+}
+
+/* ─── Stats Row ─── */
+.profile-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+.stat-card {
+  padding: 1.5rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.stat-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 0.25rem;
+}
+
+.stat-label {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.star {
+  font-size: 1.5rem;
+}
+
+/* ─── Main Grid Layout ─── */
+.profile-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 2rem;
+}
+
+.main-column {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.sidebar-column {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.profile-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* ─── Calendar ─── */
+.calendar-card {
+  padding: 1.5rem;
+  overflow: hidden;
+}
+
+.calendar-scroll {
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+  padding-bottom: 1rem;
+  /* Hide scrollbar */
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-subtle) transparent;
+}
+
+.calendar-scroll::-webkit-scrollbar {
+  height: 6px;
+}
+
+.calendar-scroll::-webkit-scrollbar-thumb {
+  background-color: var(--border-subtle);
+  border-radius: 10px;
+}
+
+.calendar-day-col {
+  flex: 0 0 120px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  padding: 1rem;
+}
+
+.day-header {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.day-header.today {
+  border-bottom-color: var(--accent-saffron);
+}
+
+.day-name {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  color: var(--text-primary);
+}
+
+.day-date {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.today-badge {
+  font-size: 0.65rem;
+  background: var(--accent-saffron);
+  color: #fff;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  margin-top: 0.25rem;
+  font-weight: 700;
+}
+
+.day-slots {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.slot-btn {
+  width: 100%;
+  padding: 0.6rem 0;
+  font-size: 0.85rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+}
+
+.slot-btn.available {
+  background: rgba(52, 168, 83, 0.1);
+  color: #34A853;
+  border-color: rgba(52, 168, 83, 0.3);
+}
+
+.slot-btn.available:hover {
+  background: #34A853;
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(52, 168, 83, 0.2);
+}
+
+.no-slots {
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  padding: 1rem 0;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 8px;
+  border: 1px dashed var(--border-subtle);
+}
+
+/* ─── Reviews ─── */
+.reviews-card {
+  padding: 3rem 2rem;
+}
+
+.reviews-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 1rem;
+  color: var(--text-muted);
+}
+
+.empty-icon {
+  font-size: 3rem;
+  opacity: 0.5;
+}
+
+/* ─── Achievement ─── */
+.achievement-box {
+  padding: 1.5rem;
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.05) 0%, rgba(255, 215, 0, 0.01) 100%);
+  border: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+.trophy-icon {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.achievement-text {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+.linkedin-link {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  color: #4285F4;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.linkedin-link:hover {
+  background: rgba(66, 133, 244, 0.05);
+  border-color: rgba(66, 133, 244, 0.3);
+}
+
+/* ─── Sticky Booking Bar ─── */
+.booking-sticky-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(10, 14, 23, 0.8);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid var(--border-subtle);
+  padding: 1rem 0;
+  z-index: 100;
+}
+
+.booking-bar-content {
+  max-width: 1000px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 1rem;
+}
+
+.price-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.price {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.price-note {
+  font-size: 0.8rem;
+  color: #34A853;
+  font-weight: 600;
+}
+
+.glow-btn {
+  padding: 0.75rem 2.5rem;
+  font-size: 1.1rem;
+  box-shadow: 0 0 24px rgba(255, 107, 0, 0.4);
+}
+
+.glow-btn:hover {
+  box-shadow: 0 0 32px rgba(255, 107, 0, 0.6);
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .profile-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-content {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .mentor-tags {
+    justify-content: center;
+  }
+
+  .mentor-about {
+    border-left: none;
+    border-top: 3px solid rgba(255, 107, 0, 0.5);
+    padding-left: 0;
+    padding-top: 1rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .profile-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .profile-hero {
+    padding: 2rem 1rem;
+  }
+
+  .booking-bar-content {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .glow-btn {
+    width: 100%;
+  }
+}
+
+/* ─── Bottom Sheet Modal ─── */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  z-index: 1000;
+}
+
+.bottom-sheet {
+  background: var(--bg-card);
+  width: 100%;
+  max-width: 600px;
+  border-radius: 24px 24px 0 0;
+  padding: 2rem;
+  border: 1px solid var(--border-subtle);
+  border-bottom: none;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.sheet-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.sheet-header h3 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.close-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: white;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+}
+
+.close-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.booking-dates-scroll {
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+  padding-bottom: 1rem;
+  scrollbar-width: none;
+}
+.booking-dates-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.date-chip {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-subtle);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.date-chip:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.date-chip.active {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+.chip-day {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.date-chip.active .chip-day,
+.date-chip.active .chip-date {
+  color: #fff;
+}
+
+.chip-date {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-top: 0.25rem;
+}
+
+.booking-slots-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 1rem;
+}
+
+.slot-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.slot-chip:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px);
+}
+
+.slot-chip.active {
+  background: rgba(52, 168, 83, 0.1);
+  border-color: #34A853;
+}
+
+.slot-time {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.slot-chip.active .slot-time {
+  color: #34A853;
+}
+
+.slot-type {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-top: 0.25rem;
+}
+
+.slot-spots {
+  font-size: 0.75rem;
+  color: var(--accent-saffron);
+  margin-top: 0.25rem;
+  font-weight: 600;
+}
+
+.no-slots-msg {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: var(--text-muted);
+  padding: 2rem;
+}
+
+.booking-summary {
+  background: rgba(255, 107, 0, 0.05);
+  border-color: rgba(255, 107, 0, 0.2);
+  padding: 1.5rem;
+}
+
+.booking-summary p {
+  margin: 0.5rem 0;
+  color: var(--text-primary);
+}
+
+.booking-summary strong {
+  color: var(--text-secondary);
+  display: inline-block;
+  width: 100px;
+}
+
+.sheet-success {
+  text-align: center;
+  padding: 2rem 0;
+}
+
+.success-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.3s ease-out forwards;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}

@@ -1,0 +1,161 @@
+.ai-tutor-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+@media (min-width: 768px) {
+  .ai-tutor-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2rem;
+  }
+}
+
+.tutor-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  padding: 1.5rem;
+  transition: all var(--ease-base);
+  text-decoration: none;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.tutor-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at top right, var(--card-color-glow), transparent 60%);
+  opacity: 0;
+  transition: opacity var(--ease-base);
+  pointer-events: none;
+}
+
+.tutor-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--card-color);
+  box-shadow: 0 10px 30px var(--card-color-shadow);
+}
+
+.tutor-card:hover::before {
+  opacity: 1;
+}
+
+.tutor-emoji {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  display: inline-block;
+}
+
+.tutor-name {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin-bottom: 0.25rem;
+}
+
+.tutor-subject {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--card-color);
+  margin-bottom: 1rem;
+}
+
+.tutor-topics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  flex-grow: 1;
+}
+
+.topic-chip {
+  font-size: 0.75rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-full);
+  background: var(--bg-secondary);
+  color: var(--text-muted);
+  border: 1px solid var(--border-subtle);
+}
+
+.tutor-card:hover .topic-chip {
+  border-color: rgba(255, 255, 255, 0.1);
+  color: var(--text-secondary);
+}
+
+.start-learning-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--card-color);
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: gap var(--ease-base);
+  margin-top: auto;
+}
+
+.tutor-card:hover .start-learning-btn {
+  gap: 0.75rem;
+}
+
+/* Card Themes */
+.theme-saffron {
+  --card-color: var(--accent-saffron);
+  --card-color-glow: rgba(255, 107, 0, 0.15);
+  --card-color-shadow: rgba(255, 107, 0, 0.25);
+}
+
+.theme-mint {
+  --card-color: var(--accent-mint);
+  --card-color-glow: rgba(0, 255, 178, 0.15);
+  --card-color-shadow: rgba(0, 255, 178, 0.25);
+}
+
+.theme-gold {
+  --card-color: var(--gold);
+  --card-color-glow: rgba(255, 215, 0, 0.15);
+  --card-color-shadow: rgba(255, 215, 0, 0.25);
+}
+
+.theme-blue {
+  --card-color: #3b82f6; /* Added a blue for the theme since it wasn't defined in index.css */
+  --card-color-glow: rgba(59, 130, 246, 0.15);
+  --card-color-shadow: rgba(59, 130, 246, 0.25);
+}
+
+.theme-pink {
+  --card-color: var(--accent-pink);
+  --card-color-glow: rgba(255, 107, 157, 0.15);
+  --card-color-shadow: rgba(255, 107, 157, 0.25);
+}
+
+.theme-purple {
+  --card-color: var(--accent-purple-light);
+  --card-color-glow: rgba(155, 95, 255, 0.15);
+  --card-color-shadow: rgba(155, 95, 255, 0.25);
+}
+
+.theme-green {
+  --card-color: #10b981; /* Added a green */
+  --card-color-glow: rgba(16, 185, 129, 0.15);
+  --card-color-shadow: rgba(16, 185, 129, 0.25);
+}
+
+.theme-teal {
+  --card-color: #14b8a6; /* Added a teal */
+  --card-color-glow: rgba(20, 184, 166, 0.15);
+  --card-color-shadow: rgba(20, 184, 166, 0.25);
+}

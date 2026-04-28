@@ -1,0 +1,215 @@
+.courses-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.courses-filter-bar {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 3rem;
+}
+
+.filter-pill {
+  padding: 0.5rem 1.25rem;
+  border-radius: var(--radius-full);
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--ease-base);
+}
+
+.filter-pill:hover {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.filter-pill.active {
+  background: var(--accent-saffron);
+  color: #fff;
+  border-color: var(--accent-saffron);
+  box-shadow: var(--glow-saffron);
+}
+
+.courses-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+}
+
+@media (min-width: 1024px) {
+  .courses-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+  }
+}
+
+.course-card {
+  position: relative;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  transition: all var(--ease-base);
+  overflow: hidden;
+}
+
+.course-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--accent-saffron);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+
+.course-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.provider-badge {
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #fff;
+}
+
+.provider-google { background: #4285F4; }
+.provider-ibm { background: #0f62fe; }
+.provider-mit { background: #A31F34; }
+.provider-oxford { background: #002147; }
+.provider-stanford { background: var(--accent-saffron); }
+.provider-harvard { background: #A51C30; }
+.provider-microsoft { background: #00A4EF; }
+.provider-meta { background: #0866ff; }
+.provider-aws { background: #ff9900; color: #111827; }
+.provider-nptel { background: #7c3aed; }
+.provider-cisco { background: #1ba0d7; }
+.provider-yale { background: #00356b; }
+.provider-wharton { background: #011f5b; }
+.provider-hubspot { background: #ff7a59; }
+.provider-canva { background: #00c4cc; color: #062b35; }
+.provider-adobe { background: #fa0f00; }
+.provider-calarts { background: #ff6f61; }
+.provider-khan { background: #14bf96; color: #053127; }
+.provider-british-council { background: #1f3f95; }
+.provider-coursera { background: #2a73cc; }
+.provider-efset { background: #111827; }
+.provider-linkedin { background: #0a66c2; }
+.provider-duke { background: #012169; }
+
+.bookmark-btn {
+  color: var(--text-muted);
+  font-size: 1.25rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: color var(--ease-fast);
+  padding: 0;
+}
+
+.bookmark-btn:hover {
+  color: var(--text-primary);
+}
+
+.bookmark-btn.active {
+  color: var(--accent-saffron);
+}
+
+.course-title {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin-bottom: 0.75rem;
+  line-height: 1.3;
+}
+
+.course-meta {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+  font-weight: 500;
+}
+
+.course-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.course-badges {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  flex-grow: 1;
+}
+
+.cert-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 0.3rem 0.75rem;
+  border-radius: var(--radius-full);
+  width: fit-content;
+}
+
+.cert-free {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.cert-audit {
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.cert-paid {
+  background: rgba(156, 163, 175, 0.15);
+  color: #9ca3af;
+  border: 1px solid rgba(156, 163, 175, 0.3);
+}
+
+.course-footer {
+  margin-top: auto;
+}
+
+.enroll-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.75rem;
+  border-radius: var(--radius-md);
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #fff;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  cursor: pointer;
+  transition: all var(--ease-base);
+  text-decoration: none;
+}
+
+.course-card:hover .enroll-btn {
+  background: var(--accent-saffron);
+  border-color: var(--accent-saffron);
+}

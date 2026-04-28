@@ -1,0 +1,733 @@
+/* ===================================
+   senJr Navbar — Premium UI
+   =================================== */
+
+/* Navbar-local aliases (inherits from global :root) */
+:root {
+  --nav-bg:      var(--bg-primary);
+  --nav-height:  var(--navbar-height);
+  --saffron:     var(--accent-saffron);
+  --saffron-light: var(--accent-saffron-light);
+  --saffron-glow:  var(--accent-saffron-dim);
+  --white:    var(--text-primary);
+  --white-80: var(--text-secondary);
+  --white-50: var(--text-muted);
+  --white-10: var(--border-subtle);
+  --white-06: var(--bg-glass-light);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-out:    cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ─── Navbar Shell ───────────────────────────────── */
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--nav-height);
+  z-index: 9000;
+  background: var(--nav-bg);
+  border-bottom: 1.5px solid transparent;
+  transition:
+    border-color 0.4s var(--ease-out),
+    background 0.4s var(--ease-out),
+    box-shadow 0.4s var(--ease-out);
+  /* GPU composite layer */
+  will-change: transform;
+}
+
+/* Saffron bottom border always visible */
+.navbar::after {
+  content: '';
+  position: absolute;
+  bottom: -1.5px;
+  left: 0;
+  right: 0;
+  height: 1.5px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    var(--saffron) 20%,
+    var(--saffron-light) 50%,
+    var(--saffron) 80%,
+    transparent 100%
+  );
+  opacity: 0.85;
+  transition: opacity 0.4s var(--ease-out);
+}
+
+.navbar.scrolled {
+  background: var(--bg-overlay);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  box-shadow:
+    0 1px 0 rgba(255,107,0,0.15),
+    0 8px 32px rgba(0,0,0,0.45);
+}
+
+.navbar.scrolled::after {
+  opacity: 1;
+}
+
+/* ─── Inner Layout ───────────────────────────────── */
+.navbar-inner {
+  max-width: 1280px;
+  height: 100%;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+/* ─── Logo ───────────────────────────────────────── */
+.navbar-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.45rem;
+  color: var(--white);
+  letter-spacing: -0.02em;
+  text-decoration: none;
+  flex-shrink: 0;
+  transition: opacity 0.2s var(--ease-in-out);
+  position: relative;
+}
+
+.navbar-logo:hover {
+  opacity: 0.88;
+}
+
+/* Lightning bolt glow on hover */
+.navbar-logo .logo-bolt {
+  display: inline-block;
+  transition: transform 0.35s var(--ease-spring), filter 0.35s var(--ease-out);
+}
+
+.navbar-logo:hover .logo-bolt {
+  transform: scale(1.25) rotate(-5deg);
+  filter: drop-shadow(0 0 6px var(--saffron));
+}
+
+.logo-text-seek {
+  color: var(--white);
+}
+
+.logo-text-hlo {
+  color: var(--saffron);
+}
+
+/* ─── Nav Links (Desktop) ────────────────────────── */
+.navbar-links {
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+  /* Centered absolutely to remain centred regardless of auth buttons width */
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.nav-link {
+  position: relative;
+  padding: 0.5rem 0.875rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--white-80);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  transition:
+    color 0.2s var(--ease-in-out),
+    background 0.2s var(--ease-in-out);
+  white-space: nowrap;
+  /* Pseudo underline */
+  overflow: hidden;
+}
+
+/* Ink-spread background on hover — Hick's Law: clear affordance */
+.nav-link::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--white-06);
+  border-radius: inherit;
+  opacity: 0;
+  transform: scale(0.8);
+  transition:
+    opacity 0.2s var(--ease-out),
+    transform 0.25s var(--ease-spring);
+}
+
+.nav-link:hover::before {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.nav-link:hover {
+  color: var(--white);
+}
+
+/* Active saffron underline — Von Restorff effect: differentiate the current page */
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background: var(--saffron);
+  border-radius: var(--radius-full);
+  transform: translateX(-50%);
+  transition: width 0.3s var(--ease-spring);
+}
+
+.nav-link.active {
+  color: var(--white);
+}
+
+.nav-link.active::after {
+  width: calc(100% - 1.75rem);
+}
+
+/* ─── Auth Buttons (Desktop) ─────────────────────── */
+.navbar-auth {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  flex-shrink: 0;
+}
+
+/* Login — Ghost */
+.btn-nav-login {
+  padding: 0.45rem 1.1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--white-80);
+  background: transparent;
+  border: 1.5px solid var(--white-10);
+  border-radius: var(--radius-full);
+  text-decoration: none;
+  transition:
+    color 0.2s var(--ease-in-out),
+    border-color 0.2s var(--ease-in-out),
+    background 0.2s var(--ease-in-out),
+    transform 0.2s var(--ease-spring);
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.btn-nav-login:hover {
+  color: var(--white);
+  border-color: rgba(255,255,255,0.35);
+  background: var(--white-06);
+  transform: translateY(-1px);
+}
+
+.btn-nav-login:active {
+  transform: translateY(0) scale(0.97);
+}
+
+/* Signup — Saffron CTA — Scarcity + Visual Salience */
+.btn-nav-signup {
+  padding: 0.45rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #0A0E27;
+  background: var(--saffron);
+  border: none;
+  border-radius: var(--radius-full);
+  text-decoration: none;
+  cursor: pointer;
+  font-family: inherit;
+  position: relative;
+  overflow: hidden;
+  transition:
+    transform 0.2s var(--ease-spring),
+    box-shadow 0.25s var(--ease-out);
+  box-shadow: 0 2px 12px rgba(255,107,0,0.35);
+}
+
+/* Shimmer sweep — Novelty bias */
+.btn-nav-signup::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255,255,255,0.3),
+    transparent
+  );
+  transition: left 0.5s var(--ease-out);
+}
+
+.btn-nav-signup:hover::before {
+  left: 160%;
+}
+
+.btn-nav-signup:hover {
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 6px 20px rgba(255,107,0,0.5);
+}
+
+.btn-nav-signup:active {
+  transform: translateY(0) scale(0.97);
+  box-shadow: 0 2px 8px rgba(255,107,0,0.3);
+}
+
+/* ─── User Avatar & Dropdown ─────────────────────── */
+.nav-user {
+  position: relative;
+}
+
+.nav-avatar-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0.75rem 0.3rem 0.3rem;
+  background: var(--bg-glass-light);
+  border: 1.5px solid var(--border-subtle);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition:
+    background 0.2s var(--ease-in-out),
+    border-color 0.2s var(--ease-in-out),
+    transform 0.2s var(--ease-spring);
+}
+
+.nav-avatar-btn:hover {
+  background: var(--white-10);
+  border-color: rgba(255,255,255,0.25);
+  transform: translateY(-1px);
+}
+
+.nav-avatar-btn:active {
+  transform: scale(0.97);
+}
+
+.avatar-img {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1.5px solid var(--saffron);
+}
+
+.avatar-initials {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--saffron), var(--saffron-light));
+  color: #0A0E27;
+  font-size: 0.75rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  letter-spacing: 0.05em;
+  flex-shrink: 0;
+}
+
+.avatar-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--white-80);
+  max-width: 90px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.avatar-chevron {
+  color: var(--white-50);
+  font-size: 0.65rem;
+  transition: transform 0.25s var(--ease-spring);
+  flex-shrink: 0;
+}
+
+.avatar-chevron.open {
+  transform: rotate(180deg);
+}
+
+/* Dropdown menu */
+.nav-dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  min-width: 190px;
+  background: var(--bg-card);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 0.4rem;
+  box-shadow:
+    var(--shadow-xl),
+    0 0 0 1px var(--border);
+  /* Animate in — Fitts's Law: items appear nearby for easy targeting */
+  animation: dropdownIn 0.22s var(--ease-spring) both;
+  transform-origin: top right;
+}
+
+@keyframes dropdownIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.65rem 0.875rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--white-80);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  transition:
+    background 0.15s var(--ease-in-out),
+    color 0.15s var(--ease-in-out),
+    transform 0.15s var(--ease-spring);
+  cursor: pointer;
+  border: none;
+  background: none;
+  width: 100%;
+  font-family: inherit;
+  text-align: left;
+}
+
+.dropdown-item:hover {
+  background: var(--white-06);
+  color: var(--white);
+  transform: translateX(2px);
+}
+
+.dropdown-item-icon {
+  font-size: 1rem;
+  flex-shrink: 0;
+  width: 20px;
+  text-align: center;
+}
+
+.dropdown-divider {
+  height: 1px;
+  background: var(--white-06);
+  margin: 0.3rem 0.4rem;
+}
+
+.dropdown-item.danger {
+  color: #FF6B6B;
+}
+
+.dropdown-item.danger:hover {
+  background: rgba(255, 107, 107, 0.08);
+  color: #FF8585;
+}
+
+/* ─── Hamburger (Mobile) ─────────────────────────── */
+.hamburger {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  width: 40px;
+  height: 40px;
+  padding: 0.5rem;
+  border-radius: var(--radius-md);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s var(--ease-in-out);
+  flex-shrink: 0;
+}
+
+.hamburger:hover {
+  background: var(--white-06);
+}
+
+.hamburger-line {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: var(--white-80);
+  border-radius: var(--radius-full);
+  transition:
+    transform 0.35s var(--ease-spring),
+    opacity 0.2s var(--ease-in-out),
+    width 0.3s var(--ease-out);
+  transform-origin: center;
+}
+
+/* Morphs into × — smooth cognitive feedback */
+.hamburger.open .hamburger-line:nth-child(1) {
+  transform: rotate(45deg) translate(0, 7px);
+}
+
+.hamburger.open .hamburger-line:nth-child(2) {
+  opacity: 0;
+  transform: scaleX(0);
+}
+
+.hamburger.open .hamburger-line:nth-child(3) {
+  transform: rotate(-45deg) translate(0, -7px);
+}
+
+/* ─── Mobile Overlay ─────────────────────────────── */
+.mobile-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0);
+  z-index: 8998;
+  transition: background 0.35s var(--ease-in-out);
+  pointer-events: none;
+}
+
+.mobile-overlay.open {
+  display: block;
+  pointer-events: all;
+  background: rgba(0,0,0,0.55);
+}
+
+/* ─── Mobile Drawer ──────────────────────────────── */
+.mobile-drawer {
+  display: none;
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(340px, 85vw);
+  background: var(--bg-secondary);
+  border-left: 1px solid var(--white-10);
+  z-index: 8999;
+  padding: 1rem;
+  flex-direction: column;
+  gap: 0;
+  overflow-y: auto;
+  transform: translateX(100%);
+  transition: transform 0.38s var(--ease-out);
+  box-shadow: -20px 0 60px rgba(0,0,0,0.5);
+}
+
+.mobile-drawer.open {
+  display: flex;
+  transform: translateX(0);
+}
+
+/* Drawer top bar */
+.drawer-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 1rem;
+  margin-bottom: 0.5rem;
+  border-bottom: 1px solid var(--white-06);
+}
+
+.drawer-logo {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.3rem;
+  color: var(--white);
+  text-decoration: none;
+}
+
+.drawer-close {
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  background: var(--white-06);
+  border: none;
+  color: var(--white-80);
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: background 0.2s var(--ease-in-out), color 0.2s var(--ease-in-out);
+}
+
+.drawer-close:hover {
+  background: var(--white-10);
+  color: var(--white);
+}
+
+/* Drawer nav links */
+.drawer-links {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0.5rem 0;
+}
+
+.drawer-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.8rem 0.875rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--white-80);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  transition:
+    background 0.2s var(--ease-in-out),
+    color 0.2s var(--ease-in-out),
+    transform 0.2s var(--ease-spring);
+}
+
+.drawer-link:hover {
+  background: var(--white-06);
+  color: var(--white);
+  transform: translateX(4px);
+}
+
+.drawer-link.active {
+  background: var(--saffron-glow);
+  color: var(--saffron-light);
+}
+
+.drawer-link-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--saffron);
+  border-radius: 50%;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.drawer-link.active .drawer-link-dot {
+  opacity: 1;
+}
+
+/* Drawer auth section */
+.drawer-auth {
+  margin-top: auto;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--white-06);
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.btn-drawer-login {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--white-80);
+  background: var(--white-06);
+  border: 1.5px solid var(--white-10);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.2s;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.btn-drawer-login:hover {
+  background: var(--white-10);
+  border-color: rgba(255,255,255,0.25);
+  color: var(--white);
+  transform: translateY(-1px);
+}
+
+.btn-drawer-signup {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #0A0E27;
+  background: var(--saffron);
+  border: none;
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  transition: transform 0.2s var(--ease-spring), box-shadow 0.2s;
+  box-shadow: 0 4px 16px rgba(255,107,0,0.35);
+  font-family: inherit;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-drawer-signup:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(255,107,0,0.5);
+}
+
+.btn-drawer-signup:active {
+  transform: scale(0.97);
+}
+
+/* Drawer user section */
+.drawer-user {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 0.875rem;
+  background: var(--white-06);
+  border-radius: var(--radius-lg);
+  margin-bottom: 0.5rem;
+}
+
+.drawer-user-info {
+  flex: 1;
+  overflow: hidden;
+}
+
+.drawer-user-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--white);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.drawer-user-email {
+  font-size: 0.75rem;
+  color: var(--white-50);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ─── Responsive ─────────────────────────────────── */
+@media (max-width: 900px) {
+  .navbar-links,
+  .navbar-auth {
+    display: none;
+  }
+
+  .hamburger {
+    display: flex;
+  }
+}
+
+@media (max-width: 480px) {
+  .navbar-inner {
+    padding: 0 1rem;
+  }
+
+  .navbar-logo {
+    font-size: 1.3rem;
+  }
+}

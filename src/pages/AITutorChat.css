@@ -1,0 +1,234 @@
+.ai-chat-container {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - var(--navbar-height));
+  max-width: var(--max-width);
+  margin: 0 auto;
+  background: var(--bg-primary);
+}
+
+.ai-chat-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-card);
+}
+
+.ai-chat-header-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.ai-chat-back-btn {
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 1.2rem;
+  padding: 0.5rem;
+  border-radius: var(--radius-full);
+  transition: background var(--ease-fast);
+}
+
+.ai-chat-back-btn:hover {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.ai-chat-tutor-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.ai-chat-tutor-emoji {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.ai-chat-tutor-details h2 {
+  font-size: 1.1rem;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.ai-chat-tutor-details p {
+  font-size: 0.85rem;
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.ai-chat-clear-btn {
+  font-size: 0.85rem;
+  color: var(--error);
+  padding: 0.4rem 0.8rem;
+  border: 1px solid rgba(255, 77, 109, 0.3);
+  border-radius: var(--radius-full);
+  transition: all var(--ease-fast);
+}
+
+.ai-chat-clear-btn:hover {
+  background: rgba(255, 77, 109, 0.1);
+}
+
+.ai-chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 2rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.ai-message-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  max-width: 80%;
+}
+
+.ai-message-group.user {
+  align-self: flex-end;
+  align-items: flex-end;
+}
+
+.ai-message-group.tutor {
+  align-self: flex-start;
+  align-items: flex-start;
+}
+
+.ai-message-wrapper {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.ai-message-bubble {
+  padding: 0.85rem 1.25rem;
+  border-radius: 18px;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.user .ai-message-bubble {
+  background: var(--accent-saffron);
+  color: #fff;
+  border-bottom-right-radius: 4px;
+}
+
+.tutor .ai-message-bubble {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  border-bottom-left-radius: 4px;
+}
+
+.ai-message-emoji {
+  font-size: 1.5rem;
+  margin-top: 0.2rem;
+  width: 30px;
+  text-align: center;
+}
+
+/* Typing Indicator */
+.typing-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.5rem 0.25rem;
+}
+
+.typing-dot {
+  width: 6px;
+  height: 6px;
+  background-color: var(--text-muted);
+  border-radius: 50%;
+  animation: typingBounce 1.4s infinite ease-in-out both;
+}
+
+.typing-dot:nth-child(1) { animation-delay: -0.32s; }
+.typing-dot:nth-child(2) { animation-delay: -0.16s; }
+.typing-dot:nth-child(3) { animation-delay: 0s; }
+
+@keyframes typingBounce {
+  0%, 80%, 100% { transform: scale(0); }
+  40% { transform: scale(1); }
+}
+
+/* Input Area */
+.ai-chat-input-area {
+  padding: 1.5rem;
+  background: var(--bg-card);
+  border-top: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.ai-chat-input {
+  flex: 1;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-full);
+  padding: 0.85rem 1.5rem;
+  color: var(--text-primary);
+  font-size: 1rem;
+  outline: none;
+  transition: border-color var(--ease-fast);
+}
+
+.ai-chat-input:focus {
+  border-color: var(--accent-saffron);
+}
+
+.ai-chat-send-btn {
+  background: var(--accent-saffron);
+  color: #fff;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  transition: transform var(--ease-fast), box-shadow var(--ease-fast);
+}
+
+.ai-chat-send-btn:hover:not(:disabled) {
+  transform: scale(1.05);
+  box-shadow: var(--glow-saffron);
+}
+
+.ai-chat-send-btn:disabled {
+  background: var(--bg-secondary);
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+.markdown-body {
+  font-family: inherit;
+  color: inherit;
+}
+
+.markdown-body p { margin-bottom: 0.5rem; }
+.markdown-body p:last-child { margin-bottom: 0; }
+.markdown-body code {
+  background: rgba(0,0,0,0.3);
+  padding: 0.1rem 0.3rem;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+}
+.markdown-body pre {
+  background: #000;
+  padding: 1rem;
+  border-radius: 8px;
+  overflow-x: auto;
+  margin: 0.5rem 0;
+}
+.markdown-body pre code {
+  background: transparent;
+  padding: 0;
+}

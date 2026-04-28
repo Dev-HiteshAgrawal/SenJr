@@ -1,0 +1,111 @@
+/* ===================================================
+   senJr — Particle & Symbol Background
+   Pure CSS — GPU-composited (transform + opacity only)
+   =================================================== */
+
+.particle-bg {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ─── Floating Particles (glowing dots) ─────────── */
+.particle {
+  position: absolute;
+  border-radius: 50%;
+  will-change: transform, opacity;
+  animation: floatUp linear infinite;
+}
+
+/* Glow variants */
+.p-saffron {
+  background: var(--accent-saffron);
+  box-shadow: 0 0 6px 2px rgba(255, 107, 0, 0.5);
+}
+.p-mint {
+  background: var(--accent-mint);
+  box-shadow: 0 0 6px 2px rgba(0, 255, 178, 0.4);
+}
+.p-purple {
+  background: var(--accent-purple-light);
+  box-shadow: 0 0 6px 2px rgba(123, 47, 255, 0.45);
+}
+.p-white {
+  background: rgba(255, 255, 255, 0.7);
+  box-shadow: 0 0 4px 1px rgba(255, 255, 255, 0.3);
+}
+.p-pink {
+  background: var(--accent-pink);
+  box-shadow: 0 0 5px 2px rgba(255, 107, 157, 0.4);
+}
+
+/* ─── Floating Symbols ──────────────────────────── */
+.symbol {
+  position: absolute;
+  color: #ffffff;
+  font-family: 'Space Grotesk', serif;
+  font-weight: 600;
+  opacity: 0.04;
+  will-change: transform;
+  animation: floatUpSlow linear infinite;
+  user-select: none;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+/* ─── Keyframes ──────────────────────────────────── */
+@keyframes floatUp {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  85% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(-105vh) scale(0.6);
+    opacity: 0;
+  }
+}
+
+@keyframes floatUpSlow {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 0;
+  }
+  8% {
+    opacity: 0.04;
+  }
+  90% {
+    opacity: 0.03;
+  }
+  100% {
+    transform: translateY(-100vh) rotate(15deg);
+    opacity: 0;
+  }
+}
+
+/* Subtle horizontal drift for variety */
+@keyframes floatUpDrift {
+  0% {
+    transform: translateY(0) translateX(0) scale(1);
+    opacity: 0;
+  }
+  10% { opacity: 1; }
+  50% { transform: translateY(-50vh) translateX(20px) scale(0.85); }
+  85% { opacity: 0.6; }
+  100% {
+    transform: translateY(-105vh) translateX(-10px) scale(0.5);
+    opacity: 0;
+  }
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50%       { opacity: 1;   transform: scale(1.3); }
+}
