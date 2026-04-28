@@ -6,19 +6,20 @@ import { getDocuments, updateUser, where } from '../lib/firestore';
 const ADMIN_EMAIL = import.meta.env.VITE_ADMIN_EMAIL || '';
 
 export default function AdminPanel() {
-  const { currentUser } = useAuth();
+  const { currentUser, userProfile } = useAuth();
   const [pendingMentors, setPendingMentors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [rejectReason, setRejectReason] = useState('');
   const [rejectingId, setRejectingId] = useState(null);
+  const isAdmin = Boolean(currentUser) && (userProfile?.role === 'admin' || (ADMIN_EMAIL && currentUser.email === ADMIN_EMAIL));
 
   useEffect(() => {
-    if (currentUser?.email === ADMIN_EMAIL) {
+    if (isAdmin) {
       fetchPendingMentors();
     } else {
       setLoading(false);
     }
-  }, [currentUser]);
+  }, [isAdmin]);
 
   const fetchPendingMentors = async () => {
     try {
@@ -62,7 +63,7 @@ export default function AdminPanel() {
     }
   };
 
-  if (!ADMIN_EMAIL || !currentUser || currentUser.email !== ADMIN_EMAIL) {
+  if (!isAdmin) {
     return <Navigate to="/" replace />;
   }
 
