@@ -74,12 +74,66 @@
 .video-error {
   text-align: center;
   color: var(--text-primary);
+  max-width: 520px;
+  padding: 2rem;
 }
 
 .video-error p {
   font-size: 1.1rem;
   color: #ff4d4d;
   margin-bottom: 1rem;
+}
+
+.video-loading {
+  text-align: center;
+  color: var(--text-primary);
+}
+
+.video-permission-card {
+  width: min(92%, 560px);
+  text-align: center;
+  padding: 2rem;
+  border-radius: 12px;
+  border: 1px solid var(--border-subtle);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-primary);
+}
+
+.video-permission-icon {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 1rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--primary);
+  color: white;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+.video-permission-card h4 {
+  margin: 0 0 0.75rem;
+  font-size: 1.35rem;
+}
+
+.video-permission-card p {
+  margin: 0;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.video-permission-actions {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin: 1.5rem 0 1rem;
+}
+
+.video-meeting-note {
+  font-size: 0.9rem;
 }
 
 .glow-btn {
@@ -172,5 +226,17 @@
   }
   .video-session-header {
     padding: 1rem;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+  .video-header-actions {
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+  .video-permission-card {
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
   }
 }
