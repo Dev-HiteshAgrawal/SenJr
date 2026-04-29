@@ -194,6 +194,9 @@
 .slot-evening {
   border-left-color: #9C27B0; /* Purple */
 }
+.slot-night {
+  border-left-color: #3F51B5; /* Indigo — late night / early morning */
+}
 
 /* ─── Overrides & Specifics ─── */
 .hud-value {

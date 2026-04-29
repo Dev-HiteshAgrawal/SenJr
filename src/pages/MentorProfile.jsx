@@ -61,7 +61,7 @@ export default function MentorProfile() {
     if (!timeValue) return '';
     const hour = parseInt(timeValue.split(':')[0], 10);
     const ampm = hour >= 12 ? 'PM' : 'AM';
-    const displayHour = hour > 12 ? hour - 12 : hour;
+    const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
     return `${displayHour}:00 ${ampm}`;
   };
 

@@ -21,11 +21,11 @@ function isJoinable(dateStr, timeStr) {
 
 const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
-// Generate times from 6:00 AM to 10:00 PM
+// Generate times for full 24-hour clock (12 AM to 11 PM)
 const TIME_OPTIONS = [];
-for (let i = 6; i <= 22; i++) {
+for (let i = 0; i < 24; i++) {
   const ampm = i >= 12 ? 'PM' : 'AM';
-  const hour = i > 12 ? i - 12 : i;
+  const hour = i === 0 ? 12 : i > 12 ? i - 12 : i;
   TIME_OPTIONS.push({ value: `${i}:00`, label: `${hour}:00 ${ampm}` });
 }
 
@@ -260,15 +260,17 @@ export default function MentorDashboard() {
 
   const getSlotColorClass = (startVal) => {
     const hour = parseInt(startVal.split(':')[0]);
+    if (hour < 6) return 'slot-night';
     if (hour < 12) return 'slot-morning';
     if (hour < 17) return 'slot-afternoon';
-    return 'slot-evening';
+    if (hour < 21) return 'slot-evening';
+    return 'slot-night';
   };
 
   const formatTime = (timeVal) => {
     const hour = parseInt(timeVal.split(':')[0]);
     const ampm = hour >= 12 ? 'PM' : 'AM';
-    const displayHour = hour > 12 ? hour - 12 : hour;
+    const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
     return `${displayHour}:00 ${ampm}`;
   };
 
