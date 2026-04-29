@@ -21,6 +21,15 @@ function getGreeting(tutor) {
   return {
     role: 'model',
     content: `Hi! I'm ${tutor.name}, your ${tutor.subject} tutor. Ask me anything. No question is too basic!`,
+    timestamp: new Date().toISOString(),
+  };
+}
+
+function getFreshStartMessage() {
+  return {
+    role: 'model',
+    content: 'Fresh start! Ask me anything 😊',
+    timestamp: new Date().toISOString(),
   };
 }
 
@@ -36,9 +45,20 @@ export default function AITutorChat() {
   const [errorMessage, setErrorMessage] = useState('');
   const [aiProvider, setAiProvider] = useState(null);
   const [runtimeReady, setRuntimeReady] = useState(false);
+  const [storageConsent, setStorageConsent] = useState(null);
   const messagesEndRef = useRef(null);
 
   const chatId = currentUser ? `${currentUser.uid}_${subject}` : null;
+  const storageKey = `senjr_chat_${subject}_${currentUser?.uid || 'guest'}`;
+
+  useEffect(() => {
+    try {
+      setStorageConsent(localStorage.getItem('senjr_storage_ok'));
+    } catch (error) {
+      console.warn('Could not read local storage preference:', error);
+      setStorageConsent('no');
+    }
+  }, []);
 
   useEffect(() => {
     if (!tutor) {
@@ -47,6 +67,18 @@ export default function AITutorChat() {
     }
 
     async function initChat() {
+      if (storageConsent === 'yes') {
+        try {
+          const savedMessages = localStorage.getItem(storageKey);
+          if (savedMessages) {
+            setMessages(JSON.parse(savedMessages));
+            return;
+          }
+        } catch (error) {
+          console.warn('Could not load local tutor history:', error);
+        }
+      }
+
       if (!currentUser || !chatId) {
         setMessages([getGreeting(tutor)]);
         return;
@@ -66,7 +98,17 @@ export default function AITutorChat() {
     }
 
     initChat();
-  }, [chatId, currentUser, navigate, tutor]);
+  }, [chatId, currentUser, navigate, storageConsent, storageKey, tutor]);
+
+  useEffect(() => {
+    if (messages.length === 0 || storageConsent !== 'yes') return;
+
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(messages.slice(-50)));
+    } catch (error) {
+      console.warn('Could not save local tutor history:', error);
+    }
+  }, [messages, storageConsent, storageKey]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -116,7 +158,11 @@ export default function AITutorChat() {
       return;
     }
 
-    const newUserMessage = { role: 'user', content: inputValue.trim() };
+    const newUserMessage = {
+      role: 'user',
+      content: inputValue.trim(),
+      timestamp: new Date().toISOString(),
+    };
     const nextMessages = [...messages, newUserMessage];
 
     setMessages(nextMessages);
@@ -131,6 +177,7 @@ export default function AITutorChat() {
       });
 
       const finalMessages = [...nextMessages, { role: 'model', content: reply }];
+      finalMessages[finalMessages.length - 1].timestamp = new Date().toISOString();
       setMessages(finalMessages);
       await persistMessages(finalMessages);
     } catch (error) {
@@ -142,6 +189,7 @@ export default function AITutorChat() {
           role: 'model',
           content:
             "I'm having trouble replying right now. Please check the AI configuration and try again in a moment.",
+          timestamp: new Date().toISOString(),
         },
       ]);
     } finally {
@@ -150,13 +198,15 @@ export default function AITutorChat() {
   };
 
   const handleClearChat = async () => {
-    if (!window.confirm('Are you sure you want to clear the chat history?')) {
-      return;
-    }
-
-    const initialMessages = [getGreeting(tutor)];
+    const initialMessages = [getFreshStartMessage()];
     setMessages(initialMessages);
     setErrorMessage('');
+
+    try {
+      localStorage.removeItem(storageKey);
+    } catch (error) {
+      console.warn('Could not clear local tutor history:', error);
+    }
 
     if (chatId) {
       await setDoc(
@@ -197,6 +247,36 @@ export default function AITutorChat() {
           Clear Chat
         </button>
       </header>
+
+      {storageConsent === null && (
+        <div className="card" style={{ margin: '1rem 1.5rem 0' }}>
+          <p style={{ color: 'var(--text-secondary)', marginBottom: '0.9rem' }}>
+            Save your AI tutor chat history on this device? Your notes will be here next time you visit.
+          </p>
+          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+            <button
+              className="btn-primary"
+              type="button"
+              onClick={() => {
+                localStorage.setItem('senjr_storage_ok', 'yes');
+                setStorageConsent('yes');
+              }}
+            >
+              Allow ✓
+            </button>
+            <button
+              className="btn-secondary"
+              type="button"
+              onClick={() => {
+                localStorage.setItem('senjr_storage_ok', 'no');
+                setStorageConsent('no');
+              }}
+            >
+              No thanks
+            </button>
+          </div>
+        </div>
+      )}
 
       {runtimeReady && !aiProvider && (
         <div className="card" style={{ margin: '1rem 1.5rem 0', borderColor: 'rgba(255, 77, 109, 0.35)' }}>

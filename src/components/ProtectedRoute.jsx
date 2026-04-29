@@ -23,6 +23,22 @@ export default function ProtectedRoute({ children, allowedRoles = null }) {
     return <Navigate to="/login" replace state={{ from: location }} />;
   }
 
+  if (!userProfile) {
+    return (
+      <Navigate
+        to="/signup"
+        replace
+        state={{
+          googleSignup: true,
+          prefill: {
+            name: currentUser.displayName || '',
+            email: currentUser.email || '',
+          },
+        }}
+      />
+    );
+  }
+
   if (allowedRoles && userProfile && !allowedRoles.includes(userProfile.role)) {
     return <Navigate to={getDefaultDashboard(userProfile.role)} replace />;
   }

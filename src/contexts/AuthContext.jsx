@@ -26,10 +26,13 @@ function buildDefaultProfile(role = 'student', additionalData = {}) {
   const isMentor = role === 'mentor';
 
   return {
+    uid: additionalData.uid || '',
+    name: additionalData.name || additionalData.displayName || '',
+    displayName: additionalData.displayName || additionalData.name || '',
     role,
     bio: '',
     xp: 0,
-    level: 1,
+    level: 'Seedling',
     badges: [],
     streak: 0,
     activeDays: [],
@@ -37,7 +40,9 @@ function buildDefaultProfile(role = 'student', additionalData = {}) {
     coursesCompleted: 0,
     homeworkCompleted: 0,
     totalSessionsCompleted: 0,
+    missCount: 0,
     miss_count: 0,
+    banned: false,
     totalReviews: 0,
     averageRating: 0,
     ...(isMentor
@@ -97,13 +102,18 @@ export function AuthProvider({ children }) {
 
       try {
         const existingProfile = await getUser(user.uid);
-        const needsDefaults = !existingProfile || !existingProfile.role;
+
+        if (!existingProfile) {
+          setUserProfile(null);
+          setLoading(false);
+          return;
+        }
 
         await upsertUser(user.uid, {
-          email: user.email || '',
-          displayName: user.displayName || existingProfile?.displayName || '',
-          photoURL: user.photoURL || existingProfile?.photoURL || '',
-          ...(needsDefaults ? buildDefaultProfile(existingProfile?.role || 'student', existingProfile || {}) : {}),
+          email: user.email || existingProfile.email || '',
+          displayName: user.displayName || existingProfile.displayName || existingProfile.name || '',
+          name: existingProfile.name || user.displayName || '',
+          photoURL: user.photoURL || existingProfile.photoURL || '',
         });
 
         unsubscribeProfile = subscribeToUser(user.uid, (profile) => {
@@ -126,17 +136,7 @@ export function AuthProvider({ children }) {
   // ─── Wrapped auth methods ──────────────────────────────────
 
   async function handleSignUp(email, password, displayName, additionalData = {}) {
-    const credential = await signUpWithEmail(email, password, displayName);
-    const role = additionalData.role || 'student';
-    // Create Firestore profile immediately with explicit role
-    await upsertUser(credential.user.uid, {
-      email,
-      displayName: displayName || '',
-      photoURL: '',
-      ...buildDefaultProfile(role, additionalData),
-      ...additionalData,
-    });
-    return credential;
+    return signUpWithEmail(email, password, displayName);
   }
 
   async function handleSignIn(email, password) {
@@ -144,17 +144,7 @@ export function AuthProvider({ children }) {
   }
 
   async function handleGoogleSignIn() {
-    const credential = await signInWithGoogle();
-    const existingProfile = await getUser(credential.user.uid);
-    const needsDefaults = !existingProfile || !existingProfile.role;
-    // Ensure Firestore profile on first Google login
-    await upsertUser(credential.user.uid, {
-      email: credential.user.email,
-      displayName: credential.user.displayName || '',
-      photoURL: credential.user.photoURL || '',
-      ...(needsDefaults ? buildDefaultProfile(existingProfile?.role || 'student', existingProfile || {}) : {}),
-    });
-    return credential;
+    return signInWithGoogle();
   }
 
   async function handleLogout() {
@@ -164,6 +154,18 @@ export function AuthProvider({ children }) {
 
   async function handleResetPassword(email) {
     return resetPassword(email);
+  }
+
+  async function handleCompleteRegistration(uid, profileData) {
+    const role = profileData.role || 'student';
+    await upsertUser(uid, {
+      ...buildDefaultProfile(role, profileData),
+      ...profileData,
+    });
+
+    const savedProfile = await getUser(uid);
+    setUserProfile(savedProfile);
+    return savedProfile;
   }
 
   // ─── Context value ─────────────────────────────────────────
@@ -177,6 +179,7 @@ export function AuthProvider({ children }) {
     signInWithGoogle: handleGoogleSignIn,
     logout: handleLogout,
     resetPassword: handleResetPassword,
+    completeRegistration: handleCompleteRegistration,
   };
 
   return (
