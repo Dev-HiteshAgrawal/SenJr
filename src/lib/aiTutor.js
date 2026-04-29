@@ -1,3 +1,12 @@
+import { auth } from './firebase';
+
+async function getAuthHeader() {
+  const user = auth.currentUser;
+  if (!user) return {};
+  const token = await user.getIdToken();
+  return { 'Authorization': `Bearer ${token}` };
+}
+
 async function readApiResponse(response, fallbackMessage) {
   const data = await response.json().catch(() => ({}));
 
@@ -14,10 +23,12 @@ export async function fetchAiRuntimeConfig() {
 }
 
 export async function generateTutorReply({ tutor, messages }) {
+  const authHeader = await getAuthHeader();
   const response = await fetch('/api/ai-tutor', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      ...authHeader,
     },
     body: JSON.stringify({ tutor, messages }),
   });

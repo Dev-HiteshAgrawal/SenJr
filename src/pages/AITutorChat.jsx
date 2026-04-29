@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
+import ReactMarkdown from 'react-markdown';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../lib/firebase';
 import { fetchAiRuntimeConfig, generateTutorReply } from '../lib/aiTutor';
@@ -307,7 +308,9 @@ export default function AITutorChat() {
                   <div className="ai-message-emoji" />
                 ) : null}
 
-                <div className="ai-message-bubble markdown-body">{message.content}</div>
+                <div className="ai-message-bubble markdown-body">
+                  <ReactMarkdown>{message.content}</ReactMarkdown>
+                </div>
               </div>
             </div>
           );

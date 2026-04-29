@@ -41,31 +41,38 @@ export default function Leaderboard() {
   useEffect(() => {
     async function loadData() {
       try {
-        // Fetch all students
-        const allStudents = await getAllUsers(where('role', '==', 'student'));
-        // Sort by XP descending (weeklyXP if available, fallback to total xp)
-        const sortedStudents = allStudents
+        // Fetch top 50 students by total XP as a primary metric
+        const topStudents = await getAllUsers(
+          where('role', '==', 'student'),
+          orderBy('xp', 'desc'),
+          limit(50)
+        );
+
+        const processedStudents = topStudents
           .map(s => ({
             ...s,
             weekXP: s.weeklyXP || s.xp || 0,
             level: getLevelDetails(s.xp || 0),
           }))
-          .sort((a, b) => b.weekXP - a.weekXP)
-          .slice(0, 50); // take top 50 for rank calculation
+          .sort((a, b) => b.weekXP - a.weekXP);
 
-        setStudents(sortedStudents);
+        setStudents(processedStudents);
 
-        // Fetch all mentors
-        const allMentors = await getAllUsers(where('role', '==', 'mentor'));
-        const sortedMentors = allMentors
+        // Fetch top 50 mentors by total sessions
+        const topMentors = await getAllUsers(
+          where('role', '==', 'mentor'),
+          orderBy('totalSessionsCompleted', 'desc'),
+          limit(50)
+        );
+
+        const processedMentors = topMentors
           .map(m => ({
             ...m,
             weekSessions: m.weeklySessionsCompleted || m.totalSessionsCompleted || 0,
           }))
-          .sort((a, b) => b.weekSessions - a.weekSessions)
-          .slice(0, 50);
+          .sort((a, b) => b.weekSessions - a.weekSessions);
 
-        setMentors(sortedMentors);
+        setMentors(processedMentors);
       } catch (err) {
         console.error("Failed to load leaderboard:", err);
       } finally {
