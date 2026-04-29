@@ -15,7 +15,7 @@
   gap: 3.5rem;
 }
 
-.dashboard-page .card {
+.dashboard-wrapper .card {
   background: rgba(20, 20, 28, 0.6);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
@@ -26,7 +26,7 @@
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.dashboard-page .card:hover {
+.dashboard-wrapper .card:hover {
   transform: translateY(-4px);
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.3);
   border: 1px solid rgba(255, 255, 255, 0.08);
