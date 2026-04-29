@@ -126,7 +126,7 @@ export default function MentorDashboard() {
   const handleStartChange = (e) => {
     const startVal = e.target.value;
     const startHour = parseInt(startVal.split(':')[0]);
-    const endHour = startHour + 1;
+    const endHour = (startHour + 1) % 24;
     setNewSlot({
       ...newSlot,
       start: startVal,
@@ -268,7 +268,8 @@ export default function MentorDashboard() {
   };
 
   const formatTime = (timeVal) => {
-    const hour = parseInt(timeVal.split(':')[0]);
+    const parsedHour = parseInt(timeVal.split(':')[0]);
+    const hour = ((parsedHour % 24) + 24) % 24;
     const ampm = hour >= 12 ? 'PM' : 'AM';
     const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
     return `${displayHour}:00 ${ampm}`;
