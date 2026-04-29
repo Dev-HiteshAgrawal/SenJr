@@ -295,7 +295,7 @@ export default function Signup() {
           <div className="card success-card">
             <div className="success-icon">Welcome to Senjr! 🎉</div>
             <h1 className="page-title">Setting up your profile...</h1>
-            <p className="page-subtitle">We’re getting your dashboard ready.</p>
+            <p className="page-subtitle">We're getting your dashboard ready.</p>
           </div>
         </div>
       </div>
@@ -319,13 +319,13 @@ export default function Signup() {
             <div className="role-selection-grid">
               <button type="button" className="role-selection-card card" onClick={() => { setRole('student'); setStep(2); }}>
                 <div className="role-icon">🎓</div>
-                <h2>I am a Student</h2>
+                <h2>I am a Student 🎓</h2>
                 <p>{defaultIntroMessage('student')}</p>
               </button>
 
               <button type="button" className="role-selection-card card" onClick={() => { setRole('mentor'); setStep(2); }}>
                 <div className="role-icon">⭐</div>
-                <h2>I am a Mentor</h2>
+                <h2>I am a Mentor ⭐</h2>
                 <p>{defaultIntroMessage('mentor')}</p>
               </button>
             </div>
