@@ -1,0 +1,364 @@
+/* ===================================
+   senJr — Study Rooms (Premium UX)
+   =================================== */
+
+.study-rooms-page {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding-bottom: 4rem;
+}
+
+.rooms-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+@media (max-width: 768px) {
+  .rooms-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+.global-stats {
+  background: rgba(201, 169, 110, 0.08);
+  border: 1px solid rgba(201, 169, 110, 0.2);
+  padding: 0.75rem 1.25rem;
+  border-radius: 100px;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: #e8c96b;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pulse-dot {
+  width: 8px;
+  height: 8px;
+  background-color: #10b981;
+  border-radius: 50%;
+  display: inline-block;
+  box-shadow: 0 0 0 rgba(16, 185, 129, 0.4);
+  animation: pulse-green 2s infinite;
+}
+
+@keyframes pulse-green {
+  0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+  70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+.rooms-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.room-card {
+  background: rgba(25, 25, 30, 0.4);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+.room-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+  background: var(--card-accent);
+  opacity: 0.7;
+  transition: opacity 0.3s;
+}
+
+.room-card:hover {
+  transform: translateY(-4px);
+  background: rgba(30, 30, 36, 0.6);
+  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+}
+
+.room-card:hover::before {
+  opacity: 1;
+}
+
+/* Themes */
+.theme-purple { --card-accent: #8b5cf6; }
+.theme-blue { --card-accent: #3b82f6; }
+.theme-green { --card-accent: #10b981; }
+.theme-amber { --card-accent: #f59e0b; }
+.theme-indigo { --card-accent: #6366f1; }
+
+.room-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.room-icon {
+  font-size: 2rem;
+  filter: drop-shadow(0 2px 8px rgba(0,0,0,0.2));
+}
+
+.live-count {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 0.3rem 0.6rem;
+  border-radius: 100px;
+}
+
+.room-name {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 0.5rem;
+}
+
+.room-desc {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin-bottom: 1.5rem;
+  flex: 1;
+}
+
+.room-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.tag {
+  font-size: 0.75rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-muted);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.room-action {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--card-accent);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+
+.room-card:hover .room-action {
+  opacity: 1;
+}
+
+/* ===================================
+   Active Study Room View
+   =================================== */
+
+.study-room-active {
+  min-height: calc(100vh - 100px);
+  padding: 2rem;
+  border-radius: 32px;
+  background: radial-gradient(circle at top right, rgba(var(--card-accent-rgb, 201,169,110), 0.05), transparent 60%);
+}
+
+.room-header {
+  margin-bottom: 3rem;
+}
+
+.btn-leave {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: 0.5rem 0;
+  margin-bottom: 1rem;
+  transition: color 0.2s;
+  display: flex;
+  align-items: center;
+}
+
+.btn-leave:hover {
+  color: #fff;
+}
+
+.room-title-bar {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.room-icon-large {
+  font-size: 3.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  width: 80px; height: 80px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.room-title-bar h1 {
+  font-size: 2rem;
+  margin-bottom: 0.3rem;
+  color: #fff;
+}
+
+.room-live-status {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.room-dashboard {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+
+@media (max-width: 960px) {
+  .room-dashboard {
+    grid-template-columns: 1fr;
+  }
+}
+
+.glass-card {
+  background: rgba(25, 25, 30, 0.5);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  padding: 2rem;
+}
+
+.glass-card h3 {
+  font-size: 1.1rem;
+  color: #fff;
+  margin-bottom: 2rem;
+  font-weight: 600;
+}
+
+/* Timer */
+.timer-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.timer-display {
+  position: relative;
+  width: 240px;
+  height: 240px;
+  margin-bottom: 2rem;
+}
+
+.timer-circle {
+  transform: rotate(-90deg);
+  width: 100%;
+  height: 100%;
+}
+
+.timer-bg {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.05);
+  stroke-width: 4;
+}
+
+.timer-progress {
+  fill: none;
+  stroke: var(--card-accent, #c9a96e);
+  stroke-width: 4;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 1s linear;
+}
+
+.timer-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-mono);
+  font-size: 3rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -2px;
+}
+
+.btn-start, .btn-pause {
+  padding: 1rem 2.5rem;
+  font-size: 1.1rem;
+  border-radius: 100px;
+  width: 200px;
+}
+
+.btn-pause {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.btn-pause:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* Activity Feed */
+.activity-feed {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.feed-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+}
+
+.feed-avatar {
+  width: 36px;
+  height: 36px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.feed-content {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.feed-content strong {
+  color: #fff;
+  font-weight: 600;
+}

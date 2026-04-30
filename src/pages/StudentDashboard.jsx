@@ -50,6 +50,7 @@ export default function StudentDashboard() {
   const displayName = userProfile?.displayName || currentUser?.displayName || 'Student';
 
   const [upcomingSessions, setUpcomingSessions] = useState([]);
+  const [completedSessions, setCompletedSessions] = useState([]);
   const [uniqueMentors, setUniqueMentors] = useState([]);
   const [pendingHomework, setPendingHomework] = useState([]);
   const [certificates, setCertificates] = useState([]);
@@ -175,8 +176,16 @@ export default function StudentDashboard() {
           await checkAndProcessMisses(currentUser.uid);
 
           const data = await getAllSessions(where('studentId', '==', currentUser.uid));
-          const activeSessions = data.filter(s => s.status === 'upcoming');
+          const activeSessions = data.filter((s) => s.status === 'upcoming');
+          const doneSessions = data
+            .filter((s) => s.status === 'completed')
+            .sort((a, b) => {
+              const aTime = new Date(a.completedAt || a.updatedAt || a.date || 0).getTime();
+              const bTime = new Date(b.completedAt || b.updatedAt || b.date || 0).getTime();
+              return bTime - aTime;
+            });
           setUpcomingSessions(activeSessions);
+          setCompletedSessions(doneSessions);
 
           const mentorsMap = new Map();
           data.forEach(s => {
@@ -306,6 +315,31 @@ export default function StudentDashboard() {
     setShowReviewModal(true);
     setUpcomingSessions(prev => prev.filter(s => s.id !== session.id));
     setActiveSession(null);
+  };
+
+  const handleDownloadStudentCertificate = async () => {
+    if (!currentUser) return;
+    if (completedSessions.length < 1) {
+      alert('Complete at least one session to unlock your certificate.');
+      return;
+    }
+    try {
+      const latestSession = completedSessions[0];
+      await generateAndDownloadCertificate({
+        type: 'student',
+        studentName: displayName,
+        mentorName: latestSession?.mentorName || 'Senjr Mentor',
+        subject: latestSession?.sessionType || 'Mentorship Programme',
+        duration: `${completedSessions.length} Session${completedSessions.length > 1 ? 's' : ''}`,
+        sessionsCompleted: completedSessions.length,
+        sessionsTotal: completedSessions.length,
+        userId: currentUser.uid,
+        sourceId: latestSession?.id || currentUser.uid,
+      });
+    } catch (err) {
+      console.error('Failed to generate student certificate:', err);
+      alert('Could not generate certificate. Please try again.');
+    }
   };
 
   const submitReview = async () => {
@@ -638,6 +672,19 @@ export default function StudentDashboard() {
                   <p>1-on-1 guidance.</p>
                 </div>
               </Link>
+              <button
+                type="button"
+                className="os-qa-btn"
+                onClick={handleDownloadStudentCertificate}
+                disabled={completedSessions.length < 1}
+                title={completedSessions.length < 1 ? 'Complete one session to unlock' : 'Download your certificate'}
+              >
+                <span className="qa-icon">📜</span>
+                <div>
+                  <h4>Download Certificate</h4>
+                  <p>{completedSessions.length < 1 ? 'Complete one session to unlock.' : `Issued (${certificates.length} saved).`}</p>
+                </div>
+              </button>
             </div>
           </section>
 

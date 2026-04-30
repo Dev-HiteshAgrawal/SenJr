@@ -23,6 +23,7 @@ import Leaderboard from './pages/Leaderboard';
 import Community from './pages/Community';
 import ChatRoom from './pages/ChatRoom';
 import AdminPanel from './pages/AdminPanel';
+import StudyRooms from './pages/StudyRooms';
 import CertificateVerify from './pages/CertificateVerify';
 
 export default function App() {
@@ -48,6 +49,7 @@ export default function App() {
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/community" element={<Community />} />
+          <Route path="/study-rooms" element={<ProtectedRoute><StudyRooms /></ProtectedRoute>} />
           <Route path="/chat/:chatId" element={<ProtectedRoute><ChatRoom /></ProtectedRoute>} />
           <Route path="/admin" element={<ProtectedRoute><AdminPanel /></ProtectedRoute>} />
           <Route path="/verify/:certId" element={<CertificateVerify />} />
