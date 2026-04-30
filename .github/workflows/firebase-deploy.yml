@@ -40,6 +40,6 @@ jobs:
           VITE_ADMIN_EMAIL: ${{ secrets.VITE_ADMIN_EMAIL }}
 
       - name: Deploy to Firebase
-        run: npx firebase-tools deploy --only hosting,functions --project senjr-7a60f
+        run: npx firebase-tools deploy --only hosting --project senjr-7a60f
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
