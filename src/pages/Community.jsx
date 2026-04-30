@@ -42,6 +42,7 @@ function getInitials(name) {
 
 export default function Community() {
   const { currentUser, userProfile } = useAuth();
+  const { notifySuccess, notifyError, notifyInfo } = useNotification();
   
   // Post Creation State
   const [content, setContent] = useState('');

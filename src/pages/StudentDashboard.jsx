@@ -2,7 +2,8 @@ import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { getAllSessions, where, updateSession, updateUser, getUser, getDocuments, COLLECTIONS, updateDocument } from '../lib/firestore';
-import { auth } from '../lib/firebase';
+import { auth, db } from '../lib/firebase';
+import { doc, updateDoc, arrayUnion, arrayRemove, query, getDocs, collection } from 'firebase/firestore';
 import UnreadBadge from '../components/UnreadBadge';
 import VideoCall from '../components/VideoCall';
 import { getLevelDetails, awardXP } from '../lib/xpHelpers';
@@ -52,6 +53,45 @@ export default function StudentDashboard() {
   const [uniqueMentors, setUniqueMentors] = useState([]);
   const [pendingHomework, setPendingHomework] = useState([]);
   const [certificates, setCertificates] = useState([]);
+  const [friends, setFriends] = useState([]);
+  const [friendRequests, setFriendRequests] = useState([]);
+  
+  useEffect(() => {
+    async function fetchFriendsAndRequests() {
+      if (userProfile?.friends && userProfile.friends.length > 0) {
+        try {
+          const friendIds = userProfile.friends.slice(0, 10);
+          const q = query(collection(db, 'users'), where('__name__', 'in', friendIds));
+          const snapshot = await getDocs(q);
+          const friendsData = [];
+          snapshot.forEach(docSnap => {
+            friendsData.push({ id: docSnap.id, ...docSnap.data() });
+          });
+          setFriends(friendsData);
+        } catch (err) {
+          console.error("Error fetching friends:", err);
+        }
+      }
+      
+      if (userProfile?.friendRequests && userProfile.friendRequests.length > 0) {
+        try {
+          const requestIds = userProfile.friendRequests.slice(0, 10);
+          const q = query(collection(db, 'users'), where('__name__', 'in', requestIds));
+          const snapshot = await getDocs(q);
+          const reqData = [];
+          snapshot.forEach(docSnap => {
+            reqData.push({ id: docSnap.id, ...docSnap.data() });
+          });
+          setFriendRequests(reqData);
+        } catch (err) {
+          console.error("Error fetching friend requests:", err);
+        }
+      } else {
+        setFriendRequests([]);
+      }
+    }
+    fetchFriendsAndRequests();
+  }, [userProfile?.friends, userProfile?.friendRequests]);
   
   const [showVideo, setShowVideo] = useState(false);
   const [activeSession, setActiveSession] = useState(null);
@@ -206,6 +246,40 @@ export default function StudentDashboard() {
     const currentMissCount = userProfile?.miss_count || 0;
     if (currentMissCount > 0) {
       await updateUser(currentUser.uid, { miss_count: currentMissCount - 1 });
+    }
+  };
+
+  const handleAcceptFriend = async (requesterId) => {
+    if (!currentUser) return;
+    try {
+      const userRef = doc(db, 'users', currentUser.uid);
+      const requesterRef = doc(db, 'users', requesterId);
+      
+      await updateDoc(userRef, {
+        friendRequests: arrayRemove(requesterId),
+        friends: arrayUnion(requesterId)
+      });
+      
+      await updateDoc(requesterRef, {
+        friends: arrayUnion(currentUser.uid)
+      });
+      
+      setFriendRequests(prev => prev.filter(r => r.id !== requesterId));
+    } catch (err) {
+      console.error("Failed to accept friend request:", err);
+    }
+  };
+
+  const handleDeclineFriend = async (requesterId) => {
+    if (!currentUser) return;
+    try {
+      const userRef = doc(db, 'users', currentUser.uid);
+      await updateDoc(userRef, {
+        friendRequests: arrayRemove(requesterId)
+      });
+      setFriendRequests(prev => prev.filter(r => r.id !== requesterId));
+    } catch (err) {
+      console.error("Failed to decline friend request:", err);
     }
   };
 
@@ -418,346 +492,260 @@ export default function StudentDashboard() {
 
   return (
     <div className="page-container dashboard-page">
-      <div className="dashboard-wrapper animate-fade-in-up">
-        
-        {/* Miss Warnings */}
-        {(userProfile?.miss_count || 0) >= 10 ? (
-          <div className="alert-banner" style={{ background: 'rgba(255, 60, 60, 0.1)', border: '1px solid rgba(255, 60, 60, 0.3)', color: '#ff5c5c', padding: '1rem', borderRadius: '12px', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <span style={{ fontSize: '1.25rem' }}>🚨</span>
-            <p style={{ margin: 0, fontWeight: 500 }}><strong>10 misses</strong> — you're at risk of a study break. Complete 3 tasks to reduce your count.</p>
-          </div>
-        ) : (userProfile?.miss_count || 0) >= 5 ? (
-          <div className="alert-banner" style={{ background: 'rgba(255, 107, 0, 0.1)', border: '1px solid rgba(255, 107, 0, 0.3)', color: '#FF6B00', padding: '1rem', borderRadius: '12px', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <span style={{ fontSize: '1.25rem' }}>⚠️</span>
-            <p style={{ margin: 0, fontWeight: 500 }}><strong>5 misses!</strong> Your mentor can see this. Get back on track.</p>
-          </div>
-        ) : (userProfile?.miss_count || 0) >= 3 ? (
-          <div className="alert-banner" style={{ background: 'rgba(255, 193, 7, 0.1)', border: '1px solid rgba(255, 193, 7, 0.3)', color: '#ffc107', padding: '1rem', borderRadius: '12px', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <span style={{ fontSize: '1.25rem' }}>⚠️</span>
-            <p style={{ margin: 0, fontWeight: 500 }}>You've missed 3 tasks. Stay consistent — your mentor has been notified.</p>
-          </div>
-        ) : null}
-
-        {/* Welcome Banner */}
-        <header className="dashboard-header">
-          <div>
-            <p className="dashboard-date">{currentDate}</p>
-            <h1 className="dashboard-title">
-              Welcome back, <span className="highlight">{displayName}</span>! 👋
-            </h1>
-            <p className="dashboard-subtitle">Ready to level up today?</p>
-          </div>
-        </header>
-
-        {/* Level & Stats Section */}
-        <div className="stats-container">
-          <div className="level-card card">
-             <div className="level-header">
-                <div className="level-icon-large">{levelDetails.icon}</div>
-                <div className="level-info">
-                   <h2>{levelDetails.name}</h2>
-                   <div className="xp-total">{currentXP} <span className="xp-label">Total XP</span></div>
-                </div>
-             </div>
-             {levelDetails.nextLevel && (
-                <div className="level-progress-section">
-                   <div className="progress-bar-container">
-                      <div className="progress-bar-fill" style={{ width: `${levelDetails.progress}%` }}></div>
-                   </div>
-                   <p className="progress-text">
-                      {currentXP} / {levelDetails.nextLevel.min} XP to reach {levelDetails.nextLevel.name}
-                   </p>
-                </div>
-             )}
-             {!levelDetails.nextLevel && (
-                <p className="progress-text mt-3">You've reached the highest level! 🏆</p>
-             )}
-          </div>
-          
-          <div className="hud-stats">
-            <div className="hud-card card">
-              <span className="hud-icon">🎯</span>
-              <div className="hud-info">
-                <span className="hud-value">{userProfile?.totalSessionsCompleted || 0}</span>
-                <span className="hud-label">Sessions</span>
-              </div>
-            </div>
-            <div className="hud-card card">
-              <span className="hud-icon">🔥</span>
-              <div className="hud-info">
-                <span className="hud-value">{streak}</span>
-                <span className="hud-label">Day Streak</span>
-              </div>
-            </div>
-            <div className="hud-card card" style={{ position: 'relative' }}>
-              <span className="hud-icon">🏅</span>
-              <div className="hud-info">
-                <span className="hud-value">{(userProfile?.badges || []).length}</span>
-                <span className="hud-label">Badges</span>
-              </div>
-              {(userProfile?.miss_count || 0) > 0 && (
-                 <div style={{ position: 'absolute', top: '-10px', right: '-10px', background: '#ff3c3c', color: 'white', borderRadius: '50%', width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '0.85rem', boxShadow: '0 4px 10px rgba(255, 60, 60, 0.4)' }} title={`${userProfile.miss_count} misses`}>
-                   {userProfile.miss_count}
-                 </div>
-              )}
-            </div>
-          </div>
+    <div className="os-dashboard-container animate-fade-in">
+      
+      {/* ⚠️ Warning Banners (Keep existing logic, style updated) */}
+      {(userProfile?.miss_count || 0) >= 10 ? (
+        <div className="os-alert critical">
+          <span>🚨</span> <p><strong>10 misses</strong> — you're at risk of a study break. Complete 3 tasks to reduce your count.</p>
         </div>
+      ) : (userProfile?.miss_count || 0) >= 5 ? (
+        <div className="os-alert warning">
+          <span>⚠️</span> <p><strong>5 misses!</strong> Your mentor can see this. Get back on track.</p>
+        </div>
+      ) : (userProfile?.miss_count || 0) >= 3 ? (
+        <div className="os-alert caution">
+          <span>⚠️</span> <p>You've missed 3 tasks. Stay consistent — your mentor has been notified.</p>
+        </div>
+      ) : null}
 
-        {/* Dashboard Grid Content */}
-        <div className="dashboard-grid">
+      <div className="os-layout">
+        
+        {/* Main Workspace Column */}
+        <div className="os-main">
           
-          <div className="dashboard-column">
-            {/* Mentor Section */}
-            <section className="dashboard-section">
-              <h2 className="section-title">Your Mentors</h2>
-              {uniqueMentors.length > 0 ? (
-                <div className="mentors-list" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                  {uniqueMentors.map(m => (
-                    <div key={m.id} className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                         <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'var(--primary)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>
-                           {m.name.charAt(0)}
-                         </div>
-                         <h3 style={{ margin: 0, fontSize: '1.1rem' }}>{m.name}</h3>
-                       </div>
-                       <Link 
-                         to={`/chat/${currentUser.uid}_${m.id}`} 
-                         state={{ otherUser: { displayName: m.name } }}
-                         className="btn-secondary btn-sm"
-                         style={{ display: 'flex', alignItems: 'center' }}
-                       >
-                         Message 💬
-                         <UnreadBadge chatId={`${currentUser.uid}_${m.id}`} userId={currentUser.uid} />
-                       </Link>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="empty-state-card card">
-                  <div className="empty-state-icon">👤</div>
-                  <h3>No mentor yet</h3>
-                  <p>Get personalized 1-on-1 guidance from a senior who just did it.</p>
-                  <Link to="/find-mentors" className="btn-primary mt-3">
-                    Find one now →
-                  </Link>
-                </div>
-              )}
-            </section>
-
-            {/* Upcoming Sessions */}
-            <section className="dashboard-section">
-              <h2 className="section-title">Upcoming Sessions</h2>
-              {upcomingSessions.length > 0 ? (
-                <div className="sessions-list" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                  {upcomingSessions.map(session => {
-                    return (
-                      <div key={session.id} className="card session-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div>
-                          <h4 style={{ margin: '0 0 0.5rem 0' }}>Session with {session.mentorName}</h4>
-                          <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                            🗓️ {session.date} at {session.time} • {session.sessionType}
-                            {session.durationMinutes ? ` • ${session.durationMinutes} min` : ''}
-                          </p>
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                          {canJoin(session) ? (
-                            <button
-                              onClick={() => joinSession(session)}
-                              style={{ padding: '10px 20px', borderRadius: 10, border: 'none', background: '#FF6B00', color: '#fff', fontWeight: 700, fontSize: 14, cursor: 'pointer', boxShadow: '0 0 15px rgba(255,107,0,0.4)' }}
-                            >
-                              Join Session 🎥
-                            </button>
-                          ) : (
-                            <div style={{ color: '#8896B3', fontSize: 13 }}>Starts at {session.time}</div>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="empty-state-card card">
-                  <div className="empty-state-icon">🗓️</div>
-                  <h3>No sessions scheduled</h3>
-                  <p>Book a session with your mentor to clear doubts and get feedback.</p>
-                  <Link to="/find-mentors" className="btn-secondary mt-3">
-                    Book one now →
-                  </Link>
-                </div>
-              )}
-            </section>
-          </div>
-
-          <div className="dashboard-column">
-            {/* Pending Homework */}
-            <section className="dashboard-section">
-              <h2 className="section-title">Pending Homework</h2>
-              {pendingHomework.length > 0 ? (
-                <div className="sessions-list">
-                  {pendingHomework.map(hw => (
-                    <div key={hw.id} className="session-card card hover-lift">
-                      <div className="session-info">
-                        <h3 className="session-title">{hw.title}</h3>
-                        <p className="session-mentor">Assigned by {hw.mentorName}</p>
-                        {hw.description && <p className="session-time mt-2" style={{color: 'var(--text-secondary)'}}>{hw.description}</p>}
-                        <p className="session-time mt-2">
-                          <span className="calendar-icon">📅</span> Due: {new Date(hw.dueDate).toLocaleDateString()}
-                        </p>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                        <button className="btn-secondary" onClick={() => handleCompleteHomework(hw.id)}>
-                          Mark Complete ✓
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="empty-state-card card">
-                  <div className="empty-state-icon">🎉</div>
-                  <h3>All caught up!</h3>
-                  <p>No homework assigned yet. Relax or start a free course.</p>
-                </div>
-              )}
-            </section>
-
-            {/* My Saved Courses */}
-            <section className="dashboard-section">
-              <h2 className="section-title">My Courses</h2>
-              {savedCourses.length > 0 ? (
-                <div className="sessions-list">
-                  {savedCourses.map(savedCourse => {
-                    const courseData = COURSES.find(c => c.id === savedCourse.id);
-                    if (!courseData) return null;
-                    
-                    let btnStyle = { width: '160px', display: 'flex', justifyContent: 'center', transition: 'all 0.2s' };
-                    if (savedCourse.status === 'Completed! 🎓') {
-                      btnStyle = { ...btnStyle, background: 'rgba(16, 185, 129, 0.15)', color: '#10b981', border: '1px solid #10b981' };
-                    } else if (savedCourse.status === 'Currently Doing') {
-                      btnStyle = { ...btnStyle, background: 'var(--accent-saffron)', color: '#fff', border: 'none' };
-                    } else {
-                      btnStyle = { ...btnStyle, background: 'var(--bg-secondary)', color: 'var(--text-muted)' };
-                    }
-
-                    return (
-                      <div key={savedCourse.id} className="session-card card hover-lift" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-                        <div className="session-info">
-                          <h3 className="session-title">{courseData.title}</h3>
-                          <p className="session-mentor" style={{ fontSize: '0.85rem' }}>{courseData.provider}</p>
-                        </div>
-                        <div>
-                          <button 
-                            className="btn-secondary btn-sm" 
-                            style={btnStyle}
-                            onClick={() => handleUpdateCourseStatus(savedCourse.id, savedCourse.status)}
-                          >
-                            {savedCourse.status}
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="empty-state-card card">
-                  <div className="empty-state-icon">📚</div>
-                  <h3>No courses saved yet</h3>
-                  <p>Discover free gems and save them here.</p>
-                  <Link to="/free-courses" className="btn-secondary mt-3">
-                    Browse Courses →
-                  </Link>
-                </div>
-              )}
-            </section>
-
-            {/* Streak Calendar */}
-            <section className="dashboard-section">
-              <h2 className="section-title">Your Streak Journey</h2>
-              <div className="streak-display-card card">
-                <div className="streak-hero">
-                   <div className="streak-count" style={{ fontSize: fireSize, fontWeight: 'bold' }}>
-                      {streak} <span className="fire-emoji">🔥</span>
-                   </div>
-                   <p className="streak-subtitle">{streakSubtitle}</p>
-                </div>
-                
-                <div className="streak-grid mt-4">
-                  {last30Days.map(dayStr => {
-                    const isCompleted = userProfile?.activeDays?.includes(dayStr);
-                    const isToday = dayStr === toLocalDateString(new Date());
-                    return (
-                      <div 
-                        key={dayStr} 
-                        className={`streak-square ${isCompleted ? 'completed' : 'missed'} ${isToday ? 'today' : ''}`}
-                        title={dayStr}
-                      ></div>
-                    )
-                  })}
-                </div>
-                <p className="streak-footer">Complete sessions or homework to light up your calendar!</p>
+          {/* AI Coach Greeting Header */}
+          <header className="os-header card">
+            <div className="os-header-text">
+              <p className="os-date">{currentDate}</p>
+              <h1 className="os-title">Welcome back, {displayName}.</h1>
+              <div className="os-ai-suggestion">
+                <span className="ai-sparkle">✨</span>
+                <p>
+                  <strong>AI Coach:</strong>{' '}
+                  {upcomingSessions.length > 0
+                    ? `You have a live session at ${upcomingSessions[0].time}. Prepare your questions to make the most of it!`
+                    : pendingHomework.length > 0
+                    ? `Focus up! You have ${pendingHomework.length} pending task${pendingHomework.length > 1 ? 's' : ''}. Clear them to keep your momentum.`
+                    : userProfile?.streak > 0
+                    ? `Your streak is at ${userProfile.streak} days! Review some community tips to keep the fire alive.`
+                    : "Ready to start fresh? Book a mentor or complete a task to kickstart your streak!"}
+                </p>
               </div>
-            </section>
+            </div>
+            <div className="os-focus-ring">
+              <svg viewBox="0 0 36 36" className="circular-chart orange">
+                <path className="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                <path className="circle" strokeDasharray={`${Math.min(100, pendingHomework.length > 0 ? 50 : 100)}, 100`} d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+              </svg>
+              <div className="ring-text">
+                <span className="ring-value">{pendingHomework.length === 0 ? '100%' : '50%'}</span>
+                <span className="ring-label">Daily Focus</span>
+              </div>
+            </div>
+          </header>
 
-            {/* Achievements */}
-            <section className="dashboard-section">
-              <h2 className="section-title">Achievements</h2>
-              <BadgeGrid earnedBadges={userProfile?.badges || []} />
-            </section>
-
-            {/* Certificates */}
-            <section className="dashboard-section">
-              <h2 className="section-title">My Certificates</h2>
-              {certificates.length > 0 ? (
-                <div className="sessions-list">
-                  {certificates.map(cert => (
-                    <div key={cert.id} className="card hover-lift" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div>
-                        <h4 style={{ margin: '0 0 0.5rem 0' }}>{cert.subject} Mentorship</h4>
-                        <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                          Issued: {cert.dateOfIssue}
-                        </p>
+          <div className="os-grid-2">
+            {/* Today's Target (Pending Homework) */}
+            <section className="os-section card">
+              <div className="os-section-header">
+                <h2>Today's Targets</h2>
+                <span className="badge-count">{pendingHomework.length} pending</span>
+              </div>
+              
+              {pendingHomework.length > 0 ? (
+                <div className="os-task-list">
+                  {pendingHomework.map(hw => (
+                    <div key={hw.id} className="os-task-item">
+                      <div className="task-info">
+                        <h3>{hw.title}</h3>
+                        <p>Assigned by {hw.mentorName} • Due: {new Date(hw.dueDate).toLocaleDateString()}</p>
                       </div>
-                      <button 
-                        className="btn-secondary btn-sm" 
-                        onClick={() => generateAndDownloadCertificate({ ...cert, persist: false })}
-                      >
-                        Download 📥
+                      <button className="os-btn-check" onClick={() => handleCompleteHomework(hw.id)}>
+                        <div className="check-circle"></div>
                       </button>
                     </div>
                   ))}
                 </div>
               ) : (
-                <div className="empty-state-card card" style={{ padding: '2rem' }}>
-                  <div className="empty-state-icon" style={{ fontSize: '2rem' }}>🎓</div>
-                  <h3 style={{ fontSize: '1.1rem' }}>No certificates yet</h3>
-                  <p style={{ fontSize: '0.9rem' }}>Complete a mentorship program to earn a verified certificate.</p>
+                <div className="os-empty-state">
+                  <div className="empty-icon">✅</div>
+                  <p>All targets cleared. You're unstoppable.</p>
+                </div>
+              )}
+            </section>
+
+            {/* Upcoming Sessions */}
+            <section className="os-section card">
+              <div className="os-section-header">
+                <h2>Live Sessions</h2>
+              </div>
+              
+              {upcomingSessions.length > 0 ? (
+                <div className="os-session-list">
+                  {upcomingSessions.map(session => (
+                    <div key={session.id} className="os-session-item">
+                      <div className="session-time-block">
+                        <span className="s-time">{session.time}</span>
+                        <span className="s-date">{session.date}</span>
+                      </div>
+                      <div className="session-details">
+                        <h4>{session.mentorName}</h4>
+                        <p>{session.sessionType}</p>
+                        {canJoin(session) ? (
+                          <button className="os-btn-join glow-btn" onClick={() => joinSession(session)}>
+                            Join Now 🔴
+                          </button>
+                        ) : (
+                          <span className="s-waiting">Waiting...</span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="os-empty-state">
+                  <div className="empty-icon">🗓️</div>
+                  <p>No sessions scheduled.</p>
+                  <Link to="/find-mentors" className="os-link">Find a mentor →</Link>
                 </div>
               )}
             </section>
           </div>
 
+          {/* Quick Actions & Courses */}
+          <section className="os-section card">
+            <h2>Fast Actions</h2>
+            <div className="os-quick-actions">
+              <Link to="/ai-tutor" className="os-qa-btn">
+                <span className="qa-icon">🤖</span>
+                <div>
+                  <h4>Ask AI Tutor</h4>
+                  <p>Stuck? Get instant help.</p>
+                </div>
+              </Link>
+              <Link to="/free-courses" className="os-qa-btn">
+                <span className="qa-icon">📚</span>
+                <div>
+                  <h4>Free Courses</h4>
+                  <p>Learn something new.</p>
+                </div>
+              </Link>
+              <Link to="/find-mentors" className="os-qa-btn">
+                <span className="qa-icon">🎓</span>
+                <div>
+                  <h4>Book Mentor</h4>
+                  <p>1-on-1 guidance.</p>
+                </div>
+              </Link>
+            </div>
+          </section>
+
         </div>
 
-        {/* Quick Actions */}
-        <section className="quick-actions-section">
-          <h2 className="section-title">Quick Actions</h2>
-          <div className="quick-actions">
-            <Link to="/find-mentors" className="quick-action-btn card">
-              <span className="qa-icon">🎓</span>
-              <span className="qa-text">Find Mentor</span>
-            </Link>
-            <Link to="/ai-tutor" className="quick-action-btn card">
-              <span className="qa-icon">🤖</span>
-              <span className="qa-text">Ask AI Tutor</span>
-            </Link>
-            <Link to="/free-courses" className="quick-action-btn card">
-              <span className="qa-icon">📚</span>
-              <span className="qa-text">Browse Free Courses</span>
-            </Link>
-          </div>
-        </section>
+        {/* Right Sidebar: Social & Stats Loop */}
+        <aside className="os-sidebar">
+          
+          {/* Identity & Level */}
+          <div className="os-profile-card card">
+            <div className="os-avatar-ring">
+              <div className="os-avatar">{displayName.charAt(0)}</div>
+            </div>
+            <h2>{displayName}</h2>
+            <p className="os-level-text">{levelDetails.name}</p>
+            
+            <div className="os-stats-mini">
+              <div className="stat">
+                <span>🔥</span>
+                <strong>{streak}</strong>
+                <label>Streak</label>
+              </div>
+              <div className="stat">
+                <span>🏅</span>
+                <strong>{(userProfile?.badges || []).length}</strong>
+                <label>Badges</label>
+              </div>
+              <div className="stat">
+                <span>🎯</span>
+                <strong>{userProfile?.totalSessionsCompleted || 0}</strong>
+                <label>Sessions</label>
+              </div>
+            </div>
 
+            {levelDetails.nextLevel && (
+              <div className="os-xp-bar">
+                <div className="xp-fill" style={{ width: `${levelDetails.progress}%` }}></div>
+                <span className="xp-text">{currentXP} / {levelDetails.nextLevel.min} XP</span>
+              </div>
+            )}
+          </div>
+
+          {/* Activity / Streak Graph */}
+          <div className="os-streak-card card">
+            <h3>Consistency Loop</h3>
+            <div className="streak-dots">
+              {last30Days.slice(-14).map((dayStr, idx) => {
+                const isCompleted = userProfile?.activeDays?.includes(dayStr);
+                const isToday = dayStr === toLocalDateString(new Date());
+                return (
+                  <div 
+                    key={idx} 
+                    className={`dot ${isCompleted ? 'active' : ''} ${isToday ? 'today' : ''}`}
+                    title={dayStr}
+                  ></div>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Friend Requests (NEW) */}
+          {friendRequests.length > 0 && (
+            <div className="os-requests-card card">
+              <h3>Incoming Requests</h3>
+              <div className="os-friends-list">
+                {friendRequests.map(req => (
+                  <div key={req.id} className="friend-item request-item">
+                    <div className="friend-avatar">{req.displayName?.charAt(0) || 'S'}</div>
+                    <div className="friend-info">
+                      <h4>{req.displayName}</h4>
+                      <p>Wants to connect</p>
+                    </div>
+                    <div className="request-actions">
+                      <button onClick={() => handleAcceptFriend(req.id)} className="btn-accept" title="Accept">✓</button>
+                      <button onClick={() => handleDeclineFriend(req.id)} className="btn-decline" title="Decline">✕</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Social / Friend Activity (NEW) */}
+          <div className="os-social-card card">
+            <h3>Study Clan Activity</h3>
+            {friends.length > 0 ? (
+              <div className="os-friends-list">
+                {friends.map(friend => (
+                  <div key={friend.id} className="friend-item">
+                    <div className="friend-avatar">{friend.displayName?.charAt(0) || 'S'}</div>
+                    <div className="friend-info">
+                      <h4>{friend.displayName}</h4>
+                      <p>🔥 {friend.streak || 0} day streak</p>
+                    </div>
+                    <Link to={`/student/${friend.id}`} className="friend-link">→</Link>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="os-empty-state small">
+                <p>Study alone, fail alone. Build your clan.</p>
+                <Link to="/community" className="os-link">Find Friends</Link>
+              </div>
+            )}
+          </div>
+
+        </aside>
+      </div>
       </div>
 
       {badgePopupQueue.length > 0 && (
