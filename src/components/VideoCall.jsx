@@ -77,9 +77,9 @@ export default function VideoCall({ roomName, participantName, participantIdenti
   if (loading) {
     return (
       <div style={overlayStyle}>
-        <div style={{ fontSize: 50 }}>📹</div>
-        <div style={{ color: '#FF6B00', fontWeight: 700, fontSize: 20 }}>Starting Senjr Session...</div>
-        <div style={{ color: '#8896B3', fontSize: 14 }}>Please wait</div>
+        <div style={{ fontSize: 50 }}>🎥</div>
+        <div style={{ color: '#FF6B00', fontWeight: 700, fontSize: 20 }}>Connecting your study room...</div>
+        <div style={{ color: '#8896B3', fontSize: 14 }}>Syncing camera, mic, and token</div>
       </div>
     );
   }
@@ -94,9 +94,9 @@ export default function VideoCall({ roomName, participantName, participantIdenti
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
           <button onClick={() => { setLoading(true); setError(null); setRetryTick((v) => v + 1); }} style={primaryButtonStyle}>
-            Retry
+            🔁 Retry
           </button>
-          <button onClick={onSessionEnd} style={secondaryButtonStyle}>Go Back</button>
+          <button onClick={onSessionEnd} style={secondaryButtonStyle}>↩️ Go Back</button>
         </div>
       </div>
     );
@@ -104,31 +104,20 @@ export default function VideoCall({ roomName, participantName, participantIdenti
 
   return (
     <div style={{ ...overlayStyle, alignItems: 'stretch', justifyContent: 'flex-start' }}>
-      <div style={{
-        background: '#131929',
-        padding: '10px 16px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        borderBottom: '1px solid rgba(255,107,0,0.3)',
-        flexShrink: 0,
-      }}>
-        <div style={{ fontWeight: 800, color: '#FF6B00', fontSize: 18 }}>Senjr ⚡ Session</div>
-        <button
-          onClick={onSessionEnd}
-          style={{
-            padding: '6px 18px',
-            borderRadius: 8,
-            border: '1px solid rgba(255,100,100,0.5)',
-            background: 'rgba(255,100,100,0.1)',
-            color: '#ff6464',
-            fontWeight: 700,
-            fontSize: 13,
-            cursor: 'pointer',
-          }}
-        >
-          End Session
-        </button>
+      <div style={meetingTopBarStyle}>
+        <div style={meetingLeftStyle}>
+          <div style={brandPillStyle}>🎓 Senjr Meet</div>
+          <div style={roomPillStyle}>🧠 {String(roomName || 'session').slice(0, 28)}</div>
+        </div>
+        <div style={meetingCenterStyle}>
+          <span style={liveDotStyle}></span>
+          <span style={{ fontSize: 13, color: '#b6c2dd' }}>Live mentoring call</span>
+        </div>
+        <div style={meetingRightStyle}>
+          <button style={utilityBtnStyle} title="Captions (coming soon)">📝 Captions</button>
+          <button style={utilityBtnStyle} title="Raise hand (coming soon)">✋ Raise</button>
+          <button onClick={onSessionEnd} style={hangupBtnStyle}>📴 End</button>
+        </div>
       </div>
       <div style={{ flex: 1, minHeight: 0 }}>
         <LiveKitRoom
@@ -144,6 +133,14 @@ export default function VideoCall({ roomName, participantName, participantIdenti
           <VideoConference />
           <RoomAudioRenderer />
         </LiveKitRoom>
+      </div>
+      <div style={meetingBottomDockStyle}>
+        <div style={dockGroupStyle}>
+          <button style={dockBtnStyle}>🎙️ Mic</button>
+          <button style={dockBtnStyle}>📷 Cam</button>
+          <button style={dockBtnStyle}>🖥️ Share</button>
+        </div>
+        <div style={dockInfoStyle}>Tip: Use headphones for cleaner audio</div>
       </div>
     </div>
   );
@@ -179,4 +176,122 @@ const secondaryButtonStyle = {
   ...primaryButtonStyle,
   background: 'transparent',
   border: '1px solid rgba(255,255,255,0.25)',
+};
+
+const meetingTopBarStyle = {
+  background: 'rgba(17, 22, 38, 0.95)',
+  borderBottom: '1px solid rgba(255,255,255,0.08)',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: 12,
+  padding: '10px 14px',
+  flexShrink: 0,
+};
+
+const meetingLeftStyle = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: 8,
+  minWidth: 0,
+};
+
+const meetingCenterStyle = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: 8,
+};
+
+const meetingRightStyle = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: 8,
+};
+
+const brandPillStyle = {
+  background: 'rgba(255,107,0,0.18)',
+  color: '#ffd3b2',
+  border: '1px solid rgba(255,107,0,0.35)',
+  borderRadius: 999,
+  fontSize: 12,
+  fontWeight: 700,
+  padding: '6px 10px',
+  whiteSpace: 'nowrap',
+};
+
+const roomPillStyle = {
+  background: 'rgba(255,255,255,0.06)',
+  color: '#d5def4',
+  border: '1px solid rgba(255,255,255,0.12)',
+  borderRadius: 999,
+  fontSize: 12,
+  fontWeight: 600,
+  padding: '6px 10px',
+  whiteSpace: 'nowrap',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+};
+
+const liveDotStyle = {
+  width: 8,
+  height: 8,
+  borderRadius: '50%',
+  background: '#22c55e',
+  boxShadow: '0 0 0 6px rgba(34,197,94,0.15)',
+};
+
+const utilityBtnStyle = {
+  border: '1px solid rgba(255,255,255,0.15)',
+  background: 'rgba(255,255,255,0.06)',
+  color: '#dbe5ff',
+  borderRadius: 10,
+  padding: '7px 10px',
+  fontWeight: 600,
+  fontSize: 12,
+  cursor: 'pointer',
+};
+
+const hangupBtnStyle = {
+  border: '1px solid rgba(255,97,97,0.45)',
+  background: 'rgba(255,97,97,0.18)',
+  color: '#ffd2d2',
+  borderRadius: 10,
+  padding: '7px 12px',
+  fontWeight: 700,
+  fontSize: 12,
+  cursor: 'pointer',
+};
+
+const meetingBottomDockStyle = {
+  background: 'rgba(17, 22, 38, 0.95)',
+  borderTop: '1px solid rgba(255,255,255,0.08)',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: 12,
+  padding: '10px 14px',
+  flexShrink: 0,
+};
+
+const dockGroupStyle = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: 8,
+};
+
+const dockBtnStyle = {
+  border: '1px solid rgba(255,255,255,0.14)',
+  background: 'rgba(255,255,255,0.05)',
+  color: '#d7e3ff',
+  borderRadius: 12,
+  padding: '8px 12px',
+  fontWeight: 600,
+  fontSize: 12,
+  cursor: 'pointer',
+};
+
+const dockInfoStyle = {
+  color: '#95a4c7',
+  fontSize: 12,
+  fontWeight: 500,
 };
