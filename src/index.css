@@ -120,6 +120,7 @@ html {
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
@@ -130,6 +131,7 @@ body {
   background-color: var(--bg-primary);
   min-height: 100vh;
   overflow-x: hidden;
+  overscroll-behavior-y: none;
 }
 
 /* Global radial background — depth without distraction */
@@ -157,6 +159,7 @@ h1, h2, h3, h4, h5, h6 {
 a {
   color: inherit;
   text-decoration: none;
+  touch-action: manipulation;
 }
 
 img {
@@ -173,6 +176,7 @@ button {
   font-family: inherit;
   font-size: inherit;
   color: inherit;
+  touch-action: manipulation;
 }
 
 input, textarea, select {
