@@ -1,6 +1,6 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { getServerEnv } from '../env.js';
-import { allowCors, readJsonBody, sendError, sendJson } from '../http.js';
+import { allowCors, readJsonBody, sendError, sendJson, verifyAuth } from '../http.js';
 
 const NVIDIA_API_URL = 'https://integrate.api.nvidia.com/v1/chat/completions';
 
@@ -78,6 +78,12 @@ export async function aiTutorHandler(req, res) {
 
   if (req.method !== 'POST') {
     sendError(res, 405, 'Method not allowed.');
+    return;
+  }
+
+  const user = await verifyAuth(req);
+  if (!user) {
+    sendError(res, 401, 'Unauthorized. Please log in.');
     return;
   }
 

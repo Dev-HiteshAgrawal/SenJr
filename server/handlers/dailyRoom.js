@@ -1,5 +1,5 @@
 import { getServerEnv } from '../env.js';
-import { allowCors, readJsonBody, sendError, sendJson } from '../http.js';
+import { allowCors, readJsonBody, sendError, sendJson, verifyAuth } from '../http.js';
 
 const DAILY_API_URL = 'https://api.daily.co/v1/rooms';
 
@@ -14,6 +14,12 @@ export async function dailyRoomHandler(req, res) {
 
   if (req.method !== 'POST') {
     sendError(res, 405, 'Method not allowed.');
+    return;
+  }
+
+  const user = await verifyAuth(req);
+  if (!user) {
+    sendError(res, 401, 'Unauthorized. Please log in.');
     return;
   }
 

@@ -109,10 +109,11 @@ export function AuthProvider({ children }) {
           return;
         }
 
+        // Only sync basic info to avoid overwriting profile fields
         await upsertUser(user.uid, {
           email: user.email || existingProfile.email || '',
-          displayName: user.displayName || existingProfile.displayName || existingProfile.name || '',
-          name: existingProfile.name || user.displayName || '',
+          displayName: existingProfile.displayName || user.displayName || existingProfile.name || '',
+          name: existingProfile.name || existingProfile.displayName || user.displayName || '',
           photoURL: user.photoURL || existingProfile.photoURL || '',
         });
 
@@ -157,6 +158,10 @@ export function AuthProvider({ children }) {
   }
 
   async function handleCompleteRegistration(uid, profileData) {
+    if (!currentUser || currentUser.uid !== uid) {
+      throw new Error('Unauthorized registration');
+    }
+
     const role = profileData.role || 'student';
     await upsertUser(uid, {
       ...buildDefaultProfile(role, profileData),

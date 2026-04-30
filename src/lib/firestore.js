@@ -29,8 +29,9 @@ import {
   limit,
   serverTimestamp,
   Timestamp,
+  runTransaction,
 } from 'firebase/firestore';
-import { db } from './firebase';
+import { db, auth } from './firebase';
 
 // ─── Collection References ──────────────────────────────────
 
@@ -150,6 +151,9 @@ export async function removeDocument(collectionName, id) {
  * @param {object} data   { displayName, email, photoURL, role, bio, … }
  */
 export async function upsertUser(uid, data) {
+  if (auth.currentUser && auth.currentUser.uid !== uid) {
+    throw new Error('Unauthorized profile update');
+  }
   return setDocument(COLLECTIONS.USERS, uid, data);
 }
 
@@ -166,6 +170,12 @@ export async function getAllUsers(...constraints) {
 }
 
 export async function updateUser(uid, data) {
+  if (auth.currentUser && auth.currentUser.uid !== uid) {
+    const user = await getUser(auth.currentUser.uid);
+    if (user?.role !== 'admin') {
+      throw new Error('Unauthorized profile update');
+    }
+  }
   return updateDocument(COLLECTIONS.USERS, uid, data);
 }
 
@@ -229,7 +239,56 @@ export async function deleteStudent(id) {
  * @param {object} data  { mentorId, studentId, scheduledAt, duration, status, topic, … }
  */
 export async function createSession(data) {
-  return createDocument(COLLECTIONS.SESSIONS, data);
+  if (!auth.currentUser || data.studentId !== auth.currentUser.uid) {
+    throw new Error('Unauthorized session booking');
+  }
+
+  return runTransaction(db, async (transaction) => {
+    // 1. Verify mentor exists and is available
+    const mentorRef = docRef(COLLECTIONS.USERS, data.mentorId);
+    const mentorSnap = await transaction.get(mentorRef);
+    if (!mentorSnap.exists()) {
+      throw new Error('Mentor not found');
+    }
+    const mentorData = mentorSnap.data();
+
+    const dayName = data.dayName;
+    const time = data.time;
+    const availability = mentorData.availability?.[dayName] || [];
+    const isAvailable = availability.some(slot => slot.start === time);
+
+    if (!isAvailable) {
+      throw new Error('Mentor is not available at this time');
+    }
+
+    // 2. Check for double booking
+    const sessionsCol = colRef(COLLECTIONS.SESSIONS);
+    const q = query(
+      sessionsCol,
+      where('mentorId', '==', data.mentorId),
+      where('date', '==', data.date),
+      where('time', '==', data.time),
+      where('status', '==', 'upcoming')
+    );
+    const existingSessions = await getDocs(q);
+    if (!existingSessions.empty && data.sessionType !== 'Group (max 4)') {
+      throw new Error('Slot already booked');
+    }
+
+    if (data.sessionType === 'Group (max 4)' && existingSessions.size >= 4) {
+       throw new Error('Group session is full');
+    }
+
+    // 3. Create the session
+    const newSessionRef = doc(sessionsCol);
+    transaction.set(newSessionRef, {
+      ...data,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
+
+    return newSessionRef.id;
+  });
 }
 
 export async function getSession(id) {
