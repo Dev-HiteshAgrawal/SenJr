@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { LiveKitRoom, VideoConference, RoomAudioRenderer } from '@livekit/components-react';
+import { useAuth } from '../contexts/AuthContext';
 import '@livekit/components-styles';
 
 export default function VideoCall({ roomName, participantName, participantIdentity, onSessionEnd }) {
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { currentUser } = useAuth();
   const livekitUrl = import.meta.env.VITE_LIVEKIT_URL;
 
   useEffect(() => {
@@ -13,13 +15,21 @@ export default function VideoCall({ roomName, participantName, participantIdenti
 
     async function getToken() {
       try {
+        if (!currentUser) {
+          throw new Error('You must be logged in to join a session.');
+        }
+
+        const idToken = await currentUser.getIdToken();
         const cleanRoom = String(roomName || 'senjr-session')
           .replace(/[^a-zA-Z0-9_-]/g, '-')
           .slice(0, 64);
 
         const response = await fetch('/api/livekit-token', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${idToken}`
+          },
           body: JSON.stringify({
             roomName: cleanRoom,
             participantName: participantName || 'Senjr User',

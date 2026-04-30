@@ -122,11 +122,11 @@ export default function Home() {
 
           {/* CTAs */}
           <div className="hero-ctas">
-            <Link to="/find-mentors" className="btn-primary" id="hero-find-mentor">
+            <Link to="/signup" state={{ role: 'student' }} className="btn-primary" id="hero-join-student">
               <span>🎓</span>
-              <span>Find a Mentor</span>
+              <span>Join as Student</span>
             </Link>
-            <Link to="/signup" className="btn-secondary" id="hero-become-mentor">
+            <Link to="/signup" state={{ role: 'mentor' }} className="btn-secondary" id="hero-become-mentor">
               <span>✨</span>
               <span>Become a Mentor</span>
             </Link>

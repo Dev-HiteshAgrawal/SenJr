@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
+import { NotificationProvider } from './contexts/NotificationContext';
 import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute';
 
@@ -25,8 +26,9 @@ import AdminPanel from './pages/AdminPanel';
 export default function App() {
   return (
     <BrowserRouter>
-      <AuthProvider>
-        <Navbar />
+      <NotificationProvider>
+        <AuthProvider>
+          <Navbar />
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
@@ -46,7 +48,8 @@ export default function App() {
           <Route path="/chat/:chatId" element={<ProtectedRoute><ChatRoom /></ProtectedRoute>} />
           <Route path="/admin" element={<ProtectedRoute><AdminPanel /></ProtectedRoute>} />
         </Routes>
-      </AuthProvider>
+        </AuthProvider>
+      </NotificationProvider>
     </BrowserRouter>
   );
 }

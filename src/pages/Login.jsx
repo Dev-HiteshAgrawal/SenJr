@@ -132,6 +132,14 @@ export default function Login() {
         {message && <div className="auth-success">{message}</div>}
 
         <div className="card login-card">
+          <button type="button" className="btn-secondary google-login-btn" onClick={handleGoogleLogin} disabled={loading}>
+            Continue with Google
+          </button>
+
+          <div className="auth-divider">
+            <span>OR LOGIN WITH EMAIL</span>
+          </div>
+
           <form className="login-form" onSubmit={handleEmailLogin}>
             <div className="form-group">
               <label htmlFor="login-email">Email</label>
@@ -168,14 +176,6 @@ export default function Login() {
               {loading ? 'Logging in...' : 'Login'}
             </button>
           </form>
-
-          <div className="auth-divider">
-            <span>OR</span>
-          </div>
-
-          <button type="button" className="btn-secondary google-login-btn" onClick={handleGoogleLogin} disabled={loading}>
-            Login with Google
-          </button>
         </div>
 
         <p className="auth-footer-text">
