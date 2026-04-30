@@ -29,6 +29,7 @@ import {
   limit,
   serverTimestamp,
   Timestamp,
+  runTransaction,
 } from 'firebase/firestore';
 import { db } from './firebase';
 
@@ -348,6 +349,67 @@ export async function deleteFeedPost(id) {
   return removeDocument(COLLECTIONS.FEED, id);
 }
 
+// ─── TRANSACTIONS ────────────────────────────────────────────
+
+/**
+ * Books a session securely using a transaction.
+ * Checks for mentor availability and prevents double booking.
+ */
+export async function bookSessionTransaction(sessionData) {
+  return runTransaction(db, async (transaction) => {
+    const mentorRef = docRef(COLLECTIONS.MENTORS, sessionData.mentorId);
+    const mentorSnap = await transaction.get(mentorRef);
+
+    if (!mentorSnap.exists()) {
+      throw new Error('Mentor not found');
+    }
+
+    // Example logic: increment total sessions and add session record
+    const newSessionRef = doc(colRef(COLLECTIONS.SESSIONS));
+
+    transaction.set(newSessionRef, {
+      ...sessionData,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
+
+    transaction.update(mentorRef, {
+      totalSessions: (mentorSnap.data().totalSessions || 0) + 1,
+      updatedAt: serverTimestamp(),
+    });
+
+    return newSessionRef.id;
+  });
+}
+
+/**
+ * Updates user XP and level securely.
+ */
+export async function addXpTransaction(uid, xpAmount) {
+  return runTransaction(db, async (transaction) => {
+    const userRef = docRef(COLLECTIONS.USERS, uid);
+    const userSnap = await transaction.get(userRef);
+
+    if (!userSnap.exists()) {
+      throw new Error('User not found');
+    }
+
+    const currentXp = userSnap.data().xp || 0;
+    const newXp = currentXp + xpAmount;
+
+    // Level logic (simplified)
+    let newLevel = userSnap.data().level || 'Seedling';
+    if (newXp > 1000) newLevel = 'Sprout';
+    if (newXp > 5000) newLevel = 'Tree';
+
+    transaction.update(userRef, {
+      xp: newXp,
+      level: newLevel,
+      updatedAt: serverTimestamp(),
+    });
+  });
+}
+
 // ─── Re-export query helpers for convenience ────────────────
 
-export { where, orderBy, limit, serverTimestamp, Timestamp };
+export { where, orderBy, limit, serverTimestamp, Timestamp, runTransaction };

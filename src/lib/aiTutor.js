@@ -8,16 +8,22 @@ async function readApiResponse(response, fallbackMessage) {
   return data;
 }
 
+import { auth } from './firebase';
+
 export async function fetchAiRuntimeConfig() {
   const response = await fetch('/api/runtime-config');
   return readApiResponse(response, 'Could not load AI tutor runtime configuration.');
 }
 
 export async function generateTutorReply({ tutor, messages }) {
+  const user = auth.currentUser;
+  const token = user ? await user.getIdToken() : null;
+
   const response = await fetch('/api/ai-tutor', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
     body: JSON.stringify({ tutor, messages }),
   });

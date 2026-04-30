@@ -1,6 +1,8 @@
 import { AccessToken } from 'livekit-server-sdk';
+import { verifyAuth } from '../auth.js';
 import { getServerEnv } from '../env.js';
 import { allowCors, readJsonBody, sendError, sendJson } from '../http.js';
+import { sanitize } from '../sanitizer.js';
 
 function cleanRoomName(roomName) {
   return String(roomName || 'senjr-session')
@@ -22,6 +24,12 @@ export async function livekitTokenHandler(req, res) {
     return;
   }
 
+  const user = await verifyAuth(req);
+  if (!user) {
+    sendError(res, 401, 'Unauthorized. Please provide a valid session token.');
+    return;
+  }
+
   const { livekitApiKey, livekitApiSecret } = getServerEnv();
   if (!livekitApiKey || !livekitApiSecret) {
     sendError(res, 500, 'LiveKit video service is not configured on the server.');
@@ -36,7 +44,8 @@ export async function livekitTokenHandler(req, res) {
   const idToken = authHeader.split('Bearer ')[1];
 
   try {
-    const body = await readJsonBody(req);
+    const rawBody = await readJsonBody(req);
+    const body = sanitize(rawBody);
     const roomName = cleanRoomName(body?.roomName);
     const participantIdentity = String(body?.participantIdentity || `user-${Date.now()}`);
     const participantName = String(body?.participantName || 'User');

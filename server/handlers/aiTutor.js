@@ -1,6 +1,8 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { verifyAuth } from '../auth.js';
 import { getServerEnv } from '../env.js';
 import { allowCors, readJsonBody, sendError, sendJson } from '../http.js';
+import { sanitize } from '../sanitizer.js';
 
 const NVIDIA_API_URL = 'https://integrate.api.nvidia.com/v1/chat/completions';
 
@@ -81,6 +83,12 @@ export async function aiTutorHandler(req, res) {
     return;
   }
 
+  const user = await verifyAuth(req);
+  if (!user) {
+    sendError(res, 401, 'Unauthorized. Please provide a valid session token.');
+    return;
+  }
+
   const provider = getProvider();
   if (!provider) {
     sendError(res, 500, 'AI tutor is not configured on the server.');
@@ -88,7 +96,8 @@ export async function aiTutorHandler(req, res) {
   }
 
   try {
-    const body = await readJsonBody(req);
+    const rawBody = await readJsonBody(req);
+    const body = sanitize(rawBody);
     const tutor = body?.tutor;
     const messages = body?.messages;
 

@@ -2,6 +2,9 @@ import { onRequest } from 'firebase-functions/v2/https';
 import { defineSecret } from 'firebase-functions/params';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { AccessToken } from 'livekit-server-sdk';
+import admin from 'firebase-admin';
+
+admin.initializeApp();
 
 const nvidiaApiKey = defineSecret('NVIDIA_API_KEY');
 const geminiApiKey = defineSecret('GEMINI_API_KEY');
@@ -106,9 +109,31 @@ async function handleRuntimeConfig(req, res) {
   });
 }
 
+async function verifyAuth(req) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return null;
+  }
+
+  const token = authHeader.split('Bearer ')[1];
+  try {
+    const decodedToken = await admin.auth().verifyIdToken(token);
+    return decodedToken;
+  } catch (error) {
+    console.error('Error verifying auth token:', error);
+    return null;
+  }
+}
+
 async function handleAiTutor(req, res) {
   if (req.method !== 'POST') {
     sendError(res, 405, 'Method not allowed.');
+    return;
+  }
+
+  const user = await verifyAuth(req);
+  if (!user) {
+    sendError(res, 401, 'Unauthorized. Please provide a valid session token.');
     return;
   }
 
@@ -143,6 +168,12 @@ function cleanRoomName(roomName) {
 async function handleLiveKitToken(req, res) {
   if (req.method !== 'POST') {
     sendError(res, 405, 'Method not allowed.');
+    return;
+  }
+
+  const user = await verifyAuth(req);
+  if (!user) {
+    sendError(res, 401, 'Unauthorized. Please provide a valid session token.');
     return;
   }
 
