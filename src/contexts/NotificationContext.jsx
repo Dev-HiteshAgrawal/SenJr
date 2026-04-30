@@ -8,10 +8,11 @@ export function useNotification() {
 }
 
 const ERROR_MESSAGES = [
-  "Error 6769: Even Albert Einstein Made MISTAKES! 😅",
-  "Error 6769: Oops... Even Albert Einstein Made MISTAKES! 🛸",
-  "Error 6769: The server sneezed. Even Albert Einstein Made MISTAKES! 🤧",
-  "Error 6769: Something went wonky... Even Albert Einstein Made MISTAKES! 🧪"
+  'Error 6769: Even Albert Einstein Made MISTAKES.',
+  'Error 6769: Oops. Even Albert Einstein Made MISTAKES.',
+  'Error 6769: Temporary glitch. Even Albert Einstein Made MISTAKES.',
+  'Error 6769: Unexpected mismatch. Even Albert Einstein Made MISTAKES.',
+  'Error 6769: Retry in a moment. Even Albert Einstein Made MISTAKES.',
 ];
 
 export function NotificationProvider({ children }) {
@@ -24,7 +25,7 @@ export function NotificationProvider({ children }) {
     let finalMessage = message;
     if (type === 'error') {
       const einsteinMsg = ERROR_MESSAGES[Math.floor(Math.random() * ERROR_MESSAGES.length)];
-      finalMessage = `${einsteinMsg} (Details: ${message})`;
+      finalMessage = `${einsteinMsg} ${message ? `Details: ${message}` : ''}`.trim();
     }
 
     setNotifications((prev) => [...prev, { id, type, message: finalMessage }]);

@@ -19,6 +19,13 @@ const TOPICS = [
 ];
 
 const FILTERS = ['All Posts', 'Tip 💡', 'Success Story 🎉', 'Question ❓', 'Motivation 🔥'];
+const STORY_GRADIENTS = [
+  'linear-gradient(135deg,#ff7a18,#ff2d55)',
+  'linear-gradient(135deg,#f7971e,#ffd200)',
+  'linear-gradient(135deg,#00c6ff,#0072ff)',
+  'linear-gradient(135deg,#7f00ff,#e100ff)',
+  'linear-gradient(135deg,#11998e,#38ef7d)',
+];
 
 function timeAgo(dateInput) {
   if (!dateInput) return 'just now';
@@ -63,6 +70,7 @@ export default function Community() {
   
   // Comment State
   const [activeCommentPostId, setActiveCommentPostId] = useState(null);
+  const [stories, setStories] = useState([]);
   
   // Feed State
   const [posts, setPosts] = useState([]);
@@ -116,6 +124,26 @@ export default function Community() {
   useEffect(() => {
     fetchPosts();
   }, [activeFilter]);
+
+  useEffect(() => {
+    const q = query(collection(db, 'feed'), orderBy('createdAt', 'desc'), limit(25));
+    const unsub = onSnapshot(q, (snap) => {
+      const map = new Map();
+      snap.docs.forEach((d, idx) => {
+        const post = d.data();
+        if (!post.userId || map.has(post.userId)) return;
+        map.set(post.userId, {
+          userId: post.userId,
+          userName: post.userName || 'Student',
+          userRole: post.userRole || 'student',
+          createdAt: post.createdAt,
+          style: STORY_GRADIENTS[idx % STORY_GRADIENTS.length],
+        });
+      });
+      setStories(Array.from(map.values()).slice(0, 12));
+    });
+    return () => unsub();
+  }, []);
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -212,7 +240,7 @@ export default function Community() {
         topicId: selectedTopic.id,
         topicLabel: selectedTopic.label,
         topicClass: selectedTopic.class,
-        reactions: { helpful: [], inspiring: [], interesting: [], loving: [], writing: [] },
+        reactions: { loving: [] },
         mediaUrl: mediaUrl,
         mediaType: mediaType,
         isLive: isLiveSession,
@@ -271,7 +299,8 @@ export default function Community() {
     }
 
     const postRef = doc(db, 'feed', postId);
-    const hasReacted = currentReactions[reactionType]?.includes(currentUser.uid);
+    const safeReactions = currentReactions || {};
+    const hasReacted = safeReactions[reactionType]?.includes(currentUser.uid);
     
     // Optimistic update
     setPosts(prev => prev.map(p => {
@@ -303,8 +332,25 @@ export default function Community() {
 
   return (
     <div className="page-container community-container animate-fade-in-up">
-      <h1 className="page-title">Community Feed</h1>
-      <p className="page-subtitle mb-4">Connect with fellow learners, share knowledge, and grow together.</p>
+      <h1 className="page-title">Community</h1>
+      <p className="page-subtitle mb-4">Stories + feed. Keep it social, focused, and real.</p>
+
+      <section className="stories-strip" aria-label="Community stories">
+        <div className="story-item your-story">
+          <div className="story-ring">
+            <div className="story-avatar">+</div>
+          </div>
+          <span>Your Story</span>
+        </div>
+        {stories.map((story) => (
+          <div className="story-item" key={story.userId}>
+            <div className="story-ring" style={{ background: story.style }}>
+              <div className="story-avatar">{getInitials(story.userName)}</div>
+            </div>
+            <span>{story.userName.split(' ')[0]}</span>
+          </div>
+        ))}
+      </section>
 
       {/* Create Post Card */}
       <div className="create-post-card">
@@ -404,11 +450,7 @@ export default function Community() {
       {/* Feed List */}
       <div className="feed-list">
         {posts.map(post => {
-          const isHelpful = post.reactions?.helpful?.includes(currentUser?.uid);
-          const isInspiring = post.reactions?.inspiring?.includes(currentUser?.uid);
-          const isInteresting = post.reactions?.interesting?.includes(currentUser?.uid);
           const isLoving = post.reactions?.loving?.includes(currentUser?.uid);
-          const isWriting = post.reactions?.writing?.includes(currentUser?.uid);
 
           return (
             <div key={post.id} className="post-card animate-slide-up">
@@ -503,28 +545,10 @@ export default function Community() {
                   ❤️ Love {(post.reactions?.loving?.length || 0) > 0 && <span>{post.reactions.loving.length}</span>}
                 </button>
                 <button 
-                  className={`reaction-btn ${isHelpful ? 'active' : ''}`}
-                  onClick={() => handleReaction(post.id, 'helpful', post.reactions)}
-                >
-                  👍 Helpful {(post.reactions?.helpful?.length || 0) > 0 && <span>{post.reactions.helpful.length}</span>}
-                </button>
-                <button 
-                  className={`reaction-btn ${isInspiring ? 'active' : ''}`}
-                  onClick={() => handleReaction(post.id, 'inspiring', post.reactions)}
-                >
-                  🔥 Inspiring {(post.reactions?.inspiring?.length || 0) > 0 && <span>{post.reactions.inspiring.length}</span>}
-                </button>
-                <button 
-                  className={`reaction-btn ${isInteresting ? 'active' : ''}`}
-                  onClick={() => handleReaction(post.id, 'interesting', post.reactions)}
-                >
-                  🤔 Interesting {(post.reactions?.interesting?.length || 0) > 0 && <span>{post.reactions.interesting.length}</span>}
-                </button>
-                <button 
                   className={`reaction-btn comment-trigger ${activeCommentPostId === post.id ? 'active' : ''}`}
                   onClick={() => setActiveCommentPostId(activeCommentPostId === post.id ? null : post.id)}
                 >
-                  📝 Note
+                  💬 Comment
                 </button>
               </div>
 
