@@ -1,3 +1,4 @@
+# Triggering new deployment with added FIREBASE_TOKEN
 name: Deploy senJr to Firebase
 
 on:
