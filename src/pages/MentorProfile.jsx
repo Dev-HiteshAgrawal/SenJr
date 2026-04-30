@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { doc, getDoc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { db } from '../lib/firebase';
-import { getUser, createSession } from '../lib/firestore';
+import { getUser, bookSessionTransaction } from '../lib/firestore';
 import { useAuth } from '../contexts/AuthContext';
 import { useNotification } from '../contexts/NotificationContext';
 import './MentorProfile.css';
@@ -106,7 +106,7 @@ export default function MentorProfile() {
           })()
         : selectedDate;
 
-      await createSession({
+      await bookSessionTransaction({
         studentId: currentUser.uid,
         studentName: userProfile?.displayName || currentUser.displayName || 'Student',
         mentorId: mentor.id,

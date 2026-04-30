@@ -1,4 +1,4 @@
-import { getAllSessions, where, updateSession, getDocuments, COLLECTIONS, updateDocument, updateUser, getUser } from './firestore';
+import { getAllSessions, where, updateSession, getDocuments, COLLECTIONS, updateDocument, internalUpdateUser, getUser } from './firestore';
 
 export async function checkAndProcessMisses(userId) {
   try {
@@ -48,7 +48,7 @@ export async function checkAndProcessMisses(userId) {
       const banUntil = new Date(profile.ban_until);
       if (now > banUntil) {
         // Unban
-        await updateUser(userId, { banned: false, ban_until: null, miss_count: 0 });
+        await internalUpdateUser(userId, { banned: false, ban_until: null, miss_count: 0 });
         return 0; // Fresh start
       } else {
         // Still banned, don't accrue more misses
@@ -64,7 +64,7 @@ export async function checkAndProcessMisses(userId) {
     if (currentMisses >= 54 && !profile.banned) {
       const banUntil = new Date();
       banUntil.setDate(banUntil.getDate() + 7); // Ban for 7 days
-      await updateUser(userId, { 
+      await internalUpdateUser(userId, {
         miss_count: currentMisses, 
         banned: true, 
         ban_until: banUntil.toISOString() 
@@ -74,7 +74,7 @@ export async function checkAndProcessMisses(userId) {
 
     // Save normally if not banned
     if (newMisses > 0) {
-      await updateUser(userId, { miss_count: currentMisses });
+      await internalUpdateUser(userId, { miss_count: currentMisses });
     }
 
     return currentMisses;

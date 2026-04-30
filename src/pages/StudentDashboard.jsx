@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { getAllSessions, where, updateSession, updateUser, getUser, getDocuments, COLLECTIONS, updateDocument } from '../lib/firestore';
+import { getAllSessions, where, updateSession, updateUser, internalUpdateUser, getUser, getDocuments, COLLECTIONS, updateDocument } from '../lib/firestore';
 import { auth, db } from '../lib/firebase';
 import { doc, updateDoc, arrayUnion, arrayRemove, query, getDocs, collection } from 'firebase/firestore';
 import UnreadBadge from '../components/UnreadBadge';
@@ -152,12 +152,12 @@ export default function StudentDashboard() {
        }
 
        if (currentStreak !== (userProfile.streak || 0) || isBroken) {
-          updateUser(currentUser.uid, { streak: currentStreak });
+          internalUpdateUser(currentUser.uid, { streak: currentStreak });
           if (isBroken) setShowBrokenAlert(true);
           
           if (currentStreak > 0 && [7, 30, 100].includes(currentStreak) && currentStreak > (userProfile.lastMilestone || 0)) {
              setShowCelebration(true);
-             updateUser(currentUser.uid, { lastMilestone: currentStreak });
+             internalUpdateUser(currentUser.uid, { lastMilestone: currentStreak });
              
              const bonus = currentStreak === 7 ? 200 : 500;
              awardXP(currentUser.uid, bonus).then(res => {
@@ -254,7 +254,7 @@ export default function StudentDashboard() {
     if (!currentUser) return;
     const currentMissCount = userProfile?.miss_count || 0;
     if (currentMissCount > 0) {
-      await updateUser(currentUser.uid, { miss_count: currentMissCount - 1 });
+      await internalUpdateUser(currentUser.uid, { miss_count: currentMissCount - 1 });
     }
   };
 

@@ -40,7 +40,6 @@ function buildDefaultProfile(role = 'student', additionalData = {}) {
     coursesCompleted: 0,
     homeworkCompleted: 0,
     totalSessionsCompleted: 0,
-    missCount: 0,
     miss_count: 0,
     banned: false,
     totalReviews: 0,

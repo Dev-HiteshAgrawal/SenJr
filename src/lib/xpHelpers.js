@@ -1,4 +1,4 @@
-import { getUser, updateUser } from './firestore';
+import { getUser, internalUpdateUser } from './firestore';
 
 export const LEVELS = [
   { name: 'Seedling', icon: '🌱', min: 0, max: 499 },
@@ -39,7 +39,7 @@ export async function awardXP(userId, amount) {
     
     const leveledUp = newLevel.name !== currentLevel.name;
     
-    await updateUser(userId, { xp: newXP });
+    await internalUpdateUser(userId, { xp: newXP });
     
     return { newXP, leveledUp, newLevel };
   } catch (error) {

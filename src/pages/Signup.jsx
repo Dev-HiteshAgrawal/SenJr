@@ -225,7 +225,6 @@ export default function Signup() {
       xp: 0,
       level: 'Seedling',
       streak: 0,
-      missCount: 0,
       miss_count: 0,
       banned: false,
       createdAt: serverTimestamp(),

@@ -1,6 +1,7 @@
 import { AccessToken } from 'livekit-server-sdk';
 import { getServerEnv } from '../env.js';
 import { allowCors, readJsonBody, sendError, sendJson } from '../http.js';
+import { verifyIdToken } from '../auth.js';
 
 function cleanRoomName(roomName) {
   return String(roomName || 'senjr-session')
@@ -28,18 +29,21 @@ export async function livekitTokenHandler(req, res) {
     return;
   }
 
-  const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  const decodedToken = await verifyIdToken(req);
+  if (!decodedToken) {
     sendError(res, 401, 'Unauthorized. Please log in to join sessions.');
     return;
   }
-  const idToken = authHeader.split('Bearer ')[1];
+  const idToken = req.headers.authorization.split('Bearer ')[1];
 
   try {
     const body = await readJsonBody(req);
-    const roomName = cleanRoomName(body?.roomName);
-    const participantIdentity = String(body?.participantIdentity || `user-${Date.now()}`);
-    const participantName = String(body?.participantName || 'User');
+    // Explicit destructuring
+    const { roomName: rawRoomName, participantIdentity: rawIdentity, participantName: rawName } = body || {};
+
+    const roomName = cleanRoomName(rawRoomName);
+    const participantIdentity = String(rawIdentity || `user-${Date.now()}`);
+    const participantName = String(rawName || 'User');
 
     // Server-side validation
     if (roomName.startsWith('senjr-')) {
