@@ -1,5 +1,6 @@
 import { getServerEnv } from '../env.js';
 import { allowCors, readJsonBody, sendError, sendJson } from '../http.js';
+import { verifyIdToken } from '../firebaseAdmin.js';
 
 const DAILY_API_URL = 'https://api.daily.co/v1/rooms';
 
@@ -24,6 +25,7 @@ export async function dailyRoomHandler(req, res) {
   }
 
   try {
+    await verifyIdToken(req);
     const body = await readJsonBody(req);
     const durationSeconds = Math.min(Math.max(Number(body?.durationSeconds) || 7200, 1800), 14400);
 

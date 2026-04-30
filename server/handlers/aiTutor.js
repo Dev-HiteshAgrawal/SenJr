@@ -1,6 +1,7 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { getServerEnv } from '../env.js';
 import { allowCors, readJsonBody, sendError, sendJson } from '../http.js';
+import { verifyIdToken } from '../firebaseAdmin.js';
 
 const NVIDIA_API_URL = 'https://integrate.api.nvidia.com/v1/chat/completions';
 
@@ -88,6 +89,7 @@ export async function aiTutorHandler(req, res) {
   }
 
   try {
+    await verifyIdToken(req);
     const body = await readJsonBody(req);
     const tutor = body?.tutor;
     const messages = body?.messages;
