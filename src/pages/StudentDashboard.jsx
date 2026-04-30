@@ -14,7 +14,15 @@ import { COURSES } from '../lib/coursesData';
 import { generateAndDownloadCertificate } from '../lib/certificateHelpers';
 import './StudentDashboard.css';
 
-function isJoinable(dateStr, timeStr) {
+function isJoinable(session) {
+  if (session.scheduledAtMs) {
+    const now = Date.now();
+    const diffMinutes = (session.scheduledAtMs - now) / (1000 * 60);
+    return diffMinutes <= 15 && diffMinutes >= -90;
+  }
+  // Fallback for legacy sessions without scheduledAtMs
+  const dateStr = session.date;
+  const timeStr = session.time;
   if (!dateStr || !timeStr) return false;
   const [hours, minutes] = timeStr.split(':').map(Number);
   const sessionDate = new Date(dateStr); 
@@ -543,7 +551,7 @@ export default function StudentDashboard() {
               {upcomingSessions.length > 0 ? (
                 <div className="sessions-list" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   {upcomingSessions.map(session => {
-                    const joinable = isJoinable(session.date, session.time);
+                    const joinable = isJoinable(session);
                     return (
                       <div key={session.id} className="card session-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <div>

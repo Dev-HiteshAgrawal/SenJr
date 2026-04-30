@@ -103,6 +103,7 @@ export default function VideoCall({ roomName, participantName, participantIdenti
           data-lk-theme="default"
           style={{ height: '100%' }}
           onDisconnected={onSessionEnd}
+          onError={(err) => console.error('LiveKitRoom connection error:', err)}
         >
           <VideoConference />
           <RoomAudioRenderer />

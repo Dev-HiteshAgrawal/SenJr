@@ -1,12 +1,21 @@
 export async function readJsonBody(req) {
-  const chunks = [];
-
-  for await (const chunk of req) {
-    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+  if (req.body && typeof req.body === 'object') {
+    return req.body;
+  }
+  if (typeof req.body === 'string') {
+    try { return JSON.parse(req.body); } catch (e) {}
   }
 
-  const raw = Buffer.concat(chunks).toString('utf8').trim();
-  return raw ? JSON.parse(raw) : {};
+  const chunks = [];
+  try {
+    for await (const chunk of req) {
+      chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+    }
+    const raw = Buffer.concat(chunks).toString('utf8').trim();
+    return raw ? JSON.parse(raw) : {};
+  } catch (err) {
+    return {};
+  }
 }
 
 export function sendJson(res, statusCode, payload) {

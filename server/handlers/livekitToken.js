@@ -28,11 +28,47 @@ export async function livekitTokenHandler(req, res) {
     return;
   }
 
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    sendError(res, 401, 'Unauthorized. Please log in to join sessions.');
+    return;
+  }
+  const idToken = authHeader.split('Bearer ')[1];
+
   try {
     const body = await readJsonBody(req);
     const roomName = cleanRoomName(body?.roomName);
     const participantIdentity = String(body?.participantIdentity || `user-${Date.now()}`);
     const participantName = String(body?.participantName || 'User');
+
+    // Server-side validation
+    if (roomName.startsWith('senjr-')) {
+      const sessionId = roomName.replace('senjr-', '');
+      const projectId = process.env.VITE_FIREBASE_PROJECT_ID || process.env.FIREBASE_PROJECT_ID || 'senjr-7a60f';
+      const firestoreUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/sessions/${sessionId}`;
+
+      const sessionRes = await fetch(firestoreUrl, {
+        headers: { 'Authorization': `Bearer ${idToken}` }
+      });
+
+      if (!sessionRes.ok) {
+        sendError(res, 403, 'Session not found or access denied.');
+        return;
+      }
+
+      const sessionData = await sessionRes.json();
+      if (sessionData && sessionData.fields) {
+        // We validate that the session exists and is not completed.
+        // Time-window enforcement is done client-side via scheduledAtMs
+        // because the server runs in UTC and session times are stored
+        // in the user's local timezone without an offset.
+        const status = sessionData.fields.status?.stringValue;
+        if (status === 'completed') {
+          sendError(res, 403, 'This session has already been completed.');
+          return;
+        }
+      }
+    }
 
     const token = new AccessToken(livekitApiKey, livekitApiSecret, {
       identity: participantIdentity,

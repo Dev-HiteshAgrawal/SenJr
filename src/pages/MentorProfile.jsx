@@ -83,6 +83,12 @@ export default function MentorProfile() {
 
     try {
       const selectedDay = next7Days.find((day) => day.dayName === selectedDate);
+      
+      const [hours, minutes] = selectedSlot.start.split(':').map(Number);
+      const sessionDateObj = new Date(selectedDay ? selectedDay.fullDate : selectedDate);
+      sessionDateObj.setHours(hours, minutes, 0, 0);
+      const scheduledAtMs = sessionDateObj.getTime();
+
       await createSession({
         studentId: currentUser.uid,
         studentName: userProfile?.displayName || currentUser.displayName || 'Student',
@@ -93,6 +99,7 @@ export default function MentorProfile() {
         time: selectedSlot.start,
         sessionType: selectedSlot.type,
         status: 'upcoming',
+        scheduledAtMs,
       });
       setBookingStatus('success');
     } catch (err) {
