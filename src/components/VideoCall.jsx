@@ -1,7 +1,6 @@
-import { useEffect, useState } from 'react';
-import { LiveKitRoom, RoomAudioRenderer, VideoConference } from '@livekit/components-react';
+import { useState, useEffect } from 'react';
+import { LiveKitRoom, VideoConference, RoomAudioRenderer } from '@livekit/components-react';
 import '@livekit/components-styles';
-import { generateLiveKitToken } from '../utils/livekitToken';
 
 export default function VideoCall({ roomName, participantName, participantIdentity, onSessionEnd }) {
   const [token, setToken] = useState(null);
@@ -17,38 +16,42 @@ export default function VideoCall({ roomName, participantName, participantIdenti
         const cleanRoom = String(roomName || 'senjr-session')
           .replace(/[^a-zA-Z0-9_-]/g, '-')
           .slice(0, 64);
-        const nextToken = await generateLiveKitToken(
-          cleanRoom,
-          participantName || 'User',
-          participantIdentity || `user-${Date.now()}`,
-        );
 
-        if (!cancelled) {
-          setToken(nextToken);
+        const response = await fetch('/api/livekit-token', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            roomName: cleanRoom,
+            participantName: participantName || 'Senjr User',
+            participantIdentity: participantIdentity || 'user-' + Date.now(),
+          }),
+        });
+
+        if (!response.ok) {
+          const err = await response.json().catch(() => ({}));
+          throw new Error(err.error || 'Failed to get token');
         }
+
+        const data = await response.json();
+        if (!cancelled) setToken(data.token);
       } catch (err) {
         console.error('LiveKit token error:', err);
-        if (!cancelled) {
-          setError('Could not start session. Please try again.');
-        }
+        if (!cancelled) setError('Could not start video session. Please check your connection and try again.');
       } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
+        if (!cancelled) setLoading(false);
       }
     }
 
     getToken();
-
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [roomName, participantName, participantIdentity]);
 
   if (loading) {
     return (
       <div style={overlayStyle}>
-        <div style={{ color: '#FF6B00', fontWeight: 700, fontSize: 18 }}>Starting session...</div>
+        <div style={{ fontSize: 50 }}>📹</div>
+        <div style={{ color: '#FF6B00', fontWeight: 700, fontSize: 20 }}>Starting Senjr Session...</div>
+        <div style={{ color: '#8896B3', fontSize: 14 }}>Please wait</div>
       </div>
     );
   }
@@ -56,29 +59,28 @@ export default function VideoCall({ roomName, participantName, participantIdenti
   if (error || !livekitUrl) {
     return (
       <div style={{ ...overlayStyle, gap: 16, padding: 24 }}>
-        <div style={{ color: '#FF6B9D', fontWeight: 700 }}>
+        <div style={{ fontSize: 40 }}>❌</div>
+        <div style={{ color: '#FF6B9D', fontWeight: 700, fontSize: 18, textAlign: 'center' }}>Session Error</div>
+        <div style={{ color: '#8896B3', fontSize: 14, textAlign: 'center', maxWidth: 300 }}>
           {error || 'LiveKit is not configured. Please try again later.'}
         </div>
-        <button onClick={onSessionEnd} style={primaryButtonStyle}>
-          Go Back
-        </button>
+        <button onClick={onSessionEnd} style={primaryButtonStyle}>Go Back</button>
       </div>
     );
   }
 
   return (
     <div style={{ ...overlayStyle, alignItems: 'stretch', justifyContent: 'flex-start' }}>
-      <div
-        style={{
-          background: '#131929',
-          padding: '10px 16px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          borderBottom: '1px solid rgba(255,107,0,0.3)',
-        }}
-      >
-        <div style={{ fontWeight: 800, color: '#FF6B00', fontSize: 18 }}>Senjr Session</div>
+      <div style={{
+        background: '#131929',
+        padding: '10px 16px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        borderBottom: '1px solid rgba(255,107,0,0.3)',
+        flexShrink: 0,
+      }}>
+        <div style={{ fontWeight: 800, color: '#FF6B00', fontSize: 18 }}>Senjr ⚡ Session</div>
         <button
           onClick={onSessionEnd}
           style={{
@@ -88,6 +90,7 @@ export default function VideoCall({ roomName, participantName, participantIdenti
             background: 'rgba(255,100,100,0.1)',
             color: '#ff6464',
             fontWeight: 700,
+            fontSize: 13,
             cursor: 'pointer',
           }}
         >
@@ -96,14 +99,14 @@ export default function VideoCall({ roomName, participantName, participantIdenti
       </div>
       <div style={{ flex: 1, minHeight: 0 }}>
         <LiveKitRoom
-          video
-          audio
+          video={true}
+          audio={true}
           token={token}
           serverUrl={livekitUrl}
           data-lk-theme="default"
-          style={{ height: '100%' }}
+          style={{ height: '100%', background: '#0A0E27' }}
           onDisconnected={onSessionEnd}
-          onError={(err) => console.error('LiveKitRoom connection error:', err)}
+          onError={(err) => console.error('LiveKitRoom error:', err)}
         >
           <VideoConference />
           <RoomAudioRenderer />
@@ -125,6 +128,7 @@ const overlayStyle = {
   flexDirection: 'column',
   alignItems: 'center',
   justifyContent: 'center',
+  gap: 20,
 };
 
 const primaryButtonStyle = {
@@ -134,5 +138,6 @@ const primaryButtonStyle = {
   background: '#FF6B00',
   color: '#fff',
   fontWeight: 700,
+  fontSize: 15,
   cursor: 'pointer',
 };

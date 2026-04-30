@@ -13,6 +13,7 @@ export default function MentorProfile() {
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedSlot, setSelectedSlot] = useState(null);
+  const [selectedDuration, setSelectedDuration] = useState(60);
   const [bookingStatus, setBookingStatus] = useState('idle');
 
   useEffect(() => {
@@ -75,6 +76,7 @@ export default function MentorProfile() {
     setBookingStatus('idle');
     setSelectedDate(defaultDate || next7Days[0].dayName);
     setSelectedSlot(defaultSlot);
+    setSelectedDuration(60);
     setIsBookingModalOpen(true);
   };
 
@@ -83,23 +85,31 @@ export default function MentorProfile() {
 
     try {
       const selectedDay = next7Days.find((day) => day.dayName === selectedDate);
-      
-      const [hours, minutes] = selectedSlot.start.split(':').map(Number);
-      const sessionDateObj = new Date(selectedDay ? selectedDay.fullDate : selectedDate);
-      sessionDateObj.setHours(hours, minutes, 0, 0);
-      const scheduledAtMs = sessionDateObj.getTime();
+
+      // Build YYYY-MM-DD date string in local time to avoid UTC offset bugs
+      const rawDate = selectedDay
+        ? (() => {
+            const d = new Date();
+            d.setDate(d.getDate() + next7Days.indexOf(selectedDay));
+            const yyyy = d.getFullYear();
+            const mm = String(d.getMonth() + 1).padStart(2, '0');
+            const dd = String(d.getDate()).padStart(2, '0');
+            return `${yyyy}-${mm}-${dd}`;
+          })()
+        : selectedDate;
 
       await createSession({
         studentId: currentUser.uid,
         studentName: userProfile?.displayName || currentUser.displayName || 'Student',
         mentorId: mentor.id,
         mentorName: mentor.displayName,
-        date: selectedDay ? selectedDay.fullDate : selectedDate,
+        date: rawDate,
         dayName: selectedDate,
         time: selectedSlot.start,
+        durationMinutes: selectedDuration,
         sessionType: selectedSlot.type,
+        subject: mentor.subjects?.[0] || '',
         status: 'upcoming',
-        scheduledAtMs,
       });
       setBookingStatus('success');
     } catch (err) {
@@ -397,9 +407,31 @@ export default function MentorProfile() {
                     <p>
                       <strong>Type:</strong> {selectedSlot.type}
                     </p>
-                    <p>
-                      <strong>Duration:</strong> 1 hour
-                    </p>
+                    <div style={{ marginTop: '0.75rem' }}>
+                      <strong>Duration:</strong>
+                      <select
+                        value={selectedDuration}
+                        onChange={(e) => setSelectedDuration(Number(e.target.value))}
+                        style={{
+                          marginLeft: '0.5rem',
+                          padding: '4px 8px',
+                          borderRadius: 6,
+                          border: '1px solid var(--border-subtle)',
+                          background: 'var(--bg-secondary)',
+                          color: 'var(--text-primary)',
+                          fontSize: '0.9rem',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <option value={30}>30 minutes</option>
+                        <option value={60}>60 minutes</option>
+                        <option value={90}>90 minutes</option>
+                        <option value={120}>2 hours</option>
+                        <option value={180}>3 hours</option>
+                        <option value={240}>4 hours</option>
+                        <option value={300}>5 hours</option>
+                      </select>
+                    </div>
                   </div>
                 )}
 

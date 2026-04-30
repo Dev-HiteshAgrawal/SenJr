@@ -9,22 +9,22 @@ import VideoCall from '../components/VideoCall';
 import { generateAndDownloadCertificate } from '../lib/certificateHelpers';
 import './MentorDashboard.css';
 
-function isJoinable(session) {
-  if (session.scheduledAtMs) {
-    const now = Date.now();
-    const diffMinutes = (session.scheduledAtMs - now) / (1000 * 60);
-    return diffMinutes <= 15 && diffMinutes >= -90;
+function canJoin(session) {
+  try {
+    const dateStr = session.date;
+    const timeStr = session.time;
+    if (!dateStr || !timeStr) return false;
+    // Build ISO-8601 string so Date parses in local time
+    const sessionStart = new Date(dateStr + 'T' + timeStr);
+    const durationMinutes = session.durationMinutes || 60;
+    const sessionEnd = new Date(sessionStart.getTime() + durationMinutes * 60 * 1000);
+    const now = new Date();
+    const minutesBeforeStart = (sessionStart - now) / 60000;
+    // Allow joining up to 60 minutes early, and anytime until session ends
+    return minutesBeforeStart <= 60 && now <= sessionEnd;
+  } catch (e) {
+    return false;
   }
-  // Fallback for legacy sessions without scheduledAtMs
-  const dateStr = session.date;
-  const timeStr = session.time;
-  if (!dateStr || !timeStr) return false;
-  const [hours, minutes] = timeStr.split(':').map(Number);
-  const sessionDate = new Date(dateStr); 
-  sessionDate.setHours(hours, minutes, 0, 0);
-  const now = new Date();
-  const diffMinutes = (sessionDate - now) / (1000 * 60);
-  return diffMinutes <= 15 && diffMinutes >= -90;
 }
 
 const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -423,22 +423,25 @@ export default function MentorDashboard() {
               {upcomingSessions.length > 0 ? (
                 <div className="sessions-list" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   {upcomingSessions.map(session => {
-                    const joinable = isJoinable(session);
                     return (
                       <div key={session.id} className="card session-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <div>
                           <h4 style={{ margin: '0 0 0.5rem 0' }}>Session with {session.studentName}</h4>
                           <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
                             🗓️ {session.date} at {session.time} • {session.sessionType}
+                            {session.durationMinutes ? ` • ${session.durationMinutes} min` : ''}
                           </p>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                          {joinable ? (
-                            <button className="btn-primary glow-btn" onClick={() => joinSession(session)}>
+                          {canJoin(session) ? (
+                            <button
+                              onClick={() => joinSession(session)}
+                              style={{ padding: '10px 20px', borderRadius: 10, border: 'none', background: '#FF6B00', color: '#fff', fontWeight: 700, fontSize: 14, cursor: 'pointer', boxShadow: '0 0 15px rgba(255,107,0,0.4)' }}
+                            >
                               Join Session 🎥
                             </button>
                           ) : (
-                            <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Opens at {session.time}</span>
+                            <div style={{ color: '#8896B3', fontSize: 13 }}>Starts at {session.time}</div>
                           )}
                         </div>
                       </div>
