@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { aiTutorHandler } from './server/handlers/aiTutor.js';
-import { dailyRoomHandler } from './server/handlers/dailyRoom.js';
+import { livekitTokenHandler } from './server/handlers/livekitToken.js';
 import { runtimeConfigHandler } from './server/handlers/runtimeConfig.js';
 
 function wrapHandler(handler) {
@@ -20,7 +20,7 @@ function senjrLocalApiPlugin() {
     configureServer(server) {
       server.middlewares.use('/api/runtime-config', wrapHandler(runtimeConfigHandler));
       server.middlewares.use('/api/ai-tutor', wrapHandler(aiTutorHandler));
-      server.middlewares.use('/api/daily-room', wrapHandler(dailyRoomHandler));
+      server.middlewares.use('/api/livekit-token', wrapHandler(livekitTokenHandler));
     },
   };
 }

@@ -2,8 +2,9 @@ import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { getAllSessions, where, updateSession, updateUser, getUser, getDocuments, COLLECTIONS, updateDocument } from '../lib/firestore';
+import { auth } from '../lib/firebase';
 import UnreadBadge from '../components/UnreadBadge';
-import VideoSession from '../components/VideoSession';
+import VideoCall from '../components/VideoCall';
 import { getLevelDetails, awardXP } from '../lib/xpHelpers';
 import { checkAndAwardBadges, getBadgeById } from '../lib/badgeHelpers';
 import { checkAndProcessMisses } from '../lib/missTracker';
@@ -20,7 +21,7 @@ function isJoinable(dateStr, timeStr) {
   sessionDate.setHours(hours, minutes, 0, 0);
   const now = new Date();
   const diffMinutes = (sessionDate - now) / (1000 * 60);
-  return diffMinutes <= 15 && diffMinutes >= -60;
+  return diffMinutes <= 15 && diffMinutes >= -90;
 }
 
 // Utility function to get YYYY-MM-DD in local time
@@ -44,7 +45,8 @@ export default function StudentDashboard() {
   const [pendingHomework, setPendingHomework] = useState([]);
   const [certificates, setCertificates] = useState([]);
   
-  const [activeVideoSession, setActiveVideoSession] = useState(null);
+  const [showVideo, setShowVideo] = useState(false);
+  const [activeSession, setActiveSession] = useState(null);
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [sessionToReview, setSessionToReview] = useState(null);
   const [rating, setRating] = useState(0);
@@ -199,10 +201,29 @@ export default function StudentDashboard() {
     }
   };
 
-  const handleSessionEnded = (isMentorEnded, session) => {
-    setActiveVideoSession(null);
+  const joinSession = (session) => {
+    setActiveSession(session);
+    setShowVideo(true);
+  };
+
+  const endSession = async () => {
+    const session = activeSession;
+    setShowVideo(false);
+    if (!session) return;
+
+    try {
+      await updateSession(session.id, {
+        status: 'completed',
+        completedAt: new Date().toISOString(),
+      });
+    } catch (err) {
+      console.error('Failed to complete session', err);
+    }
+
     setSessionToReview(session);
     setShowReviewModal(true);
+    setUpcomingSessions(prev => prev.filter(s => s.id !== session.id));
+    setActiveSession(null);
   };
 
   const submitReview = async () => {
@@ -533,11 +554,11 @@ export default function StudentDashboard() {
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                           {joinable ? (
-                            <button className="btn-primary glow-btn" onClick={() => setActiveVideoSession(session)}>
+                            <button className="btn-primary glow-btn" onClick={() => joinSession(session)}>
                               Join Session 🎥
                             </button>
                           ) : (
-                            <span className="lang-badge" style={{ background: 'rgba(0,255,178,0.1)', color: 'var(--success)', border: '1px solid rgba(0,255,178,0.3)' }}>Upcoming</span>
+                            <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Opens at {session.time}</span>
                           )}
                         </div>
                       </div>
@@ -735,11 +756,12 @@ export default function StudentDashboard() {
         />
       )}
 
-      {activeVideoSession && (
-        <VideoSession 
-          session={activeVideoSession} 
-          onClose={() => setActiveVideoSession(null)}
-          onSessionEnded={handleSessionEnded}
+      {showVideo && activeSession && (
+        <VideoCall
+          roomName={`senjr-${activeSession.id}`}
+          participantName={auth.currentUser?.displayName || auth.currentUser?.email || 'User'}
+          participantIdentity={auth.currentUser?.uid || `user-${Date.now()}`}
+          onSessionEnd={endSession}
         />
       )}
 

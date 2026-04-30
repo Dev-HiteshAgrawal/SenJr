@@ -15,13 +15,13 @@ export async function runtimeConfigHandler(req, res) {
     return;
   }
 
-  const { nvidiaApiKey, geminiApiKey, dailyApiKey, adminEmail } = getServerEnv();
+  const { nvidiaApiKey, geminiApiKey, livekitApiKey, livekitApiSecret, adminEmail } = getServerEnv();
   const aiProvider = nvidiaApiKey ? 'nvidia' : geminiApiKey ? 'gemini' : null;
 
   sendJson(res, 200, {
     aiTutorEnabled: Boolean(aiProvider),
     aiProvider,
-    dailyEnabled: Boolean(dailyApiKey),
+    livekitEnabled: Boolean(livekitApiKey && livekitApiSecret),
     adminConfigured: Boolean(adminEmail),
   });
 }

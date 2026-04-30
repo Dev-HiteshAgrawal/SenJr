@@ -1,13 +1,14 @@
 import { onRequest } from 'firebase-functions/v2/https';
 import { defineSecret } from 'firebase-functions/params';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { AccessToken } from 'livekit-server-sdk';
 
 const nvidiaApiKey = defineSecret('NVIDIA_API_KEY');
 const geminiApiKey = defineSecret('GEMINI_API_KEY');
-const dailyApiKey = defineSecret('DAILY_API_KEY');
+const livekitApiKey = defineSecret('LIVEKIT_API_KEY');
+const livekitApiSecret = defineSecret('LIVEKIT_API_SECRET');
 
 const NVIDIA_API_URL = 'https://integrate.api.nvidia.com/v1/chat/completions';
-const DAILY_API_URL = 'https://api.daily.co/v1/rooms';
 
 function allowCors(res) {
   res.set('Access-Control-Allow-Origin', '*');
@@ -100,7 +101,7 @@ async function handleRuntimeConfig(req, res) {
   sendJson(res, 200, {
     aiTutorEnabled: Boolean(getProvider()),
     aiProvider: getProvider(),
-    dailyEnabled: Boolean(dailyApiKey.value()),
+    livekitEnabled: Boolean(livekitApiKey.value() && livekitApiSecret.value()),
     adminConfigured: Boolean(process.env.ADMIN_EMAIL),
   });
 }
@@ -133,42 +134,43 @@ async function handleAiTutor(req, res) {
   sendJson(res, 200, { reply, provider });
 }
 
-async function handleDailyRoom(req, res) {
+function cleanRoomName(roomName) {
+  return String(roomName || 'senjr-session')
+    .replace(/[^a-zA-Z0-9_-]/g, '-')
+    .slice(0, 64);
+}
+
+async function handleLiveKitToken(req, res) {
   if (req.method !== 'POST') {
     sendError(res, 405, 'Method not allowed.');
     return;
   }
 
-  if (!dailyApiKey.value()) {
-    sendError(res, 500, 'Daily video service is not configured on the server.');
+  if (!livekitApiKey.value() || !livekitApiSecret.value()) {
+    sendError(res, 500, 'LiveKit video service is not configured on the server.');
     return;
   }
 
-  const durationSeconds = Math.min(Math.max(Number(req.body?.durationSeconds) || 7200, 1800), 14400);
+  const roomName = cleanRoomName(req.body?.roomName);
+  const participantIdentity = String(req.body?.participantIdentity || `user-${Date.now()}`);
+  const participantName = String(req.body?.participantName || 'User');
 
-  const response = await fetch(DAILY_API_URL, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${dailyApiKey.value()}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      properties: {
-        exp: Math.round(Date.now() / 1000) + durationSeconds,
-        enable_chat: true,
-        enable_screenshare: true,
-      },
-    }),
+  const token = new AccessToken(livekitApiKey.value(), livekitApiSecret.value(), {
+    identity: participantIdentity,
+    name: participantName,
+    ttl: '2h',
   });
 
-  if (!response.ok) {
-    throw new Error(`Daily API error: ${response.status} ${response.statusText}`);
-  }
+  token.addGrant({
+    roomJoin: true,
+    room: roomName,
+    canPublish: true,
+    canSubscribe: true,
+  });
 
-  const data = await response.json();
   sendJson(res, 200, {
-    url: data.url,
-    roomName: data.name,
+    token: await token.toJwt(),
+    roomName,
   });
 }
 
@@ -176,7 +178,7 @@ export const api = onRequest(
   {
     region: 'us-central1',
     timeoutSeconds: 120,
-    secrets: [nvidiaApiKey, geminiApiKey, dailyApiKey],
+    secrets: [nvidiaApiKey, geminiApiKey, livekitApiKey, livekitApiSecret],
   },
   async (req, res) => {
     allowCors(res);
@@ -199,8 +201,8 @@ export const api = onRequest(
         return;
       }
 
-      if (requestPath === '/daily-room') {
-        await handleDailyRoom(req, res);
+      if (requestPath === '/livekit-token') {
+        await handleLiveKitToken(req, res);
         return;
       }
 

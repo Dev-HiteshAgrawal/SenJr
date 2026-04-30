@@ -2,10 +2,10 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { updateUser, getAllSessions, where, updateSession, getDocument, createDocument, COLLECTIONS } from '../lib/firestore';
-import { storage } from '../lib/firebase';
+import { auth, storage } from '../lib/firebase';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import UnreadBadge from '../components/UnreadBadge';
-import VideoSession from '../components/VideoSession';
+import VideoCall from '../components/VideoCall';
 import { generateAndDownloadCertificate } from '../lib/certificateHelpers';
 import './MentorDashboard.css';
 
@@ -16,7 +16,7 @@ function isJoinable(dateStr, timeStr) {
   sessionDate.setHours(hours, minutes, 0, 0);
   const now = new Date();
   const diffMinutes = (sessionDate - now) / (1000 * 60);
-  return diffMinutes <= 15 && diffMinutes >= -60;
+  return diffMinutes <= 15 && diffMinutes >= -90;
 }
 
 const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -50,7 +50,8 @@ export default function MentorDashboard() {
 
   const [upcomingSessions, setUpcomingSessions] = useState([]);
   const [uniqueStudents, setUniqueStudents] = useState([]);
-  const [activeVideoSession, setActiveVideoSession] = useState(null);
+  const [showVideo, setShowVideo] = useState(false);
+  const [activeSession, setActiveSession] = useState(null);
   const [showHomeworkModal, setShowHomeworkModal] = useState(false);
   const [hwForm, setHwForm] = useState({ studentId: '', title: '', description: '', dueDate: '' });
   const [showCompletionModal, setShowCompletionModal] = useState(false);
@@ -210,17 +211,28 @@ export default function MentorDashboard() {
     }
   };
 
-  const handleSessionEnded = async (isMentorEnded, session) => {
-    setActiveVideoSession(null);
-    if (isMentorEnded) {
-      setShowCompletionModal(true);
-      // Remove from upcoming list
-      setUpcomingSessions(prev => prev.filter(s => s.id !== session.id));
-      
-      // If mentor completes 10 sessions, auto-generate mentor cert logic or show a toast
-      // We can rely on userProfile.totalSessionsCompleted which updates on student's side usually,
-      // but mentor also can trigger it. 
+  const joinSession = (session) => {
+    setActiveSession(session);
+    setShowVideo(true);
+  };
+
+  const endSession = async () => {
+    const session = activeSession;
+    setShowVideo(false);
+    if (!session) return;
+
+    try {
+      await updateSession(session.id, {
+        status: 'completed',
+        completedAt: new Date().toISOString(),
+      });
+    } catch (err) {
+      console.error('Failed to complete session', err);
     }
+
+    setShowCompletionModal(true);
+    setUpcomingSessions(prev => prev.filter(s => s.id !== session.id));
+    setActiveSession(null);
   };
 
   const handleDownloadMentorCertificate = async () => {
@@ -414,11 +426,11 @@ export default function MentorDashboard() {
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                           {joinable ? (
-                            <button className="btn-primary glow-btn" onClick={() => setActiveVideoSession(session)}>
+                            <button className="btn-primary glow-btn" onClick={() => joinSession(session)}>
                               Join Session 🎥
                             </button>
                           ) : (
-                            <span className="lang-badge" style={{ background: 'rgba(0,255,178,0.1)', color: 'var(--success)', border: '1px solid rgba(0,255,178,0.3)' }}>Upcoming</span>
+                            <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Opens at {session.time}</span>
                           )}
                         </div>
                       </div>
@@ -625,11 +637,12 @@ export default function MentorDashboard() {
         </div>
       )}
 
-      {activeVideoSession && (
-        <VideoSession 
-          session={activeVideoSession} 
-          onClose={() => setActiveVideoSession(null)}
-          onSessionEnded={handleSessionEnded}
+      {showVideo && activeSession && (
+        <VideoCall
+          roomName={`senjr-${activeSession.id}`}
+          participantName={auth.currentUser?.displayName || auth.currentUser?.email || 'User'}
+          participantIdentity={auth.currentUser?.uid || `user-${Date.now()}`}
+          onSessionEnd={endSession}
         />
       )}
 
