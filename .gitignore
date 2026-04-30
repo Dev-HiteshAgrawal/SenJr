@@ -32,3 +32,7 @@ firebase-login.txt
 *.sw?
 
 .vercel
+
+# Test/debug scripts
+*.ps1
+set_secrets.cjs

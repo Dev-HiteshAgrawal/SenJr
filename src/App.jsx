@@ -23,6 +23,7 @@ import Leaderboard from './pages/Leaderboard';
 import Community from './pages/Community';
 import ChatRoom from './pages/ChatRoom';
 import AdminPanel from './pages/AdminPanel';
+import CertificateVerify from './pages/CertificateVerify';
 
 export default function App() {
   return (
@@ -49,6 +50,7 @@ export default function App() {
           <Route path="/community" element={<Community />} />
           <Route path="/chat/:chatId" element={<ProtectedRoute><ChatRoom /></ProtectedRoute>} />
           <Route path="/admin" element={<ProtectedRoute><AdminPanel /></ProtectedRoute>} />
+          <Route path="/verify/:certId" element={<CertificateVerify />} />
         </Routes>
         </AuthProvider>
       </NotificationProvider>

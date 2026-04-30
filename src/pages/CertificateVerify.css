@@ -1,0 +1,143 @@
+/* ===================================
+   senJr — Certificate Verification
+   =================================== */
+
+.verify-page {
+  min-height: 80vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.verify-loading {
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.verify-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  border-top-color: #c9a96e;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.verify-card {
+  max-width: 560px;
+  width: 100%;
+  background: rgba(25, 25, 30, 0.6);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(201, 169, 110, 0.15);
+  border-radius: 24px;
+  padding: 3rem 2.5rem;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.verify-badge {
+  margin-bottom: 1.5rem;
+}
+
+.verify-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+.verify-card h1 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 0.5rem;
+}
+
+.verify-subtitle {
+  color: var(--text-muted);
+  font-size: 1rem;
+  margin-bottom: 2rem;
+}
+
+.verify-not-found h1 {
+  color: #ff5c5c;
+}
+
+.verify-muted {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+}
+
+.verify-details {
+  text-align: left;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.verify-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 0;
+}
+
+.verify-label {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #c9a96e;
+  font-weight: 600;
+}
+
+.verify-value {
+  font-size: 1rem;
+  color: #fff;
+  text-align: right;
+  max-width: 60%;
+  word-break: break-word;
+}
+
+.verify-value.mono {
+  font-family: var(--font-mono);
+  letter-spacing: 0.05em;
+  font-size: 0.9rem;
+}
+
+.verify-value.capitalize {
+  text-transform: capitalize;
+}
+
+.verify-divider {
+  height: 1px;
+  background: rgba(201, 169, 110, 0.1);
+}
+
+.verify-footer {
+  padding-top: 1rem;
+}
+
+.verify-footer p {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+}
+
+.verify-home-link {
+  color: #c9a96e;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: color 0.2s;
+}
+
+.verify-home-link:hover {
+  color: #fff;
+}
