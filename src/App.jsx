@@ -13,6 +13,7 @@ import StudentDashboard from './pages/StudentDashboard';
 import MentorDashboard from './pages/MentorDashboard';
 import MentorSetup from './pages/MentorSetup';
 import MentorProfile from './pages/MentorProfile';
+import StudentProfile from './pages/StudentProfile';
 import FindMentors from './pages/FindMentors';
 import FreeCourses from './pages/FreeCourses';
 import AITutor from './pages/AITutor';
@@ -38,6 +39,7 @@ export default function App() {
           <Route path="/mentor-dashboard" element={<ProtectedRoute allowedRoles={['mentor', 'admin']}><MentorDashboard /></ProtectedRoute>} />
           <Route path="/mentor-setup" element={<ProtectedRoute allowedRoles={['mentor', 'admin']}><MentorSetup /></ProtectedRoute>} />
           <Route path="/mentor/:mentorId" element={<MentorProfile />} />
+          <Route path="/student/:id" element={<ProtectedRoute><StudentProfile /></ProtectedRoute>} />
           <Route path="/find-mentors" element={<FindMentors />} />
           <Route path="/free-courses" element={<FreeCourses />} />
           <Route path="/ai-tutor" element={<AITutor />} />

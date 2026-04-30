@@ -1,12 +1,16 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { doc, getDoc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { db } from '../lib/firebase';
 import { getUser, createSession } from '../lib/firestore';
 import { useAuth } from '../contexts/AuthContext';
+import { useNotification } from '../contexts/NotificationContext';
 import './MentorProfile.css';
 
 export default function MentorProfile() {
   const { mentorId } = useParams();
   const { currentUser, userProfile } = useAuth();
+  const { notifySuccess, notifyError, notifyInfo } = useNotification();
   const [mentor, setMentor] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -15,6 +19,7 @@ export default function MentorProfile() {
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [selectedDuration, setSelectedDuration] = useState(60);
   const [bookingStatus, setBookingStatus] = useState('idle');
+  const [isFollowing, setIsFollowing] = useState(false);
 
   useEffect(() => {
     async function loadMentor() {
@@ -22,6 +27,9 @@ export default function MentorProfile() {
         const data = await getUser(mentorId);
         if (data && data.role === 'mentor') {
           setMentor(data);
+          if (data.followers?.includes(currentUser?.uid)) {
+            setIsFollowing(true);
+          }
         } else {
           setError('Mentor not found.');
         }
@@ -119,6 +127,35 @@ export default function MentorProfile() {
     }
   };
 
+  const handleFollow = async () => {
+    if (!currentUser) {
+      notifyInfo("Please login to follow mentors!");
+      return;
+    }
+    
+    try {
+      const mentorRef = doc(db, 'users', mentorId);
+      const studentRef = doc(db, 'users', currentUser.uid);
+
+      if (isFollowing) {
+        await updateDoc(mentorRef, { followers: arrayRemove(currentUser.uid) });
+        await updateDoc(studentRef, { following: arrayRemove(mentorId) });
+        setIsFollowing(false);
+        setMentor(prev => ({ ...prev, followers: prev.followers?.filter(id => id !== currentUser.uid) || [] }));
+        notifyInfo(`Unfollowed ${mentor.displayName}`);
+      } else {
+        await updateDoc(mentorRef, { followers: arrayUnion(currentUser.uid) });
+        await updateDoc(studentRef, { following: arrayUnion(mentorId) });
+        setIsFollowing(true);
+        setMentor(prev => ({ ...prev, followers: [...(prev.followers || []), currentUser.uid] }));
+        notifySuccess(`You are now following ${mentor.displayName}!`);
+      }
+    } catch (error) {
+      console.error("Follow error:", error);
+      notifyError("Failed to update follow status.");
+    }
+  };
+
   if (loading) {
     return (
       <div className="page-container flex-center">
@@ -193,6 +230,28 @@ export default function MentorProfile() {
                   <p>"{mentor.aboutMe}"</p>
                 </div>
               )}
+              
+              <div style={{ marginTop: '1.5rem', display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                <button 
+                  onClick={handleFollow}
+                  style={{
+                    padding: '0.6rem 1.5rem',
+                    borderRadius: '20px',
+                    border: 'none',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    background: isFollowing ? 'rgba(56, 189, 248, 0.1)' : 'var(--accent-saffron)',
+                    color: isFollowing ? '#38bdf8' : '#fff',
+                    border: isFollowing ? '1px solid rgba(56, 189, 248, 0.3)' : '1px solid transparent',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  {isFollowing ? '✓ Following' : '+ Follow'}
+                </button>
+                <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+                  {mentor.followers?.length || 0} Followers
+                </span>
+              </div>
             </div>
           </div>
         </section>

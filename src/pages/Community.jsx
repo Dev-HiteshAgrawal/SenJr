@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { collection, query, orderBy, limit, startAfter, getDocs, addDoc, serverTimestamp, doc, updateDoc, deleteDoc, arrayUnion, arrayRemove, where, onSnapshot } from 'firebase/firestore';
 import { db } from '../lib/firebase';
@@ -158,8 +159,10 @@ export default function Community() {
         setUploadProgress(100);
         notifySuccess("Media uploaded successfully!");
       } else {
+        const errData = JSON.parse(xhr.responseText || '{}');
+        const errMsg = errData.error?.message || "Unknown error";
         console.error('Cloudinary upload failed:', xhr.responseText);
-        notifyError("Failed to upload media. Please try again.");
+        notifyError(`Cloudinary rejected upload: ${errMsg}`);
         setMediaFile(null);
         setMediaPreview(null);
         setUploadProgress(0);
@@ -414,12 +417,16 @@ export default function Community() {
                     {getInitials(post.userName)}
                   </div>
                   <div>
-                    <h4 className="post-author-name">
+                    <Link 
+                      to={post.userRole === 'mentor' ? `/mentor/${post.userId}` : `/student/${post.userId}`} 
+                      className="post-author-name"
+                      style={{ textDecoration: 'none', color: 'inherit' }}
+                    >
                       {post.userName}
                       <span className={`role-badge ${post.userRole === 'mentor' ? 'mentor' : ''}`}>
                         {post.userRole}
                       </span>
-                    </h4>
+                    </Link>
                     {post.userCollege && <p className="post-college">{post.userCollege}</p>}
                   </div>
                 </div>

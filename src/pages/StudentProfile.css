@@ -1,0 +1,115 @@
+.student-profile-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 6rem 1rem 2rem 1rem;
+  display: flex;
+  justify-content: center;
+}
+
+.student-profile-card {
+  width: 100%;
+  max-width: 500px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 3rem 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.student-avatar-large {
+  width: 120px;
+  height: 120px;
+  background: linear-gradient(135deg, var(--accent-saffron), #ff9800);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  font-weight: 800;
+  color: white;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 8px 20px rgba(255, 107, 0, 0.3);
+}
+
+.student-name {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.student-college {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  margin-bottom: 2rem;
+}
+
+.friend-action-container {
+  margin-bottom: 3rem;
+  width: 100%;
+}
+
+.friend-btn {
+  width: 100%;
+  max-width: 300px;
+  padding: 0.8rem 1.5rem;
+  font-size: 1.1rem;
+  border-radius: var(--radius-lg);
+  transition: all 0.3s ease;
+}
+
+.friend-btn.pending {
+  background: rgba(255, 193, 7, 0.1);
+  color: #ffc107;
+  border: 1px solid rgba(255, 193, 7, 0.3);
+}
+
+.friend-btn.pending:hover {
+  background: rgba(255, 193, 7, 0.2);
+}
+
+.friend-btn.friends {
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.friend-btn.friends:hover {
+  background: rgba(255, 92, 92, 0.1);
+  color: #ff5c5c;
+  border-color: rgba(255, 92, 92, 0.3);
+  content: 'Remove Friend';
+}
+
+.student-stats {
+  display: flex;
+  gap: 2rem;
+  width: 100%;
+  justify-content: center;
+  border-top: 1px solid var(--border);
+  padding-top: 2rem;
+}
+
+.stat-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.stat-box h3 {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--accent-saffron);
+  margin-bottom: 0.3rem;
+}
+
+.stat-box p {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}

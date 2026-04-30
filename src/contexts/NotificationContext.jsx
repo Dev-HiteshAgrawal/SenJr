@@ -23,7 +23,8 @@ export function NotificationProvider({ children }) {
     // Easter egg error handling
     let finalMessage = message;
     if (type === 'error') {
-      finalMessage = ERROR_MESSAGES[Math.floor(Math.random() * ERROR_MESSAGES.length)];
+      const einsteinMsg = ERROR_MESSAGES[Math.floor(Math.random() * ERROR_MESSAGES.length)];
+      finalMessage = `${einsteinMsg} (Details: ${message})`;
     }
 
     setNotifications((prev) => [...prev, { id, type, message: finalMessage }]);
