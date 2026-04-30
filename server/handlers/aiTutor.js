@@ -50,20 +50,38 @@ async function generateWithNvidia({ tutor, messages }) {
 async function generateWithGemini({ tutor, messages }) {
   const { geminiApiKey } = getServerEnv();
   const genAI = new GoogleGenerativeAI(geminiApiKey);
-  const transcript = messages
-    .map((message) => `${message.role === 'model' ? tutor.name : 'Student'}: ${message.content}`)
-    .join('\n\n');
 
   const model = genAI.getGenerativeModel({
     model: 'gemini-2.0-flash',
     systemInstruction: getSystemInstruction(tutor),
   });
 
-  const result = await model.generateContent([
-    'Continue this tutoring conversation and reply as the tutor.',
-    transcript,
-  ].join('\n\n'));
+  const conversation = [...messages];
+  const lastMsg = conversation.pop();
+  let messageToSend = lastMsg.content;
 
+  // Gemini Chat history must alternate User/Model and end with Model (so next is User)
+  // We merge trailing User messages into the current message to ensure this.
+  while (conversation.length > 0 && conversation[conversation.length - 1].role === 'user') {
+    const msg = conversation.pop();
+    messageToSend = msg.content + '\n\n' + messageToSend;
+  }
+
+  const history = [];
+  for (const msg of conversation) {
+    const role = msg.role === 'model' ? 'model' : 'user';
+    // Skip initial model greeting as history must start with 'user'
+    if (history.length === 0 && role === 'model') continue;
+
+    if (history.length > 0 && history[history.length - 1].role === role) {
+      history[history.length - 1].parts[0].text += '\n\n' + msg.content;
+    } else {
+      history.push({ role, parts: [{ text: msg.content }] });
+    }
+  }
+
+  const chat = model.startChat({ history });
+  const result = await chat.sendMessage(messageToSend);
   return result.response.text().trim();
 }
 
