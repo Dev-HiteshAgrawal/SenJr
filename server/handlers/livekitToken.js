@@ -70,11 +70,15 @@ export async function livekitTokenHandler(req, res) {
       }
     }
 
-    const token = new AccessToken(livekitApiKey, livekitApiSecret, {
-      identity: participantIdentity,
-      name: participantName,
-      ttl: '2h',
-    });
+    const token = new AccessToken(
+      livekitApiKey.replace(/[\r\n\t ]+$/g, ''),
+      livekitApiSecret.replace(/[\r\n\t ]+$/g, ''),
+      {
+        identity: participantIdentity,
+        name: participantName,
+        ttl: '2h',
+      }
+    );
 
     token.addGrant({
       roomJoin: true,
