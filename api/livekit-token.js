@@ -3,9 +3,17 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { roomName, participantName, participantIdentity } = req.body;
+  const { roomName, participantName, participantIdentity } = req.body || {};
 
-  if (!roomName || !participantIdentity) {
+  const cleanRoomName = String(roomName || 'senjr-session')
+    .replace(/[^a-zA-Z0-9_-]/g, '-')
+    .slice(0, 64) || 'senjr-session';
+  const cleanIdentity = String(participantIdentity || `user-${Date.now()}`)
+    .replace(/[^a-zA-Z0-9_-]/g, '-')
+    .slice(0, 64) || `user-${Date.now()}`;
+  const cleanName = String(participantName || 'Senjr User').slice(0, 80);
+
+  if (!cleanRoomName || !cleanIdentity) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
@@ -24,15 +32,15 @@ export default async function handler(req, res) {
       apiKey.replace(/[\r\n\t ]+$/g, ''),
       apiSecret.replace(/[\r\n\t ]+$/g, ''),
       {
-        identity: participantIdentity,
-        name: participantName || 'Senjr User',
+        identity: cleanIdentity,
+        name: cleanName,
         ttl: 18000, // 5 hours
       }
     );
 
     at.addGrant({
       roomJoin: true,
-      room: roomName,
+      room: cleanRoomName,
       canPublish: true,
       canSubscribe: true,
       canPublishData: true,

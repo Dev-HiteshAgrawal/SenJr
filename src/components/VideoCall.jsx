@@ -7,6 +7,7 @@ export default function VideoCall({ roomName, participantName, participantIdenti
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [retryTick, setRetryTick] = useState(0);
   const { currentUser } = useAuth();
   const livekitUrl = import.meta.env.VITE_LIVEKIT_URL;
 
@@ -22,7 +23,16 @@ export default function VideoCall({ roomName, participantName, participantIdenti
         const idToken = await currentUser.getIdToken();
         const cleanRoom = String(roomName || 'senjr-session')
           .replace(/[^a-zA-Z0-9_-]/g, '-')
-          .slice(0, 64);
+          .slice(0, 64) || 'senjr-session';
+
+        const cleanIdentity = String(participantIdentity || `user-${Date.now()}`)
+          .replace(/[^a-zA-Z0-9_-]/g, '-')
+          .slice(0, 64) || `user-${Date.now()}`;
+
+        const cleanName = String(participantName || 'Senjr User').slice(0, 80);
+
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 15000);
 
         const response = await fetch('/api/livekit-token', {
           method: 'POST',
@@ -30,12 +40,14 @@ export default function VideoCall({ roomName, participantName, participantIdenti
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${idToken}`
           },
+          signal: controller.signal,
           body: JSON.stringify({
             roomName: cleanRoom,
-            participantName: participantName || 'Senjr User',
-            participantIdentity: participantIdentity || 'user-' + Date.now(),
+            participantName: cleanName,
+            participantIdentity: cleanIdentity,
           }),
         });
+        clearTimeout(timeout);
 
         if (!response.ok) {
           const err = await response.json().catch(() => ({}));
@@ -46,7 +58,13 @@ export default function VideoCall({ roomName, participantName, participantIdenti
         if (!cancelled) setToken(data.token);
       } catch (err) {
         console.error('LiveKit token error:', err);
-        if (!cancelled) setError('Could not start video session. Please check your connection and try again.');
+        if (!cancelled) {
+          setError(
+            err?.name === 'AbortError'
+              ? 'Request timed out while starting session. Please retry.'
+              : 'Could not start video session. Please check your connection and try again.'
+          );
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -54,7 +72,7 @@ export default function VideoCall({ roomName, participantName, participantIdenti
 
     getToken();
     return () => { cancelled = true; };
-  }, [roomName, participantName, participantIdentity]);
+  }, [roomName, participantName, participantIdentity, currentUser, retryTick]);
 
   if (loading) {
     return (
@@ -74,7 +92,12 @@ export default function VideoCall({ roomName, participantName, participantIdenti
         <div style={{ color: '#8896B3', fontSize: 14, textAlign: 'center', maxWidth: 300 }}>
           {error || 'LiveKit is not configured. Please try again later.'}
         </div>
-        <button onClick={onSessionEnd} style={primaryButtonStyle}>Go Back</button>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button onClick={() => { setLoading(true); setError(null); setRetryTick((v) => v + 1); }} style={primaryButtonStyle}>
+            Retry
+          </button>
+          <button onClick={onSessionEnd} style={secondaryButtonStyle}>Go Back</button>
+        </div>
       </div>
     );
   }
@@ -150,4 +173,10 @@ const primaryButtonStyle = {
   fontWeight: 700,
   fontSize: 15,
   cursor: 'pointer',
+};
+
+const secondaryButtonStyle = {
+  ...primaryButtonStyle,
+  background: 'transparent',
+  border: '1px solid rgba(255,255,255,0.25)',
 };
