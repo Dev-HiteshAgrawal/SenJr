@@ -61,7 +61,7 @@ export async function checkAndProcessMisses(userId) {
     }
 
     // Check Ban Threshold
-    if (currentMisses >= 54 && !profile.banned) {
+    if (currentMisses >= 10 && !profile.banned) {
       const banUntil = new Date();
       banUntil.setDate(banUntil.getDate() + 7); // Ban for 7 days
       await internalUpdateUser(userId, {
