@@ -8,14 +8,19 @@ import { useNotification } from '../contexts/NotificationContext';
 import './AITutorChat.css';
 
 const TUTORS = {
-  maths: { name: 'Nova', emoji: '🧮', subject: 'Maths' },
-  science: { name: 'Atom', emoji: '⚗️', subject: 'Science' },
-  history: { name: 'Sage', emoji: '📜', subject: 'History' },
-  economics: { name: 'Axis', emoji: '📊', subject: 'Economics & Business' },
-  english: { name: 'Quill', emoji: '✍️', subject: 'English & Writing' },
+  maths: { name: 'Arya', emoji: '🧮', subject: 'Maths' },
+  physics: { name: 'Veda', emoji: '🔭', subject: 'Physics' },
+  chemistry: { name: 'Rasayan', emoji: '⚗️', subject: 'Chemistry' },
+  biology: { name: 'Jeev', emoji: '🧬', subject: 'Biology' },
+  english: { name: 'Lekhak', emoji: '✍️', subject: 'English' },
+  economics: { name: 'Arth', emoji: '📊', subject: 'Economics & Commerce' },
   programming: { name: 'CodeBot', emoji: '💻', subject: 'Programming' },
-  geography: { name: 'Terra', emoji: '🌍', subject: 'Geography' },
-  biology: { name: 'Gene', emoji: '🧬', subject: 'Biology Deep Dive' },
+  ssc: { name: 'Sarkar', emoji: '🏛️', subject: 'SSC & Govt Exams' },
+  upsc: { name: 'Shasan', emoji: '🇮🇳', subject: 'UPSC & IAS' },
+  history: { name: 'Itihas', emoji: '📜', subject: 'History & Social Science' },
+  ca: { name: 'Nidhi', emoji: '📈', subject: 'CA & Commerce' },
+  law: { name: 'Nyaya', emoji: '⚖️', subject: 'Law' },
+  aptitude: { name: 'Tark', emoji: '🧠', subject: 'General Aptitude' },
 };
 
 function getGreeting(tutor) {
@@ -172,28 +177,69 @@ export default function AITutorChat() {
     setErrorMessage('');
     setIsTyping(true);
 
+    // Create a placeholder message for the AI response
+    const aiMessagePlaceholder = {
+      role: 'model',
+      content: '',
+      timestamp: new Date().toISOString(),
+      isStreaming: true,
+    };
+    
+    setMessages([...nextMessages, aiMessagePlaceholder]);
+
     try {
-      const reply = await generateTutorReply({
+      const finalReply = await generateTutorReply({
         tutor,
         messages: nextMessages,
+        onStream: (currentText) => {
+          setMessages((prev) => {
+            const updated = [...prev];
+            const lastIndex = updated.length - 1;
+            if (updated[lastIndex].role === 'model') {
+              updated[lastIndex] = {
+                ...updated[lastIndex],
+                content: currentText,
+              };
+            }
+            return updated;
+          });
+        }
       });
 
-      const finalMessages = [...nextMessages, { role: 'model', content: reply }];
-      finalMessages[finalMessages.length - 1].timestamp = new Date().toISOString();
-      setMessages(finalMessages);
+      // Once done, remove the streaming flag
+      setMessages((prev) => {
+        const updated = [...prev];
+        const lastIndex = updated.length - 1;
+        if (updated[lastIndex].role === 'model') {
+          updated[lastIndex] = {
+            ...updated[lastIndex],
+            content: finalReply,
+            isStreaming: false,
+          };
+        }
+        return updated;
+      });
+      
+      const finalMessages = [...nextMessages, { role: 'model', content: finalReply, timestamp: new Date().toISOString() }];
       await persistMessages(finalMessages);
     } catch (error) {
       console.error('Error sending message:', error);
       notifyError(error.message || 'I hit a small snag processing that.');
-      setMessages([
-        ...nextMessages,
-        {
-          role: 'model',
-          content:
-            "I hit a small snag. Could you try asking that again?",
-          timestamp: new Date().toISOString(),
-        },
-      ]);
+      // Remove the placeholder message on error
+      setMessages((prev) => {
+        const updated = [...prev];
+        if (updated[updated.length - 1].role === 'model' && updated[updated.length - 1].content === '') {
+          updated.pop();
+        }
+        return [
+          ...updated,
+          {
+            role: 'model',
+            content: "I hit a small snag. Could you try asking that again?",
+            timestamp: new Date().toISOString(),
+          },
+        ];
+      });
     } finally {
       setIsTyping(false);
     }

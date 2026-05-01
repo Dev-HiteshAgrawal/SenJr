@@ -3,70 +3,19 @@ import { Link, useNavigate } from 'react-router-dom';
 import './AITutor.css';
 
 const TUTORS = [
-  {
-    id: 'maths',
-    name: 'Nova',
-    emoji: '🧮',
-    subject: 'Maths',
-    topics: ['JEE Maths', 'Algebra', 'Calculus', 'Statistics'],
-    theme: 'theme-saffron'
-  },
-  {
-    id: 'science',
-    name: 'Atom',
-    emoji: '⚗️',
-    subject: 'Science',
-    topics: ['NEET Physics', 'NEET Chemistry', 'JEE Physics', 'JEE Chemistry'],
-    theme: 'theme-mint'
-  },
-  {
-    id: 'history',
-    name: 'Sage',
-    emoji: '📜',
-    subject: 'History',
-    topics: ['Ancient', 'Medieval', 'Modern', 'World History'],
-    theme: 'theme-gold'
-  },
-  {
-    id: 'economics',
-    name: 'Axis',
-    emoji: '📊',
-    subject: 'Economics & Business',
-    topics: ['Micro', 'Macro', 'Commerce', 'Finance'],
-    theme: 'theme-blue'
-  },
-  {
-    id: 'english',
-    name: 'Quill',
-    emoji: '✍️',
-    subject: 'English & Writing',
-    topics: ['CUET English', 'IELTS', 'Grammar', 'Literature'],
-    theme: 'theme-pink'
-  },
-  {
-    id: 'programming',
-    name: 'CodeBot',
-    emoji: '💻',
-    subject: 'Programming',
-    topics: ['Python', 'Java', 'Web Dev', 'DSA'],
-    theme: 'theme-purple'
-  },
-  {
-    id: 'geography',
-    name: 'Terra',
-    emoji: '🌍',
-    subject: 'Geography',
-    topics: ['Maps', 'Climate', 'Physical Geography'],
-    theme: 'theme-green'
-  },
-  {
-    id: 'biology',
-    name: 'Gene',
-    emoji: '🧬',
-    subject: 'Biology Deep Dive',
-    topics: ['Human body', 'Genetics', 'Ecology'],
-    theme: 'theme-teal'
-  }
+  { id: 'maths', name: 'Arya', emoji: '🧮', subject: 'Maths', topics: ['JEE', 'Calculus', 'Algebra'], theme: 'theme-saffron' },
+  { id: 'physics', name: 'Veda', emoji: '🔭', subject: 'Physics', topics: ['Mechanics', 'Optics', 'Thermodynamics'], theme: 'theme-blue' },
+  { id: 'chemistry', name: 'Rasayan', emoji: '⚗️', subject: 'Chemistry', topics: ['Organic', 'Inorganic', 'Physical'], theme: 'theme-mint' },
+  { id: 'biology', name: 'Jeev', emoji: '🧬', subject: 'Biology', topics: ['Botany', 'Zoology', 'NEET'], theme: 'theme-teal' },
+  { id: 'english', name: 'Lekhak', emoji: '✍️', subject: 'English', topics: ['Grammar', 'Literature', 'IELTS'], theme: 'theme-pink' },
+  { id: 'economics', name: 'Arth', emoji: '📊', subject: 'Economics', topics: ['Micro', 'Macro', 'Commerce'], theme: 'theme-purple' },
+  { id: 'programming', name: 'CodeBot', emoji: '💻', subject: 'Programming', topics: ['Python', 'Java', 'DSA'], theme: 'theme-blue' },
+  { id: 'ssc', name: 'Sarkar', emoji: '🏛️', subject: 'SSC & Govt', topics: ['CGL', 'CHSL', 'Banking'], theme: 'theme-saffron' },
+  { id: 'upsc', name: 'Shasan', emoji: '🇮🇳', subject: 'UPSC & IAS', topics: ['Prelims', 'Mains', 'CSAT'], theme: 'theme-gold' },
+  { id: 'history', name: 'Itihas', emoji: '📜', subject: 'History', topics: ['Ancient', 'Modern', 'Polity'], theme: 'theme-gold' },
+  { id: 'ca', name: 'Nidhi', emoji: '📈', subject: 'CA & Commerce', topics: ['Accounts', 'Taxation', 'Law'], theme: 'theme-mint' },
+  { id: 'law', name: 'Nyaya', emoji: '⚖️', subject: 'Law', topics: ['CLAT', 'Constitution', 'Criminal Law'], theme: 'theme-purple' },
+  { id: 'aptitude', name: 'Tark', emoji: '🧠', subject: 'Aptitude', topics: ['Reasoning', 'Quant', 'Verbal'], theme: 'theme-teal' },
 ];
 
 export default function AITutor() {
