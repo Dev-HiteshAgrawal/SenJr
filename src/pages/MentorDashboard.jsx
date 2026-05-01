@@ -7,6 +7,7 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import UnreadBadge from '../components/UnreadBadge';
 import VideoCall from '../components/VideoCall';
 import { generateAndDownloadCertificate } from '../lib/certificateHelpers';
+import { useNotification } from '../contexts/NotificationContext';
 import './MentorDashboard.css';
 
 function canJoin(session) {
@@ -39,6 +40,7 @@ for (let i = 0; i < 24; i++) {
 
 export default function MentorDashboard() {
   const { userProfile, currentUser } = useAuth();
+  const { notifyError, notifySuccess, notifyInfo } = useNotification();
   
   const displayName = userProfile?.displayName || currentUser?.displayName || 'Mentor';
   const collegeName = userProfile?.college || 'Institution';
@@ -71,7 +73,7 @@ export default function MentorDashboard() {
     if (!file || !currentUser) return;
     
     if (file.size > 5 * 1024 * 1024) {
-      alert("File size must be under 5MB");
+      notifyError("File size must be under 5MB");
       return;
     }
 
@@ -85,10 +87,10 @@ export default function MentorDashboard() {
         verificationStatus: 'pending',
         verificationDocumentUrl: downloadURL
       });
-      alert("Document submitted successfully! Under review.");
+      notifySuccess("Document submitted successfully! Under review.");
     } catch (err) {
       console.error("Error uploading document:", err);
-      alert("Failed to upload document.");
+      notifyError("Failed to upload document.");
     }
     setIsUploadingDocument(false);
   };
@@ -199,10 +201,10 @@ export default function MentorDashboard() {
       
       setShowHomeworkModal(false);
       setHwForm({ studentId: '', title: '', description: '', dueDate: '' });
-      alert("Homework assigned successfully!");
+      notifySuccess("Homework assigned successfully!");
     } catch (err) {
       console.error("Failed to assign homework:", err);
-      alert("Failed to assign homework. Please try again.");
+      notifyError("Failed to assign homework. Please try again.");
     }
   };
 
@@ -255,7 +257,7 @@ export default function MentorDashboard() {
       });
     } catch (err) {
       console.error("Error generating mentor certificate", err);
-      alert("Could not generate certificate.");
+      notifyError("Could not generate certificate.");
     }
   };
 
@@ -271,10 +273,10 @@ export default function MentorDashboard() {
         duration: '1 Month',
         userId: studentId
       });
-      alert(`Mentorship marked complete for ${studentName}. Certificate downloaded!`);
+      notifySuccess(`Mentorship marked complete for ${studentName}. Certificate downloaded!`);
     } catch (err) {
       console.error("Error generating student certificate", err);
-      alert("Could not generate certificate.");
+      notifyError("Could not generate certificate.");
     }
   };
 

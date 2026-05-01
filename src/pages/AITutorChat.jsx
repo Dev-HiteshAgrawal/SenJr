@@ -4,6 +4,7 @@ import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../lib/firebase';
 import { fetchAiRuntimeConfig, generateTutorReply } from '../lib/aiTutor';
+import { useNotification } from '../contexts/NotificationContext';
 import './AITutorChat.css';
 
 const TUTORS = {
@@ -37,6 +38,7 @@ export default function AITutorChat() {
   const { subject } = useParams();
   const { currentUser } = useAuth();
   const navigate = useNavigate();
+  const { notifyError, notifyInfo, notifySuccess } = useNotification();
   const tutor = TUTORS[subject];
 
   const [messages, setMessages] = useState([]);
@@ -125,7 +127,7 @@ export default function AITutorChat() {
       } catch (error) {
         if (!isMounted) return;
         console.error('Runtime config error:', error);
-        setErrorMessage(error.message || 'Could not load AI tutor runtime configuration.');
+        notifyError(error.message || 'Could not load AI tutor runtime configuration.');
         setAiProvider(null);
       } finally {
         if (isMounted) {
@@ -182,7 +184,7 @@ export default function AITutorChat() {
       await persistMessages(finalMessages);
     } catch (error) {
       console.error('Error sending message:', error);
-      setErrorMessage(error.message || 'The AI tutor could not generate a reply.');
+      notifyError(error.message || 'The AI tutor could not generate a reply.');
       setMessages([
         ...nextMessages,
         {
@@ -200,7 +202,7 @@ export default function AITutorChat() {
   const handleClearChat = async () => {
     const initialMessages = [getFreshStartMessage()];
     setMessages(initialMessages);
-    setErrorMessage('');
+    notifyInfo("Chat history cleared.");
 
     try {
       localStorage.removeItem(storageKey);
@@ -260,6 +262,7 @@ export default function AITutorChat() {
               onClick={() => {
                 localStorage.setItem('senjr_storage_ok', 'yes');
                 setStorageConsent('yes');
+                notifySuccess("Storage allowed! History will be saved.");
               }}
             >
               Allow ✓
@@ -270,6 +273,7 @@ export default function AITutorChat() {
               onClick={() => {
                 localStorage.setItem('senjr_storage_ok', 'no');
                 setStorageConsent('no');
+                notifyInfo("Storage declined. History won't persist.");
               }}
             >
               No thanks
@@ -281,14 +285,8 @@ export default function AITutorChat() {
       {runtimeReady && !aiProvider && (
         <div className="card" style={{ margin: '1rem 1.5rem 0', borderColor: 'rgba(255, 77, 109, 0.35)' }}>
           <p style={{ color: 'var(--text-secondary)' }}>
-            AI tutor is not configured on the backend yet. Add `NVIDIA_API_KEY` or `GEMINI_API_KEY` on the server.
+            AI tutor is not configured on the backend yet.
           </p>
-        </div>
-      )}
-
-      {errorMessage && (
-        <div className="card" style={{ margin: '1rem 1.5rem 0', borderColor: 'rgba(255, 77, 109, 0.35)' }}>
-          <p style={{ color: 'var(--text-secondary)' }}>{errorMessage}</p>
         </div>
       )}
 

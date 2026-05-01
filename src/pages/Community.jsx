@@ -7,8 +7,8 @@ import { useNotification } from '../contexts/NotificationContext';
 import VideoCall from '../components/VideoCall';
 import './Community.css';
 
-const CLOUDINARY_CLOUD_NAME = 'dxyr3qvdd';
-const CLOUDINARY_UPLOAD_PRESET = 'ml_default';
+const CLOUDINARY_CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'dxyr3qvdd';
+const CLOUDINARY_UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || 'ml_default';
 
 const TOPICS = [
   { id: 'tip', label: 'Tip 💡', class: 'tip' },
@@ -336,7 +336,7 @@ export default function Community() {
       <p className="page-subtitle mb-4">Stories + feed. Keep it social, focused, and real.</p>
 
       <section className="stories-strip" aria-label="Community stories">
-        <div className="story-item your-story">
+        <div className="story-item your-story" onClick={() => document.querySelector('.post-textarea')?.focus()}>
           <div className="story-ring">
             <div className="story-avatar">+</div>
           </div>

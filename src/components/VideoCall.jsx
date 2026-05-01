@@ -1,5 +1,10 @@
 import { useState, useEffect } from 'react';
-import { LiveKitRoom, VideoConference, RoomAudioRenderer } from '@livekit/components-react';
+import { 
+  LiveKitRoom, 
+  VideoConference, 
+  RoomAudioRenderer,
+  useLocalParticipant,
+} from '@livekit/components-react';
 import { useAuth } from '../contexts/AuthContext';
 import '@livekit/components-styles';
 
@@ -103,7 +108,30 @@ export default function VideoCall({ roomName, participantName, participantIdenti
   }
 
   return (
-    <div style={{ ...overlayStyle, alignItems: 'stretch', justifyContent: 'flex-start' }}>
+    <LiveKitRoom
+      video={true}
+      audio={true}
+      token={token}
+      serverUrl={livekitUrl}
+      data-lk-theme="default"
+      style={{ height: '100vh', width: '100vw', position: 'fixed', top: 0, left: 0, zIndex: 9999, background: '#0A0E27' }}
+      onDisconnected={onSessionEnd}
+      onError={(err) => console.error('LiveKitRoom error:', err)}
+    >
+      <ConferenceInternal roomName={roomName} onSessionEnd={onSessionEnd} />
+    </LiveKitRoom>
+  );
+}
+
+function ConferenceInternal({ roomName, onSessionEnd }) {
+  const { isMicrophoneEnabled, isCameraEnabled, isScreenShareEnabled, localParticipant } = useLocalParticipant();
+
+  const toggleMic = () => localParticipant.setMicrophoneEnabled(!isMicrophoneEnabled);
+  const toggleCam = () => localParticipant.setCameraEnabled(!isCameraEnabled);
+  const toggleShare = () => localParticipant.setScreenShareEnabled(!isScreenShareEnabled);
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', width: '100%' }}>
       <div style={meetingTopBarStyle}>
         <div style={meetingLeftStyle}>
           <div style={brandPillStyle}>🎓 Senjr Meet</div>
@@ -119,26 +147,32 @@ export default function VideoCall({ roomName, participantName, participantIdenti
           <button onClick={onSessionEnd} style={hangupBtnStyle}>📴 End</button>
         </div>
       </div>
-      <div style={{ flex: 1, minHeight: 0 }}>
-        <LiveKitRoom
-          video={true}
-          audio={true}
-          token={token}
-          serverUrl={livekitUrl}
-          data-lk-theme="default"
-          style={{ height: '100%', background: '#0A0E27' }}
-          onDisconnected={onSessionEnd}
-          onError={(err) => console.error('LiveKitRoom error:', err)}
-        >
-          <VideoConference />
-          <RoomAudioRenderer />
-        </LiveKitRoom>
+      
+      <div style={{ flex: 1, minHeight: 0, position: 'relative' }}>
+        <VideoConference />
+        <RoomAudioRenderer />
       </div>
+
       <div style={meetingBottomDockStyle}>
         <div style={dockGroupStyle}>
-          <button style={dockBtnStyle}>🎙️ Mic</button>
-          <button style={dockBtnStyle}>📷 Cam</button>
-          <button style={dockBtnStyle}>🖥️ Share</button>
+          <button 
+            style={{ ...dockBtnStyle, background: isMicrophoneEnabled ? 'rgba(255,255,255,0.1)' : 'rgba(255,59,48,0.2)', color: isMicrophoneEnabled ? '#d7e3ff' : '#ff9b9b' }} 
+            onClick={toggleMic}
+          >
+            {isMicrophoneEnabled ? '🎙️ Mic On' : '🔇 Mic Off'}
+          </button>
+          <button 
+            style={{ ...dockBtnStyle, background: isCameraEnabled ? 'rgba(255,255,255,0.1)' : 'rgba(255,59,48,0.2)', color: isCameraEnabled ? '#d7e3ff' : '#ff9b9b' }} 
+            onClick={toggleCam}
+          >
+            {isCameraEnabled ? '📷 Cam On' : '📹 Cam Off'}
+          </button>
+          <button 
+            style={{ ...dockBtnStyle, background: isScreenShareEnabled ? 'rgba(34,197,94,0.2)' : 'rgba(255,255,255,0.05)', color: isScreenShareEnabled ? '#4ade80' : '#d7e3ff' }} 
+            onClick={toggleShare}
+          >
+            {isScreenShareEnabled ? '🖥️ Sharing' : '🖥️ Share'}
+          </button>
         </div>
         <div style={dockInfoStyle}>Tip: Use headphones for cleaner audio</div>
       </div>
@@ -284,10 +318,11 @@ const dockBtnStyle = {
   background: 'rgba(255,255,255,0.05)',
   color: '#d7e3ff',
   borderRadius: 12,
-  padding: '8px 12px',
+  padding: '8px 16px',
   fontWeight: 600,
   fontSize: 12,
   cursor: 'pointer',
+  transition: 'all 0.2s ease',
 };
 
 const dockInfoStyle = {

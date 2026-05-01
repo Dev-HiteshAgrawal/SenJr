@@ -13,6 +13,7 @@ import BadgeGrid from '../components/BadgeGrid';
 import BadgePopup from '../components/BadgePopup';
 import { COURSES } from '../lib/coursesData';
 import { generateAndDownloadCertificate } from '../lib/certificateHelpers';
+import { useNotification } from '../contexts/NotificationContext';
 import './StudentDashboard.css';
 
 function canJoin(session) {
@@ -42,6 +43,7 @@ function toLocalDateString(date) {
 
 export default function StudentDashboard() {
   const { userProfile, currentUser } = useAuth();
+  const { notifyError, notifySuccess, notifyInfo } = useNotification();
   
   // Format current date: e.g., "Monday, October 12"
   const dateOptions = { weekday: 'long', month: 'long', day: 'numeric' };
@@ -196,6 +198,7 @@ export default function StudentDashboard() {
           setUniqueMentors(Array.from(mentorsMap.values()));
         } catch (err) {
           console.error("Failed to load sessions:", err);
+          notifyError("Failed to load your sessions. Please refresh.");
         }
       }
       fetchSessions();
@@ -221,6 +224,17 @@ export default function StudentDashboard() {
       fetchCertificates();
     }
   }, [currentUser?.uid]);
+
+  // Calculate Daily Focus Progress
+  const todayStr = toLocalDateString(new Date());
+  const sessionsToday = [...upcomingSessions, ...completedSessions].filter(s => s.date === todayStr);
+  const completedTodayCount = completedSessions.filter(s => s.date === todayStr).length;
+  const homeworkPendingToday = pendingHomework.length;
+  // We don't easily have 'completed homework today' count without searching all homework docs, 
+  // so we'll use a heuristic: Focus = (sessions completed today) + (1 if no pending homework)
+  const totalFocusItems = (sessionsToday.length || 0) + (homeworkPendingToday > 0 ? 1 : 0);
+  const finishedFocusItems = completedTodayCount + (homeworkPendingToday === 0 ? 1 : 0);
+  const focusProgress = totalFocusItems > 0 ? Math.round((finishedFocusItems / totalFocusItems) * 100) : 100;
 
   // Streak Variables
   const streak = userProfile?.streak || 0;
@@ -320,7 +334,7 @@ export default function StudentDashboard() {
   const handleDownloadStudentCertificate = async () => {
     if (!currentUser) return;
     if (completedSessions.length < 1) {
-      alert('Complete at least one session to unlock your certificate.');
+      notifyInfo('Complete at least one session to unlock your certificate.');
       return;
     }
     try {
@@ -338,7 +352,7 @@ export default function StudentDashboard() {
       });
     } catch (err) {
       console.error('Failed to generate student certificate:', err);
-      alert('Could not generate certificate. Please try again.');
+      notifyError('Could not generate certificate. Please try again.');
     }
   };
 
@@ -414,8 +428,10 @@ export default function StudentDashboard() {
 
       // Remove from upcoming list
       setUpcomingSessions(prev => prev.filter(s => s.id !== sessionToReview.id));
+      notifySuccess("Review submitted! XP awarded.");
     } catch (err) {
       console.error("Failed to submit review", err);
+      notifyError("Failed to submit your review.");
     }
   };
 
@@ -445,9 +461,10 @@ export default function StudentDashboard() {
       if (newBadges.length > 0) {
         setBadgePopupQueue(prev => [...prev, ...newBadges.map(b => b.id)]);
       }
-
+      notifySuccess("Target cleared! XP earned.");
     } catch (err) {
       console.error("Failed to complete homework:", err);
+      notifyError("Failed to mark task as completed.");
     }
   };
 
@@ -570,10 +587,10 @@ export default function StudentDashboard() {
             <div className="os-focus-ring">
               <svg viewBox="0 0 36 36" className="circular-chart orange">
                 <path className="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                <path className="circle" strokeDasharray={`${Math.min(100, pendingHomework.length > 0 ? 50 : 100)}, 100`} d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                <path className="circle" strokeDasharray={`${focusProgress}, 100`} d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
               </svg>
               <div className="ring-text">
-                <span className="ring-value">{pendingHomework.length === 0 ? '100%' : '50%'}</span>
+                <span className="ring-value">{focusProgress}%</span>
                 <span className="ring-label">Daily Focus</span>
               </div>
             </div>

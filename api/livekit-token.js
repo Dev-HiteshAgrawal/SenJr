@@ -25,6 +25,36 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'LiveKit credentials not configured' });
   }
 
+  // Server-side validation against Firestore
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ') && cleanRoomName.startsWith('senjr-')) {
+    const idToken = authHeader.split('Bearer ')[1];
+    const sessionId = cleanRoomName.replace('senjr-', '');
+    const projectId = process.env.VITE_FIREBASE_PROJECT_ID || process.env.FIREBASE_PROJECT_ID || 'senjr-7a60f';
+    const firestoreUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/sessions/${sessionId}`;
+
+    try {
+      const sessionRes = await fetch(firestoreUrl, {
+        headers: { 'Authorization': `Bearer ${idToken}` }
+      });
+
+      if (!sessionRes.ok) {
+        return res.status(403).json({ error: 'Session not found or access denied.' });
+      }
+
+      const sessionData = await sessionRes.json();
+      if (sessionData && sessionData.fields) {
+        const status = sessionData.fields.status?.stringValue;
+        if (status === 'completed') {
+          return res.status(403).json({ error: 'This session has already been completed.' });
+        }
+      }
+    } catch (err) {
+      console.error('Session validation error:', err);
+      // We continue if it's a non-critical network error to avoid blocking the user
+    }
+  }
+
   try {
     const { AccessToken } = await import('livekit-server-sdk');
 
