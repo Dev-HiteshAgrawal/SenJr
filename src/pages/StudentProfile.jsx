@@ -4,6 +4,7 @@ import { doc, getDoc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firest
 import { db } from '../lib/firebase';
 import { useAuth } from '../contexts/AuthContext';
 import { useNotification } from '../contexts/NotificationContext';
+import { buildStudyScore } from '../lib/studentOS';
 import './StudentProfile.css';
 
 export default function StudentProfile() {
@@ -65,11 +66,17 @@ export default function StudentProfile() {
         await updateDoc(userRef, {
           friendRequests: arrayUnion(currentUser.uid)
         });
+        await updateDoc(doc(db, 'users', currentUser.uid), {
+          outgoingFriendRequests: arrayUnion(id)
+        });
         setFriendStatus('pending');
         notifySuccess(`Friend request sent to ${profile.displayName || 'Student'}!`);
       } else if (friendStatus === 'pending') {
         await updateDoc(userRef, {
           friendRequests: arrayRemove(currentUser.uid)
+        });
+        await updateDoc(doc(db, 'users', currentUser.uid), {
+          outgoingFriendRequests: arrayRemove(id)
         });
         setFriendStatus('none');
         notifyInfo("Friend request cancelled.");
@@ -93,6 +100,7 @@ export default function StudentProfile() {
 
   if (loading) return <div className="loading-state">Fetching details...</div>;
   if (!profile) return <div className="loading-state">We couldn't find this student.</div>;
+  const score = buildStudyScore(profile);
 
   return (
     <div className="student-profile-container animate-fade-in">
@@ -122,6 +130,10 @@ export default function StudentProfile() {
           <div className="stat-box">
             <h3>{profile.friends?.length || 0}</h3>
             <p>Connections</p>
+          </div>
+          <div className="stat-box">
+            <h3>{score.studyScore}</h3>
+            <p>Study score</p>
           </div>
         </div>
       </div>

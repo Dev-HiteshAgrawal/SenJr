@@ -551,3 +551,124 @@ input, textarea, select {
 .delay-3 { animation-delay: 0.3s; }
 .delay-4 { animation-delay: 0.4s; }
 .delay-5 { animation-delay: 0.5s; }
+
+/* Reliability and loading states */
+.offline-recovery-bar {
+  position: fixed;
+  left: 50%;
+  bottom: 1rem;
+  z-index: 5000;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  max-width: min(92vw, 560px);
+  padding: 0.8rem 1rem;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-full);
+  background: rgba(10, 14, 39, 0.92);
+  color: var(--text-secondary);
+  box-shadow: var(--shadow-lg);
+  backdrop-filter: blur(18px);
+  transform: translateX(-50%);
+}
+
+.offline-dot {
+  width: 0.65rem;
+  height: 0.65rem;
+  border-radius: 50%;
+  background: var(--error);
+  box-shadow: 0 0 0 6px rgba(255, 77, 109, 0.1);
+  flex: 0 0 auto;
+}
+
+.offline-dot.online {
+  background: var(--accent-mint);
+  box-shadow: 0 0 0 6px rgba(0, 255, 178, 0.1);
+}
+
+.route-fallback {
+  display: grid;
+  place-items: center;
+}
+
+.skeleton-card {
+  width: min(720px, 100%);
+}
+
+.skeleton-line,
+.skeleton-grid span {
+  display: block;
+  border-radius: var(--radius-md);
+  background: linear-gradient(90deg, rgba(255,255,255,0.05), rgba(255,255,255,0.12), rgba(255,255,255,0.05));
+  background-size: 220% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+.skeleton-line {
+  width: 60%;
+  height: 18px;
+  margin-bottom: 1rem;
+}
+
+.skeleton-line.wide {
+  width: 82%;
+  height: 28px;
+}
+
+.skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.skeleton-grid span {
+  height: 110px;
+}
+
+.recovery-card {
+  max-width: 640px;
+  margin: 4rem auto;
+}
+
+.recovery-kicker {
+  display: inline-flex;
+  margin-bottom: 0.75rem;
+  color: var(--accent-mint);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.recovery-card h1 {
+  margin-bottom: 0.8rem;
+}
+
+.recovery-card p {
+  color: var(--text-secondary);
+  margin-bottom: 1.5rem;
+}
+
+@media (max-width: 560px) {
+  .offline-recovery-bar {
+    bottom: 0.75rem;
+    border-radius: var(--radius-xl);
+    font-size: 0.88rem;
+  }
+
+  .skeleton-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

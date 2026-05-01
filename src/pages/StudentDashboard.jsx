@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { getAllSessions, where, updateSession, updateUser, getUser, getDocuments, COLLECTIONS, updateDocument } from '../lib/firestore';
 import { auth, db } from '../lib/firebase';
@@ -14,6 +14,13 @@ import BadgePopup from '../components/BadgePopup';
 import { COURSES } from '../lib/coursesData';
 import { generateAndDownloadCertificate } from '../lib/certificateHelpers';
 import { useNotification } from '../contexts/NotificationContext';
+import {
+  STUDY_ROOMS,
+  buildFriendStandings,
+  buildMemoryInsights,
+  buildNextBestAction,
+  buildStudyScore,
+} from '../lib/studentOS';
 import './StudentDashboard.css';
 
 function canJoin(session) {
@@ -284,7 +291,8 @@ export default function StudentDashboard() {
       });
       
       await updateDoc(requesterRef, {
-        friends: arrayUnion(currentUser.uid)
+        friends: arrayUnion(currentUser.uid),
+        outgoingFriendRequests: arrayRemove(currentUser.uid)
       });
       
       setFriendRequests(prev => prev.filter(r => r.id !== requesterId));
@@ -299,6 +307,9 @@ export default function StudentDashboard() {
       const userRef = doc(db, 'users', currentUser.uid);
       await updateDoc(userRef, {
         friendRequests: arrayRemove(requesterId)
+      });
+      await updateDoc(doc(db, 'users', requesterId), {
+        outgoingFriendRequests: arrayRemove(currentUser.uid)
       });
       setFriendRequests(prev => prev.filter(r => r.id !== requesterId));
     } catch (err) {
@@ -470,6 +481,33 @@ export default function StudentDashboard() {
 
   const savedCourses = userProfile?.savedCourses || [];
 
+  const studyScore = useMemo(
+    () => buildStudyScore(userProfile || {}, [...upcomingSessions, ...completedSessions], pendingHomework),
+    [userProfile, upcomingSessions, completedSessions, pendingHomework]
+  );
+
+  const memoryInsight = useMemo(
+    () => buildMemoryInsights(userProfile || {}, completedSessions, pendingHomework),
+    [userProfile, completedSessions, pendingHomework]
+  );
+
+  const nextBestAction = useMemo(
+    () => buildNextBestAction({
+      profile: userProfile || {},
+      upcomingSessions,
+      pendingHomework,
+      memory: memoryInsight,
+    }),
+    [userProfile, upcomingSessions, pendingHomework, memoryInsight]
+  );
+
+  const friendStandings = useMemo(
+    () => buildFriendStandings(userProfile || {}, friends),
+    [userProfile, friends]
+  );
+
+  const featuredRooms = STUDY_ROOMS.slice(0, 3);
+
   const handleUpdateCourseStatus = async (courseId, currentStatus) => {
     const statusCycle = {
       'Not Started yet': 'Currently Doing',
@@ -596,6 +634,33 @@ export default function StudentDashboard() {
             </div>
           </header>
 
+          <section className="os-command-grid" aria-label="Study operating system overview">
+            <div className="os-command-card priority">
+              <span className="os-card-kicker">Next best action</span>
+              <h2>{nextBestAction.title}</h2>
+              <p>{nextBestAction.detail}</p>
+              <Link to={nextBestAction.path} className="os-mini-action">{nextBestAction.action}</Link>
+            </div>
+            <div className="os-command-card">
+              <span className="os-card-kicker">Study score</span>
+              <strong>{studyScore.studyScore}</strong>
+              <p>{studyScore.momentum}% momentum today</p>
+              <div className="os-meter"><span style={{ width: `${studyScore.momentum}%` }} /></div>
+            </div>
+            <div className="os-command-card">
+              <span className="os-card-kicker">Memory</span>
+              <strong>{memoryInsight.recallScore}</strong>
+              <p>{memoryInsight.revisionLabel} · {memoryInsight.primarySubject}</p>
+              <div className="os-meter mint"><span style={{ width: `${memoryInsight.retentionEstimate}%` }} /></div>
+            </div>
+            <div className="os-command-card">
+              <span className="os-card-kicker">Consistency</span>
+              <strong>{studyScore.consistency}%</strong>
+              <p>{streak > 0 ? `${streak} day rhythm` : 'Start with one clean block'}</p>
+              <div className="os-meter purple"><span style={{ width: `${studyScore.consistency}%` }} /></div>
+            </div>
+          </section>
+
           <div className="os-grid-2">
             {/* Today's Target (Pending Homework) */}
             <section className="os-section card">
@@ -702,6 +767,31 @@ export default function StudentDashboard() {
                   <p>{completedSessions.length < 1 ? 'Keep going to unlock your first certificate.' : `Issued (${certificates.length} saved).`}</p>
                 </div>
               </button>
+              <Link to="/study-rooms" className="os-qa-btn">
+                <span className="qa-icon">LIVE</span>
+                <div>
+                  <h4>Study Rooms</h4>
+                  <p>Join students focusing right now.</p>
+                </div>
+              </Link>
+            </div>
+          </section>
+
+          <section className="os-section card">
+            <div className="os-section-header">
+              <h2>Live Study Rooms</h2>
+              <Link to="/study-rooms" className="os-link">Open rooms</Link>
+            </div>
+            <div className="os-room-strip">
+              {featuredRooms.map(room => (
+                <Link to="/study-rooms" key={room.id} className={`os-room-chip theme-${room.theme}`}>
+                  <span>{room.icon}</span>
+                  <div>
+                    <strong>{room.name}</strong>
+                    <p>{room.activeUsers} focusing · {room.mode}</p>
+                  </div>
+                </Link>
+              ))}
             </div>
           </section>
 
@@ -762,6 +852,22 @@ export default function StudentDashboard() {
             </div>
           </div>
 
+          <div className="os-memory-card card">
+            <h3>Revision Signal</h3>
+            <div className="memory-score-row">
+              <span>{memoryInsight.retentionEstimate}%</span>
+              <div>
+                <strong>{memoryInsight.confidenceLabel}</strong>
+                <p>{memoryInsight.weaknessProbability}% weakness probability</p>
+              </div>
+            </div>
+            <p className="memory-copy">
+              {memoryInsight.revisionDue
+                ? `${memoryInsight.primarySubject} should be recalled today before it fades.`
+                : `${memoryInsight.primarySubject} is stable. Keep it warm with a short check-in.`}
+            </p>
+          </div>
+
           {/* Friend Requests (NEW) */}
           {friendRequests.length > 0 && (
             <div className="os-requests-card card">
@@ -806,6 +912,22 @@ export default function StudentDashboard() {
                 <Link to="/community" className="os-link">Find Friends</Link>
               </div>
             )}
+          </div>
+
+          <div className="os-social-card card">
+            <h3>Friend Ranking</h3>
+            <div className="os-friends-list">
+              {friendStandings.map(friend => (
+                <div key={friend.id} className={`friend-rank-item ${friend.isMe ? 'me' : ''}`}>
+                  <span className="friend-rank">#{friend.rank}</span>
+                  <div className="friend-info">
+                    <h4>{friend.displayName}</h4>
+                    <p>{friend.weeklyXP} XP this week · {friend.streak} day streak</p>
+                  </div>
+                  {friend.isOnline && <span className="online-pill">Live</span>}
+                </div>
+              ))}
+            </div>
           </div>
 
         </aside>

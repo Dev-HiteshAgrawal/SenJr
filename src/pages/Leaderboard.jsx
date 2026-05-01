@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { getAllUsers, where, orderBy, limit } from '../lib/firestore';
 import { getLevelDetails } from '../lib/xpHelpers';
+import { buildStudyScore } from '../lib/studentOS';
 import './Leaderboard.css';
 
 // Get Monday of the current week
@@ -29,8 +30,9 @@ function formatDate(date) {
 const RANK_MEDALS = { 1: '🥇', 2: '🥈', 3: '🥉' };
 
 export default function Leaderboard() {
-  const { currentUser } = useAuth();
+  const { currentUser, userProfile } = useAuth();
   const [activeTab, setActiveTab] = useState('students');
+  const [scope, setScope] = useState('global');
   const [students, setStudents] = useState([]);
   const [mentors, setMentors] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -40,17 +42,30 @@ export default function Leaderboard() {
 
   useEffect(() => {
     async function loadData() {
+      if (!currentUser) {
+        setStudents([]);
+        setMentors([]);
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
       try {
         // Fetch all students
         const allStudents = await getAllUsers(where('role', '==', 'student'));
         // Sort by XP descending (weeklyXP if available, fallback to total xp)
         const sortedStudents = allStudents
-          .map(s => ({
-            ...s,
-            weekXP: s.weeklyXP || s.xp || 0,
-            level: getLevelDetails(s.xp || 0),
-          }))
-          .sort((a, b) => b.weekXP - a.weekXP)
+          .map(s => {
+            const score = buildStudyScore(s);
+            return {
+              ...s,
+              weekXP: s.weeklyXP || s.xp || 0,
+              level: getLevelDetails(s.xp || 0),
+              studyScore: score.studyScore,
+              consistencyScore: score.consistency,
+            };
+          })
+          .sort((a, b) => b.weekXP - a.weekXP || b.studyScore - a.studyScore)
           .slice(0, 50); // take top 50 for rank calculation
 
         setStudents(sortedStudents);
@@ -73,7 +88,7 @@ export default function Leaderboard() {
       }
     }
     loadData();
-  }, []);
+  }, [currentUser?.uid]);
 
   // Find current user rank
   const getMyRank = (list, key) => {
@@ -84,13 +99,17 @@ export default function Leaderboard() {
 
   const myStudentRank = getMyRank(students, 'weekXP');
   const myMentorRank = getMyRank(mentors, 'weekSessions');
+  const friendIds = new Set([currentUser?.uid, ...(userProfile?.friends || [])].filter(Boolean));
+  const visibleStudents = scope === 'friends'
+    ? students.filter(student => friendIds.has(student.id))
+    : students;
 
   return (
     <div className="page-container leaderboard-page animate-fade-in-up">
       <header className="lb-header">
-        <h1 className="lb-title">This Week's Champions 🏆</h1>
+        <h1 className="lb-title">Weekly Study League</h1>
         <p className="lb-subtitle">
-          Top performers from <strong>{formatDate(weekStart)}</strong> to <strong>{formatDate(weekEnd)}</strong>
+          Calm competition from <strong>{formatDate(weekStart)}</strong> to <strong>{formatDate(weekEnd)}</strong>
         </p>
       </header>
 
@@ -110,6 +129,34 @@ export default function Leaderboard() {
         </button>
       </div>
 
+      {activeTab === 'students' && (
+        <>
+          <div className="lb-scope-toggle" role="group" aria-label="Leaderboard scope">
+            <button className={scope === 'global' ? 'active' : ''} onClick={() => setScope('global')}>
+              Global
+            </button>
+            <button className={scope === 'friends' ? 'active' : ''} onClick={() => setScope('friends')}>
+              Friends
+            </button>
+          </div>
+
+          <section className="lb-metric-strip" aria-label="Competition metrics">
+            <div>
+              <span>Study XP</span>
+              <strong>Weekly effort</strong>
+            </div>
+            <div>
+              <span>Study score</span>
+              <strong>Balanced progress</strong>
+            </div>
+            <div>
+              <span>Consistency</span>
+              <strong>Daily rhythm</strong>
+            </div>
+          </section>
+        </>
+      )}
+
       {loading ? (
         <div className="loading-container" style={{ padding: '4rem 0', textAlign: 'center' }}>
           <div className="loading-spinner"></div>
@@ -124,12 +171,12 @@ export default function Leaderboard() {
                 <span className="lb-col lb-rank">Rank</span>
                 <span className="lb-col lb-user">Student</span>
                 <span className="lb-col lb-stat">XP This Week</span>
-                <span className="lb-col lb-level">Level</span>
+                <span className="lb-col lb-level">Study Score</span>
                 <span className="lb-col lb-streak">Streak</span>
               </div>
 
-              {students.length > 0 ? (
-                students.slice(0, 10).map((student, idx) => {
+              {visibleStudents.length > 0 ? (
+                visibleStudents.slice(0, 10).map((student, idx) => {
                   const rank = idx + 1;
                   const initial = student.displayName?.charAt(0).toUpperCase() || '?';
                   const avatarColor = student.avatarColor || '#FF6B00';
@@ -155,7 +202,7 @@ export default function Leaderboard() {
                         <span className="lb-stat-label">XP</span>
                       </span>
                       <span className="lb-col lb-level">
-                        <span className="lb-level-badge">{student.level.icon} {student.level.name}</span>
+                        <span className="lb-level-badge">{student.studyScore}/100 · {student.consistencyScore}% steady</span>
                       </span>
                       <span className="lb-col lb-streak">
                         {student.streak || 0} 🔥
@@ -165,7 +212,7 @@ export default function Leaderboard() {
                 })
               ) : (
                 <div className="lb-empty">
-                  <p>No students to display yet. Be the first to earn XP! ⚡</p>
+                  <p>{scope === 'friends' ? 'Add friends to create a private study league.' : 'No students to display yet. Earn your first XP and show up here.'}</p>
                 </div>
               )}
 

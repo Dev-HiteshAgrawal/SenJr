@@ -6,14 +6,22 @@ import { getStorage } from 'firebase/storage';
 import { getAnalytics } from 'firebase/analytics';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBOWE62eqXeAlYlDqNclN6VLYabC-ezGdQ",
-  authDomain: "senjr-7a60f.firebaseapp.com",
-  projectId: "senjr-7a60f",
-  storageBucket: "senjr-7a60f.appspot.com",
-  messagingSenderId: "1080629567443",
-  appId: "1:1080629567443:web:7c614a547e8adf1cd8d926",
-  measurementId: "G-SDC4LSGJHJ"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
+
+const missingFirebaseKeys = Object.entries(firebaseConfig)
+  .filter(([key, value]) => key !== 'measurementId' && !value)
+  .map(([key]) => key);
+
+if (missingFirebaseKeys.length > 0) {
+  console.warn(`Missing Firebase environment values: ${missingFirebaseKeys.join(', ')}`);
+}
 
 // Prevent duplicate-app error during Vite HMR
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);

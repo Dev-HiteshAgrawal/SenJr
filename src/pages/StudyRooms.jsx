@@ -1,158 +1,225 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useNotification } from '../contexts/NotificationContext';
+import { updateUser } from '../lib/firestore';
+import { enqueueRetry, getConnectionState, replayRetryQueue } from '../lib/offlineQueue';
+import { STUDY_ROOMS, summarizeRoomActivity, toLocalDateKey } from '../lib/studentOS';
+import { trackEvent } from '../lib/productAnalytics';
 import './StudyRooms.css';
 
-const ROOMS = [
-  {
-    id: 'upsc',
-    name: 'UPSC Aspirants',
-    description: 'Deep focus room for UPSC preparation. Strict pomodoro cycles.',
-    icon: '🏛️',
-    activeUsers: 142,
-    theme: 'purple',
-    tags: ['Silent', 'Deep Work', 'Pomodoro'],
-  },
-  {
-    id: 'jee',
-    name: 'JEE/NEET Grind',
-    description: 'Physics, Chemistry, Maths & Biology problem solving.',
-    icon: '🔬',
-    activeUsers: 89,
-    theme: 'blue',
-    tags: ['Problem Solving', 'Competitive'],
-  },
-  {
-    id: 'productivity',
-    name: 'Productivity Masters',
-    description: 'General study room. Share daily goals and stay accountable.',
-    icon: '⚡',
-    activeUsers: 210,
-    theme: 'green',
-    tags: ['Accountability', 'General'],
-  },
-  {
-    id: 'silent',
-    name: 'The Silent Library',
-    description: 'No chatting allowed. Just pure, uninterrupted focus.',
-    icon: '📚',
-    activeUsers: 340,
-    theme: 'amber',
-    tags: ['Strict Silence', 'Long Sessions'],
-  },
-  {
-    id: 'nightowl',
-    name: 'Night Owls',
-    description: 'For those who study best when the world is asleep.',
-    icon: '🦉',
-    activeUsers: 45,
-    theme: 'indigo',
-    tags: ['Late Night', 'Chill Vibes'],
-  }
-];
+const SESSION_KEY = 'senjr:active-study-room';
+
+function formatTime(seconds) {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+}
 
 export default function StudyRooms() {
   const { currentUser, userProfile } = useAuth();
+  const { notifySuccess, notifyInfo, notifyError } = useNotification();
   const [activeRoom, setActiveRoom] = useState(null);
-  const [timer, setTimer] = useState(25 * 60); // 25 min pomodoro
+  const [goal, setGoal] = useState('');
+  const [timer, setTimer] = useState(25 * 60);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
-  const [progress, setProgress] = useState(0);
+  const [completedBlocks, setCompletedBlocks] = useState(() => Number(localStorage.getItem('senjr:focus-blocks') || 0));
+
+  const displayName = userProfile?.displayName || currentUser?.displayName || 'You';
+  const totalStudying = STUDY_ROOMS.reduce((sum, room) => sum + room.activeUsers, 0) + (activeRoom ? 1 : 0);
+  const durationSeconds = (activeRoom?.durationMinutes || 25) * 60;
+  const progress = Math.min(100, Math.round(((durationSeconds - timer) / durationSeconds) * 100));
+
+  const activity = useMemo(
+    () => activeRoom ? summarizeRoomActivity(activeRoom, displayName) : [],
+    [activeRoom, displayName]
+  );
 
   useEffect(() => {
-    let interval;
-    if (isTimerRunning && timer > 0) {
-      interval = setInterval(() => {
-        setTimer((prev) => prev - 1);
-        setProgress(((25 * 60 - timer) / (25 * 60)) * 100);
-      }, 1000);
-    } else if (timer === 0) {
-      setIsTimerRunning(false);
+    try {
+      const saved = JSON.parse(localStorage.getItem(SESSION_KEY) || 'null');
+      if (saved?.roomId) {
+        const room = STUDY_ROOMS.find((item) => item.id === saved.roomId);
+        if (room) {
+          setActiveRoom(room);
+          setGoal(saved.goal || '');
+          setTimer(saved.timer || room.durationMinutes * 60);
+        }
+      }
+    } catch (error) {
+      console.warn('Could not restore study room session:', error);
     }
+  }, []);
+
+  useEffect(() => {
+    if (!activeRoom) {
+      localStorage.removeItem(SESSION_KEY);
+      return;
+    }
+
+    localStorage.setItem(SESSION_KEY, JSON.stringify({
+      roomId: activeRoom.id,
+      goal,
+      timer,
+      updatedAt: new Date().toISOString(),
+    }));
+  }, [activeRoom, goal, timer]);
+
+  useEffect(() => {
+    if (!isTimerRunning || timer <= 0) return undefined;
+    const interval = setInterval(() => setTimer((prev) => Math.max(0, prev - 1)), 1000);
     return () => clearInterval(interval);
   }, [isTimerRunning, timer]);
 
-  const formatTime = (seconds) => {
-    const m = Math.floor(seconds / 60);
-    const s = seconds % 60;
-    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-  };
+  useEffect(() => {
+    if (timer === 0 && activeRoom) {
+      setIsTimerRunning(false);
+      completeFocusBlock();
+    }
+  }, [timer, activeRoom]);
 
-  const toggleTimer = () => {
-    setIsTimerRunning(!isTimerRunning);
-  };
+  useEffect(() => {
+    if (!currentUser) return undefined;
+    const syncQueuedWork = async () => {
+      if (!getConnectionState().online) return;
+      const result = await replayRetryQueue(async (item) => {
+        if (item.type === 'focus_block') {
+          await updateUser(currentUser.uid, item.payload);
+        }
+      });
+      if (result.attempted > 0 && result.remaining === 0) {
+        notifySuccess('Offline study progress synced.');
+      }
+    };
+
+    window.addEventListener('online', syncQueuedWork);
+    syncQueuedWork();
+    return () => window.removeEventListener('online', syncQueuedWork);
+  }, [currentUser?.uid]);
 
   const joinRoom = (room) => {
     setActiveRoom(room);
-    setTimer(25 * 60);
+    setTimer(room.durationMinutes * 60);
     setIsTimerRunning(false);
-    setProgress(0);
+    setGoal('');
+    trackEvent('study_room_joined', { roomId: room.id, mode: room.mode });
   };
 
   const leaveRoom = () => {
     setActiveRoom(null);
     setIsTimerRunning(false);
+    localStorage.removeItem(SESSION_KEY);
+  };
+
+  const completeFocusBlock = async () => {
+    if (!activeRoom || !currentUser) return;
+    const newCount = completedBlocks + 1;
+    const todayKey = toLocalDateKey();
+    const activeDays = Array.isArray(userProfile?.activeDays) ? userProfile.activeDays : [];
+    const nextActiveDays = activeDays.includes(todayKey) ? activeDays : [...activeDays, todayKey];
+    const payload = {
+      studyPresence: {
+        online: false,
+        lastRoomId: activeRoom.id,
+        lastGoal: goal,
+        lastStudiedAt: new Date().toISOString(),
+      },
+      memoryGraph: {
+        lastStudiedAt: new Date().toISOString(),
+        lastRoomId: activeRoom.id,
+        confidence: Math.min(95, Number(userProfile?.memoryGraph?.confidence || 52) + 4),
+      },
+      weeklyXP: Number(userProfile?.weeklyXP || 0) + Math.round(activeRoom.durationMinutes * 1.5),
+      activeDays: nextActiveDays,
+    };
+
+    setCompletedBlocks(newCount);
+    localStorage.setItem('senjr:focus-blocks', String(newCount));
+    trackEvent('study_room_completed', { roomId: activeRoom.id, minutes: activeRoom.durationMinutes });
+
+    try {
+      if (!getConnectionState().online) {
+        enqueueRetry({ type: 'focus_block', payload });
+        notifyInfo('Focus block saved offline. Senjr will remind you to sync it.');
+        return;
+      }
+      await updateUser(currentUser.uid, payload);
+      notifySuccess('Focus block saved. Your rhythm moved forward.');
+    } catch (error) {
+      console.error('Failed to save focus block:', error);
+      enqueueRetry({ type: 'focus_block', payload });
+      notifyError('Saved locally. We will retry when the network is stable.');
+    }
   };
 
   if (activeRoom) {
     return (
       <div className={`study-room-active theme-${activeRoom.theme} animate-fade-in-up`}>
         <div className="room-header">
-          <button onClick={leaveRoom} className="btn-leave">← Leave Room</button>
+          <button onClick={leaveRoom} className="btn-leave">Back to rooms</button>
           <div className="room-title-bar">
             <span className="room-icon-large">{activeRoom.icon}</span>
             <div>
               <h1>{activeRoom.name}</h1>
               <div className="room-live-status">
-                <span className="pulse-dot"></span> {activeRoom.activeUsers + 1} focusing now
+                <span className="pulse-dot"></span> {activeRoom.activeUsers + 1} focusing now · {activeRoom.mode}
               </div>
             </div>
           </div>
         </div>
 
-        <div className="room-dashboard">
-          {/* POMODORO TIMER */}
+        <div className="room-dashboard upgraded">
           <div className="timer-card glass-card">
-            <h3>Group Rhythm</h3>
+            <div className="room-card-topline">
+              <span>{activeRoom.durationMinutes} min cycle</span>
+              <strong>{completedBlocks} completed</strong>
+            </div>
             <div className="timer-display">
               <svg viewBox="0 0 100 100" className="timer-circle">
                 <circle cx="50" cy="50" r="45" className="timer-bg" />
-                <circle 
-                  cx="50" cy="50" r="45" 
-                  className="timer-progress" 
-                  strokeDasharray="283" 
-                  strokeDashoffset={283 - (283 * progress) / 100} 
+                <circle
+                  cx="50" cy="50" r="45"
+                  className="timer-progress"
+                  strokeDasharray="283"
+                  strokeDashoffset={283 - (283 * progress) / 100}
                 />
               </svg>
               <div className="timer-text">{formatTime(timer)}</div>
             </div>
+            <label className="focus-goal-input">
+              <span>Focus goal</span>
+              <input
+                value={goal}
+                onChange={(event) => setGoal(event.target.value)}
+                maxLength={80}
+                placeholder="Example: revise thermodynamics notes"
+              />
+            </label>
             <div className="timer-controls">
-              <button onClick={toggleTimer} className={`btn-primary btn-${isTimerRunning ? 'pause' : 'start'}`}>
-                {isTimerRunning ? 'Pause' : 'Start'}
+              <button onClick={() => setIsTimerRunning((value) => !value)} className={`btn-primary btn-${isTimerRunning ? 'pause' : 'start'}`}>
+                {isTimerRunning ? 'Pause cycle' : 'Start focus'}
+              </button>
+              <button onClick={completeFocusBlock} className="btn-secondary room-save-btn">
+                Complete now
               </button>
             </div>
           </div>
 
-          {/* ROOM ACTIVITY */}
           <div className="activity-card glass-card">
-            <h3>Room Activity</h3>
+            <h3>Room Presence</h3>
+            <div className="presence-grid">
+              <div><strong>{activeRoom.activeUsers + 1}</strong><span>live</span></div>
+              <div><strong>{activeRoom.tags[0]}</strong><span>mode</span></div>
+              <div><strong>{progress}%</strong><span>cycle</span></div>
+            </div>
             <div className="activity-feed">
-              <div className="feed-item">
-                <div className="feed-avatar">A</div>
-                <div className="feed-content">
-                  <strong>Aarav</strong> just completed a 50min session.
+              {activity.map((item) => (
+                <div className={`feed-item tone-${item.tone}`} key={item.id}>
+                  <div className="feed-avatar">{item.actor.slice(0, 2)}</div>
+                  <div className="feed-content">
+                    <strong>{item.actor}</strong> {item.text}
+                  </div>
                 </div>
-              </div>
-              <div className="feed-item">
-                <div className="feed-avatar" style={{background: '#c9a96e'}}>You</div>
-                <div className="feed-content">
-                  Joined the room. Ready to focus.
-                </div>
-              </div>
-              <div className="feed-item">
-                <div className="feed-avatar">P</div>
-                <div className="feed-content">
-                  <strong>Priya</strong> started a new Pomodoro cycle.
-                </div>
-              </div>
+              ))}
             </div>
           </div>
         </div>
@@ -165,22 +232,36 @@ export default function StudyRooms() {
       <div className="rooms-header">
         <div>
           <h1 className="page-title">Study Rooms</h1>
-          <p className="page-subtitle">Join a live room. Surround yourself with focus.</p>
+          <p className="page-subtitle">Pick a room, set one target, and study beside people already in motion.</p>
         </div>
         <div className="global-stats">
-          <div className="stat-badge">
-            <span className="pulse-dot"></span> 826 focusing right now
-          </div>
+          <span className="pulse-dot"></span> {totalStudying} focusing right now
         </div>
       </div>
 
+      <section className="rooms-command-band">
+        <div>
+          <span>Today</span>
+          <strong>{completedBlocks} focus blocks</strong>
+        </div>
+        <div>
+          <span>Recovery</span>
+          <strong>Local restore on</strong>
+        </div>
+        <div>
+          <span>Network</span>
+          <strong>{getConnectionState().online ? 'Online' : 'Offline ready'}</strong>
+        </div>
+      </section>
+
       <div className="rooms-grid">
-        {ROOMS.map(room => (
-          <div key={room.id} className={`room-card theme-${room.theme}`} onClick={() => joinRoom(room)}>
+        {STUDY_ROOMS.map(room => (
+          <button key={room.id} type="button" className={`room-card theme-${room.theme}`} onClick={() => joinRoom(room)}>
             <div className="room-card-header">
               <span className="room-icon">{room.icon}</span>
               <span className="live-count"><span className="pulse-dot"></span> {room.activeUsers}</span>
             </div>
+            <span className="room-mode">{room.mode}</span>
             <h3 className="room-name">{room.name}</h3>
             <p className="room-desc">{room.description}</p>
             <div className="room-tags">
@@ -189,9 +270,9 @@ export default function StudyRooms() {
               ))}
             </div>
             <div className="room-action">
-              Join Room →
+              Join room
             </div>
-          </div>
+          </button>
         ))}
       </div>
     </div>
