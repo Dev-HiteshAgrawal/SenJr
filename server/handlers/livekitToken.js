@@ -1,7 +1,8 @@
 import { AccessToken } from 'livekit-server-sdk';
+import { verifyAuth } from '../auth.js';
 import { getServerEnv } from '../env.js';
 import { allowCors, readJsonBody, sendError, sendJson } from '../http.js';
-import { verifyIdToken } from '../auth.js';
+import { sanitize } from '../sanitizer.js';
 
 function cleanRoomName(roomName) {
   return String(roomName || 'senjr-session')
@@ -23,21 +24,24 @@ export async function livekitTokenHandler(req, res) {
     return;
   }
 
+  const user = await verifyAuth(req);
+  if (!user) {
+    sendError(res, 401, 'Unauthorized: Missing or invalid authentication token.');
+    return;
+  }
+
   const { livekitApiKey, livekitApiSecret } = getServerEnv();
   if (!livekitApiKey || !livekitApiSecret) {
     sendError(res, 500, 'LiveKit video service is not configured on the server.');
     return;
   }
 
-  const decodedToken = await verifyIdToken(req);
-  if (!decodedToken) {
-    sendError(res, 401, 'Unauthorized. Please log in to join sessions.');
-    return;
-  }
   const idToken = req.headers.authorization.split('Bearer ')[1];
 
   try {
-    const body = await readJsonBody(req);
+    const rawBody = await readJsonBody(req);
+    const body = sanitize(rawBody);
+
     // Explicit destructuring
     const { roomName: rawRoomName, participantIdentity: rawIdentity, participantName: rawName } = body || {};
 
@@ -62,10 +66,6 @@ export async function livekitTokenHandler(req, res) {
 
       const sessionData = await sessionRes.json();
       if (sessionData && sessionData.fields) {
-        // We validate that the session exists and is not completed.
-        // Time-window enforcement is done client-side via scheduledAtMs
-        // because the server runs in UTC and session times are stored
-        // in the user's local timezone without an offset.
         const status = sessionData.fields.status?.stringValue;
         if (status === 'completed') {
           sendError(res, 403, 'This session has already been completed.');

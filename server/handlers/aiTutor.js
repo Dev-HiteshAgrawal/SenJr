@@ -1,7 +1,8 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { verifyAuth } from '../auth.js';
 import { getServerEnv } from '../env.js';
 import { allowCors, readJsonBody, sendError, sendJson } from '../http.js';
-import { verifyIdToken } from '../auth.js';
+import { sanitize } from '../sanitizer.js';
 
 const NVIDIA_API_URL = 'https://integrate.api.nvidia.com/v1/chat/completions';
 
@@ -82,8 +83,8 @@ export async function aiTutorHandler(req, res) {
     return;
   }
 
-  const decodedToken = await verifyIdToken(req);
-  if (!decodedToken) {
+  const user = await verifyAuth(req);
+  if (!user) {
     sendError(res, 401, 'Unauthorized: Missing or invalid authentication token.');
     return;
   }
@@ -95,7 +96,8 @@ export async function aiTutorHandler(req, res) {
   }
 
   try {
-    const body = await readJsonBody(req);
+    const rawBody = await readJsonBody(req);
+    const body = sanitize(rawBody);
 
     // Explicit destructuring to prevent mass assignment
     const { tutor, messages } = body || {};

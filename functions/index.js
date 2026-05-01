@@ -22,6 +22,7 @@ async function verifyAuth(req) {
   try {
     return await admin.auth().verifyIdToken(idToken);
   } catch (err) {
+    console.error('Error verifying auth token:', err);
     return null;
   }
 }
@@ -29,7 +30,7 @@ async function verifyAuth(req) {
 function allowCors(res) {
   res.set('Access-Control-Allow-Origin', '*');
   res.set('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
-  res.set('Access-Control-Allow-Headers', 'Content-Type');
+  res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 }
 
 function sendJson(res, statusCode, payload) {
@@ -157,12 +158,17 @@ async function handleAiTutor(req, res) {
     content: String(m.content),
   }));
 
-  const reply =
-    provider === 'nvidia'
-      ? await generateWithNvidia({ tutor: sanitizedTutor, messages: sanitizedMessages })
-      : await generateWithGemini({ tutor: sanitizedTutor, messages: sanitizedMessages });
+  try {
+    const reply =
+      provider === 'nvidia'
+        ? await generateWithNvidia({ tutor: sanitizedTutor, messages: sanitizedMessages })
+        : await generateWithGemini({ tutor: sanitizedTutor, messages: sanitizedMessages });
 
-  sendJson(res, 200, { reply, provider });
+    sendJson(res, 200, { reply, provider });
+  } catch (error) {
+    console.error('AI Tutor error:', error);
+    sendError(res, 500, 'Failed to generate response from AI.');
+  }
 }
 
 function cleanRoomName(roomName) {
@@ -197,7 +203,7 @@ async function handleLiveKitToken(req, res) {
   // Server-side session validation
   if (roomName.startsWith('senjr-')) {
     const sessionId = roomName.replace('senjr-', '');
-    const projectId = process.env.FIREBASE_PROJECT_ID || 'senjr-7a60f';
+    const projectId = process.env.VITE_FIREBASE_PROJECT_ID || process.env.FIREBASE_PROJECT_ID || 'senjr-7a60f';
     const firestoreUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/sessions/${sessionId}`;
 
     try {
@@ -217,7 +223,6 @@ async function handleLiveKitToken(req, res) {
       }
     } catch (err) {
       console.error('Session validation error:', err);
-      // Fail open or closed? Closed is safer for security.
       sendError(res, 500, 'Failed to validate session.');
       return;
     }

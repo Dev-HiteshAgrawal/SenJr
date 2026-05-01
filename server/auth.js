@@ -1,31 +1,37 @@
 import admin from 'firebase-admin';
 
-let app;
+let initialized = false;
 
-export function getAdminApp() {
-  if (app) return app;
+export function ensureAdmin() {
+  if (initialized) return;
 
-  if (admin.apps.length > 0) {
-    app = admin.apps[0];
-  } else {
-    // For Vercel/Production, it should use default credentials or environment variables
-    // For local development, you might need a service account JSON
-    app = admin.initializeApp({
-      projectId: 'senjr-7a60f',
+  // In Vercel or Firebase environment, the credentials are often
+  // picked up automatically if configured correctly.
+  // We check if it's already initialized (Firebase Functions case)
+  if (admin.apps.length === 0) {
+    admin.initializeApp({
+      projectId: process.env.VITE_FIREBASE_PROJECT_ID || 'senjr-7a60f',
     });
   }
-  return app;
+
+  initialized = true;
 }
 
-export async function verifyIdToken(req) {
+/**
+ * Verifies the Firebase ID token from the Authorization header.
+ * @param {import('node:http').IncomingMessage} req
+ * @returns {Promise<admin.auth.DecodedIdToken | null>}
+ */
+export async function verifyAuth(req) {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return null;
   }
 
-  const idToken = authHeader.split('Bearer ')[1];
+  const token = authHeader.split('Bearer ')[1];
   try {
-    const decodedToken = await admin.auth(getAdminApp()).verifyIdToken(idToken);
+    ensureAdmin();
+    const decodedToken = await admin.auth().verifyIdToken(token);
     return decodedToken;
   } catch (error) {
     console.error('Error verifying Firebase ID token:', error);
