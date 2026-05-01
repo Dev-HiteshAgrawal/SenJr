@@ -130,6 +130,8 @@ export async function updateDocument(collectionName, id, data) {
 
   if (collectionName === COLLECTIONS.USERS) {
     forbiddenFields.forEach(field => delete filteredData[field]);
+    // Also protect miss_count
+    delete filteredData.miss_count;
   }
 
   await updateDoc(docRef(collectionName, id), {
