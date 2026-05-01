@@ -41,14 +41,7 @@ export default function ResetPassword() {
 
         {error && <div className="auth-error">{error}</div>}
         {success && (
-          <div
-            className="auth-error"
-            style={{
-              background: 'rgba(16, 185, 129, 0.12)',
-              borderColor: 'rgba(16, 185, 129, 0.35)',
-              color: '#34d399',
-            }}
-          >
+          <div className="auth-success">
             {success}
           </div>
         )}

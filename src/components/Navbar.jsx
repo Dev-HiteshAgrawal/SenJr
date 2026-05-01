@@ -95,8 +95,8 @@ export default function Navbar() {
 
           {/* Logo */}
           <Link to="/" className="navbar-logo" aria-label="Senjr Home">
-            <span className="logo-text-seek">Sen</span>
-            <span className="logo-text-hlo">jr</span>
+            <span className="logo-text-sen">Sen</span>
+            <span className="logo-text-jr">jr</span>
             <span className="logo-bolt" aria-hidden="true">⚡</span>
           </Link>
 

@@ -197,7 +197,7 @@ export default function Home() {
       {/* ══════════════════════════════════════════
           4. WHY SENJR
       ══════════════════════════════════════════ */}
-      <section className="section why-senJr" aria-labelledby="why-heading">
+      <section className="section why-senjr" aria-labelledby="why-heading">
         <div className="section-inner">
           <div style={{ maxWidth: 600 }}>
             <div className="section-tag">💡 Why Senjr</div>

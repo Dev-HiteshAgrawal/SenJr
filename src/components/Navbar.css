@@ -1,5 +1,5 @@
 /* ===================================
-   senJr Navbar — Premium UI
+   Senjr Navbar — Premium UI
    =================================== */
 
 /* Navbar-local aliases (inherits from global :root) */
@@ -112,11 +112,11 @@
   filter: drop-shadow(0 0 6px var(--saffron));
 }
 
-.logo-text-seek {
+.logo-text-sen {
   color: var(--white);
 }
 
-.logo-text-hlo {
+.logo-text-jr {
   color: var(--saffron);
 }
 

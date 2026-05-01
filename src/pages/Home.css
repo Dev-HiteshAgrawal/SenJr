@@ -1,5 +1,5 @@
 /* ===================================
-   senJr — Home Page Styles
+   Senjr — Home Page Styles
    =================================== */
 
 /* ─── Shared Section Base ────────────────────────── */
@@ -477,7 +477,7 @@
 /* ═══════════════════════════════════════════════════
    4. WHY SENJR
 ═══════════════════════════════════════════════════ */
-.why-senJr {
+.why-senjr {
   background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
 }
 
