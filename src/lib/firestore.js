@@ -72,10 +72,23 @@ export async function createDocument(collectionName, data) {
  * Useful for user profiles where the doc ID = Firebase UID.
  */
 export async function setDocument(collectionName, id, data, merge = true) {
+  const forbiddenFields = ['role', 'xp', 'level', 'banned', 'miss_count'];
+  const filteredData = { ...data };
+
+  // Only filter if not an admin (we can't easily check auth role here, but we can filter by default
+  // and have a separate adminSetDocument if needed. For now, we align with the rules.)
+  if (collectionName === COLLECTIONS.USERS) {
+    // If it's a new document (merge=false), we MUST allow initial values that match rules.
+    // If it's an update (merge=true), we filter.
+    if (merge) {
+      forbiddenFields.forEach(field => delete filteredData[field]);
+    }
+  }
+
   await setDoc(
     docRef(collectionName, id),
     {
-      ...data,
+      ...filteredData,
       updatedAt: serverTimestamp(),
       ...(merge ? {} : { createdAt: serverTimestamp() }),
     },

@@ -18,9 +18,14 @@ service cloud.firestore {
     // Users collection: Profiles
     match /users/{userId} {
       allow read: if isAuthenticated();
-      allow create: if isOwner(userId);
+      allow create: if isOwner(userId) &&
+        request.resource.data.role in ['student', 'mentor'] &&
+        request.resource.data.get('xp', 0) == 0 &&
+        request.resource.data.get('level', 'Seedling') == 'Seedling' &&
+        request.resource.data.get('banned', false) == false &&
+        request.resource.data.get('miss_count', 0) == 0;
       allow update: if (isOwner(userId) &&
-        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'xp', 'level', 'banned'])) ||
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'xp', 'level', 'banned', 'miss_count'])) ||
         isAdmin();
       allow delete: if isAdmin();
     }
@@ -43,7 +48,10 @@ service cloud.firestore {
         resource.data.studentId == request.auth.uid ||
         isAdmin()
       );
-      allow create: if isAuthenticated();
+      allow create: if isAuthenticated() && (
+        request.resource.data.studentId == request.auth.uid ||
+        request.resource.data.mentorId == request.auth.uid
+      );
       allow update: if isAuthenticated() && (
         resource.data.mentorId == request.auth.uid ||
         resource.data.studentId == request.auth.uid ||
