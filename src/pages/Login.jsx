@@ -124,8 +124,8 @@ export default function Login() {
     <div className="page-container login-page">
       <div className="login-wrapper animate-fade-in-up">
         <div className="login-header">
-          <h1 className="page-title">Welcome Back</h1>
-          <p className="page-subtitle">Step back into your workspace.</p>
+          <h1 className="page-title">Good to see you again</h1>
+          <p className="page-subtitle">Continue your journey towards excellence.</p>
         </div>
 
         {error && <div className="auth-error">{error}</div>}

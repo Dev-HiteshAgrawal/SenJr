@@ -85,8 +85,8 @@ export default function FindMentors() {
   return (
     <div className="page-container find-mentors-page animate-fade-in-up">
       <header className="page-header">
-        <h1 className="page-title">Find a Mentor</h1>
-        <p className="page-subtitle">Discover expert seniors who can guide your learning path.</p>
+        <h1 className="page-title">Find your Senior</h1>
+        <p className="page-subtitle">Connect with verified seniors who have walked the path before you.</p>
       </header>
 
       <div className="search-section">

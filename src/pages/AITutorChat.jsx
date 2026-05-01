@@ -332,10 +332,11 @@ export default function AITutorChat() {
       )}
 
       {runtimeReady && !aiProvider && (
-        <div className="card" style={{ margin: '1rem 1.5rem 0', borderColor: 'rgba(255, 77, 109, 0.35)' }}>
+        <div className="card ai-chat-error-card" style={{ margin: '1rem 1.5rem 0', borderColor: 'rgba(255, 77, 109, 0.35)' }}>
           <p style={{ color: 'var(--text-secondary)' }}>
             AI tutor is not configured on the backend yet.
           </p>
+          <button className="btn-secondary" onClick={() => window.location.reload()}>Retry Connection</button>
         </div>
       )}
 

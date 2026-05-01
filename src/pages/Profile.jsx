@@ -107,8 +107,8 @@ export default function Profile() {
     <div className="page-container profile-page animate-fade-in-up">
       <div className="profile-header">
         <div>
-          <h1 className="page-title">Your Profile</h1>
-          <p className="page-subtitle">Keep your details updated to help the community know you better.</p>
+          <h1 className="page-title">Personalize your Space</h1>
+          <p className="page-subtitle">Your profile is your story. Keep it current so others can connect with your journey.</p>
         </div>
         <div className="profile-stats-grid">
           {profileStats.map((stat) => (

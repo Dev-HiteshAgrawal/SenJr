@@ -257,21 +257,57 @@
   margin-bottom: 3rem;
 }
 
+.room-nav-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
 .btn-leave {
-  background: none;
-  border: none;
-  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-secondary);
   font-size: 0.9rem;
+  font-weight: 600;
   cursor: pointer;
-  padding: 0.5rem 0;
-  margin-bottom: 1rem;
-  transition: color 0.2s;
+  padding: 0.6rem 1.2rem;
+  border-radius: 12px;
+  transition: all 0.2s;
   display: flex;
   align-items: center;
+  gap: 0.6rem;
 }
 
 .btn-leave:hover {
+  background: rgba(255, 255, 255, 0.1);
   color: #fff;
+  transform: translateX(-4px);
+}
+
+.back-icon {
+  font-size: 1.1rem;
+}
+
+.btn-reset-session {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.4rem 0.8rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.btn-reset-session:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--accent-saffron);
+  border-color: rgba(255, 107, 0, 0.3);
 }
 
 .room-title-bar {

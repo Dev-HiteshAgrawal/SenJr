@@ -590,17 +590,25 @@ export default function Community() {
                 <>
                   <p className="post-content">{post.content}</p>
                   {post.mediaUrl && (
-                    <div className="post-media">
+                    <div className="post-media-wrapper">
                       {post.mediaType === 'video' ? (
-                        <video 
-                          src={post.mediaUrl} 
-                          controls 
-                          playsInline 
-                          preload="metadata"
-                          poster={post.mediaUrl.replace(/\.[^/.]+$/, ".jpg")}
-                        />
+                        <div className="video-container">
+                          <video 
+                            src={post.mediaUrl} 
+                            controls 
+                            playsInline 
+                            preload="metadata"
+                            poster={post.mediaUrl.replace(/\.[^/.]+$/, ".jpg")}
+                            className="post-video"
+                          />
+                        </div>
                       ) : (
-                        <img src={post.mediaUrl} alt="Post content" onClick={() => window.open(post.mediaUrl)} />
+                        <div className="image-container" onClick={() => window.open(post.mediaUrl, '_blank')}>
+                          <img src={post.mediaUrl} alt="Post content" className="post-image" />
+                          <div className="image-overlay">
+                            <span>🔍 Click to expand</span>
+                          </div>
+                        </div>
                       )}
                     </div>
                   )}

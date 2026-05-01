@@ -16,8 +16,8 @@ function getDashboardRoute(role) {
 
 function defaultIntroMessage(role) {
   return role === 'mentor'
-    ? 'Guide the next generation.'
-    : 'Learn from those who have been there.';
+    ? 'Help the next generation walk the path you’ve already conquered.'
+    : 'Gain the wisdom of those who are just a few steps ahead of you.';
 }
 
 function createInitialState(prefill = {}) {
@@ -292,9 +292,9 @@ export default function Signup() {
       <div className="page-container signup-page">
         <div className="signup-wrapper animate-fade-in-up">
           <div className="card success-card">
-            <div className="success-icon">Welcome to Senjr! 🎉</div>
-            <h1 className="page-title">Setting up your space...</h1>
-            <p className="page-subtitle">Just a moment.</p>
+            <div className="success-icon">Welcome to the family! 🎉</div>
+            <h1 className="page-title">Preparing your learning space...</h1>
+            <p className="page-subtitle">We’re setting everything up for your first session.</p>
           </div>
         </div>
       </div>

@@ -35,8 +35,8 @@ export default function ResetPassword() {
           <Link to="/" className="login-logo">
             Sen<span>jr</span> ⚡
           </Link>
-          <h1 className="page-title">Reset Password</h1>
-          <p className="page-subtitle">Let's get you back into your workspace.</p>
+          <h1 className="page-title">Reset your access</h1>
+          <p className="page-subtitle">Let's get you back to your learning path.</p>
         </div>
 
         {error && <div className="auth-error">{error}</div>}

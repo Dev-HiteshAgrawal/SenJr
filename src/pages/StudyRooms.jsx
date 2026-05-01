@@ -61,11 +61,20 @@ export default function StudyRooms() {
     try {
       const saved = JSON.parse(localStorage.getItem(SESSION_KEY) || 'null');
       if (saved?.roomId) {
-        const room = STUDY_ROOMS.find((item) => item.id === saved.roomId);
-        if (room) {
-          setActiveRoom(room);
-          setGoal(saved.goal || '');
-          setTimer(saved.timer || room.durationMinutes * 60);
+        // Only restore if session is less than 12 hours old
+        const savedTime = new Date(saved.updatedAt || 0).getTime();
+        const now = new Date().getTime();
+        const twelveHours = 12 * 60 * 60 * 1000;
+
+        if (now - savedTime < twelveHours) {
+          const room = STUDY_ROOMS.find((item) => item.id === saved.roomId);
+          if (room) {
+            setActiveRoom(room);
+            setGoal(saved.goal || '');
+            setTimer(saved.timer || room.durationMinutes * 60);
+          }
+        } else {
+          localStorage.removeItem(SESSION_KEY);
         }
       }
     } catch (error) {
@@ -173,7 +182,19 @@ export default function StudyRooms() {
     setActiveRoom(null);
     setIsTimerRunning(false);
     setMessages([]);
-    localStorage.removeItem(SESSION_KEY);
+    // We keep the localStorage so they can resume unless they explicit reset
+  };
+
+  const resetSession = () => {
+    if (window.confirm("Reset this focus session?")) {
+      setIsTimerRunning(false);
+      if (activeRoom) {
+        setTimer(activeRoom.durationMinutes * 60);
+      }
+      setGoal('');
+      localStorage.removeItem(SESSION_KEY);
+      notifyInfo("Session reset.");
+    }
   };
 
   const handleSendMessage = async (e) => {
@@ -238,7 +259,14 @@ export default function StudyRooms() {
     return (
       <div className={`study-room-active theme-${activeRoom.theme} animate-fade-in-up`}>
         <div className="room-header">
-          <button onClick={leaveRoom} className="btn-leave">Back to rooms</button>
+          <div className="room-nav-controls">
+            <button onClick={leaveRoom} className="btn-leave">
+              <span className="back-icon">←</span> Back to rooms
+            </button>
+            <button onClick={resetSession} className="btn-reset-session" title="Reset current session">
+              🔄 Reset
+            </button>
+          </div>
           <div className="room-title-bar">
             <span className="room-icon-large">{activeRoom.icon}</span>
             <div>

@@ -5,11 +5,11 @@ import './Navbar.css';
 
 const NAV_LINKS = [
   { path: '/',             label: 'Home',        icon: '🏠' },
-  { path: '/find-mentors', label: 'Mentors',     icon: '🎓' },
-  { path: '/free-courses', label: 'Explore',     icon: '📚' },
-  { path: '/ai-tutor',     label: 'AI Space',    icon: '🤖' },
+  { path: '/find-mentors', label: 'Mentorship',  icon: '🎓' },
+  { path: '/free-courses', label: 'Knowledge',   icon: '📚' },
+  { path: '/ai-tutor',     label: 'AI Tutor',    icon: '🤖' },
   { path: '/community',    label: 'Community',   icon: '🌐' },
-  { path: '/study-rooms',  label: 'Study Rooms', icon: '🎧' },
+  { path: '/study-rooms',  label: 'Focus Flow',  icon: '🎧' },
 ];
 
 // Returns initials from a display name or email
