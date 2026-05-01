@@ -292,8 +292,17 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.room-dashboard.upgraded {
+.room-dashboard.upgraded,
+.room-dashboard {
   grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
+}
+
+@media (max-width: 960px) {
+  .room-dashboard.upgraded,
+  .room-dashboard {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
 }
 
 .room-card-topline {
@@ -302,7 +311,7 @@
   justify-content: space-between;
   gap: 1rem;
   margin-bottom: 1.25rem;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   font-size: 0.82rem;
 }
 
@@ -319,7 +328,8 @@
 @media (max-width: 640px) {
   .room-title-bar {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
+    text-align: center;
     gap: 1rem;
   }
   .room-icon-large {
@@ -328,7 +338,10 @@
     border-radius: 16px;
   }
   .room-title-bar h1 {
-    font-size: 1.5rem;
+    font-size: 1.75rem;
+  }
+  .room-live-status {
+    justify-content: center;
   }
 }
 
@@ -579,4 +592,74 @@
 .feed-content strong {
   color: #fff;
   font-weight: 600;
+}
+.chat-feed {
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+}
+
+.chat-feed::-webkit-scrollbar {
+  width: 6px;
+}
+
+.chat-feed::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+.empty-chat-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+}
+
+.room-chat-input {
+  margin-top: 1.5rem;
+  display: flex;
+  gap: 0.75rem;
+  background: rgba(255, 255, 255, 0.04);
+  padding: 0.5rem;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.room-chat-input input {
+  flex: 1;
+  background: none;
+  border: none;
+  padding: 0.75rem 1rem;
+  color: #fff;
+  outline: none;
+  font-size: 0.95rem;
+}
+
+.room-chat-input button {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: var(--card-accent);
+  color: #fff;
+  border: none;
+  font-size: 1.25rem;
+  cursor: pointer;
+  transition: transform 0.2s, opacity 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.room-chat-input button:hover:not(:disabled) {
+  transform: scale(1.05);
+  opacity: 0.9;
+}
+
+.room-chat-input button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }

@@ -192,6 +192,9 @@ export default function AITutorChat() {
         tutor,
         messages: nextMessages,
         onStream: (currentText) => {
+          if (currentText.length > 0) {
+            setIsTyping(false);
+          }
           setMessages((prev) => {
             const updated = [...prev];
             const lastIndex = updated.length - 1;

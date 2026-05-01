@@ -101,16 +101,17 @@
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
-  max-width: 80%;
+  max-width: 85%;
+  width: fit-content;
 }
 
 @media (max-width: 640px) {
   .ai-message-group {
-    max-width: 90%;
+    max-width: 92%;
   }
   .ai-message-bubble {
     padding: 0.75rem 1rem;
-    font-size: 0.9rem;
+    font-size: 0.92rem;
   }
 }
 

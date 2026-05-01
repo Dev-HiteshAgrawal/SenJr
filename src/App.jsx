@@ -74,6 +74,7 @@ export default function App() {
                 <Route path="/leaderboard" element={<Leaderboard />} />
                 <Route path="/community" element={<Community />} />
                 <Route path="/study-rooms" element={<ProtectedRoute><StudyRooms /></ProtectedRoute>} />
+                <Route path="/chatroom" element={<ProtectedRoute><StudyRooms /></ProtectedRoute>} />
                 <Route path="/chat/:chatId" element={<ProtectedRoute><ChatRoom /></ProtectedRoute>} />
                 <Route path="/admin" element={<ProtectedRoute><AdminPanel /></ProtectedRoute>} />
                 <Route path="/verify/:certId" element={<CertificateVerify />} />

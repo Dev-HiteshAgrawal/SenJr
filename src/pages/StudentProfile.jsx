@@ -120,6 +120,18 @@ export default function StudentProfile() {
              friendStatus === 'pending' ? '⏳ Pending' : 
              '➕ Connect'}
           </button>
+          
+          {friendStatus === 'friends' && (
+            <button 
+              className="btn-secondary message-btn"
+              onClick={() => {
+                const chatId = [currentUser.uid, id].sort().join('_');
+                navigate(`/chat/${chatId}`);
+              }}
+            >
+              💬 Message
+            </button>
+          )}
         </div>
 
         <div className="student-stats">

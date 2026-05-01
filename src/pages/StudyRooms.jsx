@@ -1,10 +1,12 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNotification } from '../contexts/NotificationContext';
 import { updateUser } from '../lib/firestore';
 import { enqueueRetry, getConnectionState, replayRetryQueue } from '../lib/offlineQueue';
-import { STUDY_ROOMS, summarizeRoomActivity, toLocalDateKey } from '../lib/studentOS';
+import { STUDY_ROOMS, toLocalDateKey } from '../lib/studentOS';
 import { trackEvent } from '../lib/productAnalytics';
+import { collection, query, orderBy, limit, onSnapshot, addDoc, serverTimestamp } from 'firebase/firestore';
+import { db } from '../lib/firebase';
 import './StudyRooms.css';
 
 const SESSION_KEY = 'senjr:active-study-room';
@@ -23,16 +25,38 @@ export default function StudyRooms() {
   const [timer, setTimer] = useState(25 * 60);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [completedBlocks, setCompletedBlocks] = useState(() => Number(localStorage.getItem('senjr:focus-blocks') || 0));
+  const [messages, setMessages] = useState([]);
+  const [newMessage, setNewMessage] = useState('');
+  const messagesEndRef = useRef(null);
 
   const displayName = userProfile?.displayName || currentUser?.displayName || 'You';
   const totalStudying = STUDY_ROOMS.reduce((sum, room) => sum + room.activeUsers, 0) + (activeRoom ? 1 : 0);
   const durationSeconds = (activeRoom?.durationMinutes || 25) * 60;
   const progress = Math.min(100, Math.round(((durationSeconds - timer) / durationSeconds) * 100));
 
-  const activity = useMemo(
-    () => activeRoom ? summarizeRoomActivity(activeRoom, displayName) : [],
-    [activeRoom, displayName]
-  );
+  useEffect(() => {
+    if (!activeRoom) return;
+
+    const q = query(
+      collection(db, 'room_chats', activeRoom.id, 'messages'),
+      orderBy('timestamp', 'asc'),
+      limit(50)
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const msgs = [];
+      snapshot.forEach((docSnap) => {
+        msgs.push({ id: docSnap.id, ...docSnap.data() });
+      });
+      setMessages(msgs);
+    });
+
+    return () => unsubscribe();
+  }, [activeRoom]);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
   useEffect(() => {
     try {
@@ -107,7 +131,25 @@ export default function StudyRooms() {
   const leaveRoom = () => {
     setActiveRoom(null);
     setIsTimerRunning(false);
+    setMessages([]);
     localStorage.removeItem(SESSION_KEY);
+  };
+
+  const handleSendMessage = async (e) => {
+    e.preventDefault();
+    if (!newMessage.trim() || !currentUser || !activeRoom) return;
+
+    try {
+      await addDoc(collection(db, 'room_chats', activeRoom.id, 'messages'), {
+        text: newMessage.trim(),
+        senderId: currentUser.uid,
+        senderName: displayName,
+        timestamp: serverTimestamp()
+      });
+      setNewMessage('');
+    } catch (err) {
+      console.error("Chat error:", err);
+    }
   };
 
   const completeFocusBlock = async () => {
@@ -205,22 +247,33 @@ export default function StudyRooms() {
           </div>
 
           <div className="activity-card glass-card">
-            <h3>Room Presence</h3>
-            <div className="presence-grid">
-              <div><strong>{activeRoom.activeUsers + 1}</strong><span>live</span></div>
-              <div><strong>{activeRoom.tags[0]}</strong><span>mode</span></div>
-              <div><strong>{progress}%</strong><span>cycle</span></div>
-            </div>
-            <div className="activity-feed">
-              {activity.map((item) => (
-                <div className={`feed-item tone-${item.tone}`} key={item.id}>
-                  <div className="feed-avatar">{item.actor.slice(0, 2)}</div>
-                  <div className="feed-content">
-                    <strong>{item.actor}</strong> {item.text}
+            <h3>Room Chat</h3>
+            <div className="activity-feed chat-feed">
+              {messages.length > 0 ? (
+                messages.map((msg) => (
+                  <div className={`feed-item ${msg.senderId === currentUser?.uid ? 'tone-self' : 'tone-peer'}`} key={msg.id}>
+                    <div className="feed-avatar">{msg.senderName?.slice(0, 2)}</div>
+                    <div className="feed-content">
+                      <strong>{msg.senderName}</strong> {msg.text}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))
+              ) : (
+                <div className="empty-chat-state">No messages yet. Be the first!</div>
+              )}
+              <div ref={messagesEndRef} />
             </div>
+            
+            <form className="room-chat-input" onSubmit={handleSendMessage}>
+              <input 
+                type="text" 
+                placeholder="Say something..." 
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                disabled={!getConnectionState().online}
+              />
+              <button type="submit" disabled={!newMessage.trim() || !getConnectionState().online}>↑</button>
+            </form>
           </div>
         </div>
       </div>

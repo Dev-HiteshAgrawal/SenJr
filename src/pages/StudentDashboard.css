@@ -269,7 +269,21 @@
 .os-command-grid {
   display: grid;
   grid-template-columns: minmax(260px, 1.25fr) repeat(3, minmax(160px, 1fr));
-  gap: 1rem;
+  gap: 1.5rem;
+}
+
+@media (max-width: 1200px) {
+  .os-command-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .os-command-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
 }
 
 .os-command-card {
