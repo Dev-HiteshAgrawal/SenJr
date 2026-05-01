@@ -15,12 +15,18 @@ service cloud.firestore {
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
+    function isMentor() {
+      return isAuthenticated() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'mentor';
+    }
+
     // Users collection: Profiles
     match /users/{userId} {
       allow read: if isAuthenticated();
       allow create: if isOwner(userId);
       allow update: if (isOwner(userId) &&
         !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'xp', 'level', 'banned'])) ||
+        (isMentor() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['miss_count', 'updatedAt'])) ||
         isAdmin();
       allow delete: if isAdmin();
     }
