@@ -267,6 +267,10 @@ export async function createSession(data) {
 export async function bookSessionTransaction(bookingData) {
   const { mentorId, studentId, dayName, time, ...otherData } = bookingData;
 
+  // We should ideally use auth.currentUser.uid here but to stay flexible
+  // for the caller while keeping it secure, the rules now enforce this.
+  // In a real app, we'd pass the auth context into this function.
+
   return runTransaction(db, async (transaction) => {
     const mentorRef = doc(db, COLLECTIONS.USERS, mentorId);
     const mentorSnap = await transaction.get(mentorRef);
