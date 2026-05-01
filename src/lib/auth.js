@@ -1,5 +1,5 @@
 /**
- * senJr — Authentication Service
+ * Senjr — Authentication Service
  *
  * Provides all auth operations:
  *  - Email/Password signup & login

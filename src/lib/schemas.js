@@ -1,5 +1,5 @@
 /**
- * senJr — Firestore Collection Schemas
+ * Senjr — Firestore Collection Schemas
  *
  * This file documents the expected shape of each Firestore collection.
  * It is for reference only — Firestore is schemaless, but this serves

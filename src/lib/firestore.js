@@ -1,5 +1,5 @@
 /**
- * senJr — Firestore Service
+ * Senjr — Firestore Service
  *
  * Centralised CRUD helpers for every Firestore collection.
  * Collections:

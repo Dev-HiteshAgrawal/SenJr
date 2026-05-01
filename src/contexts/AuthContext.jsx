@@ -1,5 +1,5 @@
 /**
- * senJr — Auth Context Provider
+ * Senjr — Auth Context Provider
  *
  * Wraps the app to provide authentication state everywhere.
  * Exposes:
