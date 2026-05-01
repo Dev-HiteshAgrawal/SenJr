@@ -161,6 +161,11 @@ export default function AITutorChat() {
   const handleSend = async (event) => {
     event.preventDefault();
 
+    if (!currentUser) {
+      notifyError("Please sign in to chat with the AI tutor.");
+      return;
+    }
+
     if (!inputValue.trim() || isTyping || !aiProvider) {
       return;
     }

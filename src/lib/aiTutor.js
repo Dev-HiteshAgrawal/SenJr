@@ -27,7 +27,7 @@ export async function generateTutorReply({ tutor, messages, onStream }) {
     throw new Error(errorData.error || 'The AI tutor could not generate a reply.');
   }
 
-  if (onStream) {
+  if (onStream && response.body) {
     const reader = response.body.getReader();
     const decoder = new TextDecoder('utf-8');
     let fullText = '';
@@ -42,8 +42,11 @@ export async function generateTutorReply({ tutor, messages, onStream }) {
       buffer = lines.pop() || '';
 
       for (const line of lines) {
-        if (line.startsWith('data: ')) {
-          const dataStr = line.slice(6);
+        const trimmed = line.trim();
+        if (!trimmed) continue;
+
+        if (trimmed.startsWith('data: ')) {
+          const dataStr = trimmed.slice(6).trim();
           if (dataStr === '[DONE]') {
             break;
           }
@@ -52,9 +55,11 @@ export async function generateTutorReply({ tutor, messages, onStream }) {
             if (parsed.text) {
               fullText += parsed.text;
               onStream(fullText);
+            } else if (parsed.error) {
+              throw new Error(parsed.error);
             }
           } catch (e) {
-            console.error('Error parsing SSE data', e);
+            console.error('Error parsing SSE data', e, dataStr);
           }
         }
       }

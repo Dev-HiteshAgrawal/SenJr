@@ -159,8 +159,10 @@ async function generateWithNvidia({ tutor, messages, stream, res }) {
       buffer = lines.pop() || '';
 
       for (const line of lines) {
-        if (line.startsWith('data: ')) {
-          const dataStr = line.slice(6);
+        const trimmed = line.trim();
+        if (!trimmed) continue;
+        if (trimmed.startsWith('data: ')) {
+          const dataStr = trimmed.slice(6).trim();
           if (dataStr === '[DONE]') continue;
           
           try {
@@ -206,14 +208,21 @@ async function generateWithGemini({ tutor, messages, stream, res }) {
       'Connection': 'keep-alive',
     });
 
-    const result = await model.generateContentStream([
-      'Continue this tutoring conversation and reply as the tutor.',
-      transcript,
-    ].join('\n\n'));
+    try {
+      const result = await model.generateContentStream([
+        'Continue this tutoring conversation and reply as the tutor.',
+        transcript,
+      ].join('\n\n'));
 
-    for await (const chunk of result.stream) {
-      const chunkText = chunk.text();
-      res.write(`data: ${JSON.stringify({ text: chunkText })}\n\n`);
+      for await (const chunk of result.stream) {
+        const chunkText = chunk.text();
+        if (chunkText) {
+          res.write(`data: ${JSON.stringify({ text: chunkText })}\n\n`);
+        }
+      }
+    } catch (err) {
+      console.error("[AI Tutor] Gemini Stream Error:", err);
+      res.write(`data: ${JSON.stringify({ error: "AI generation interrupted." })}\n\n`);
     }
 
     res.write('data: [DONE]\n\n');
