@@ -431,39 +431,6 @@ export async function deleteFeedPost(id) {
   return removeDocument(COLLECTIONS.FEED, id);
 }
 
-// ─── TRANSACTIONS ────────────────────────────────────────────
-
-/**
- * Books a session securely using a transaction.
- * Checks for mentor availability and prevents double booking.
- */
-export async function bookSessionTransaction(sessionData) {
-  return runTransaction(db, async (transaction) => {
-    const mentorRef = docRef(COLLECTIONS.MENTORS, sessionData.mentorId);
-    const mentorSnap = await transaction.get(mentorRef);
-
-    if (!mentorSnap.exists()) {
-      throw new Error('Mentor not found');
-    }
-
-    // Example logic: increment total sessions and add session record
-    const newSessionRef = doc(colRef(COLLECTIONS.SESSIONS));
-
-    transaction.set(newSessionRef, {
-      ...sessionData,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    });
-
-    transaction.update(mentorRef, {
-      totalSessions: (mentorSnap.data().totalSessions || 0) + 1,
-      updatedAt: serverTimestamp(),
-    });
-
-    return newSessionRef.id;
-  });
-}
-
 /**
  * Updates user XP and level securely.
  */
