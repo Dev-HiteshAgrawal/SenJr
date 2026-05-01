@@ -10,7 +10,7 @@ export function ensureAdmin() {
   // We check if it's already initialized (Firebase Functions case)
   if (admin.apps.length === 0) {
     admin.initializeApp({
-      projectId: process.env.VITE_FIREBASE_PROJECT_ID || 'senjr-7a60f',
+      projectId: process.env.VITE_FIREBASE_PROJECT_ID || process.env.FIREBASE_PROJECT_ID || 'senjr-7a60f',
     });
   }
 
