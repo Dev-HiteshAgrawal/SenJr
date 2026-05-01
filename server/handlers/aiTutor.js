@@ -1,6 +1,7 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { getServerEnv } from '../env.js';
 import { allowCors, readJsonBody, sendError, sendJson } from '../http.js';
+import { verifyIdToken } from '../auth.js';
 
 const NVIDIA_API_URL = 'https://integrate.api.nvidia.com/v1/chat/completions';
 
@@ -81,6 +82,12 @@ export async function aiTutorHandler(req, res) {
     return;
   }
 
+  const decodedToken = await verifyIdToken(req);
+  if (!decodedToken) {
+    sendError(res, 401, 'Unauthorized: Missing or invalid authentication token.');
+    return;
+  }
+
   const provider = getProvider();
   if (!provider) {
     sendError(res, 500, 'AI tutor is not configured on the server.');
@@ -89,18 +96,31 @@ export async function aiTutorHandler(req, res) {
 
   try {
     const body = await readJsonBody(req);
-    const tutor = body?.tutor;
-    const messages = body?.messages;
+
+    // Explicit destructuring to prevent mass assignment
+    const { tutor, messages } = body || {};
 
     if (!tutor?.name || !tutor?.subject || !Array.isArray(messages)) {
       sendError(res, 400, 'Missing tutor details or conversation messages.');
       return;
     }
 
+    // Sanitize tutor input
+    const sanitizedTutor = {
+      name: String(tutor.name),
+      subject: String(tutor.subject)
+    };
+
+    // Sanitize messages
+    const sanitizedMessages = messages.map(m => ({
+      role: String(m.role),
+      content: String(m.content)
+    }));
+
     const reply =
       provider === 'nvidia'
-        ? await generateWithNvidia({ tutor, messages })
-        : await generateWithGemini({ tutor, messages });
+        ? await generateWithNvidia({ tutor: sanitizedTutor, messages: sanitizedMessages })
+        : await generateWithGemini({ tutor: sanitizedTutor, messages: sanitizedMessages });
 
     sendJson(res, 200, { reply, provider });
   } catch (error) {

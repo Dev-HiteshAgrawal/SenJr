@@ -2,6 +2,9 @@ import { onRequest } from 'firebase-functions/v2/https';
 import { defineSecret } from 'firebase-functions/params';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { AccessToken } from 'livekit-server-sdk';
+import admin from 'firebase-admin';
+
+admin.initializeApp();
 
 const nvidiaApiKey = defineSecret('NVIDIA_API_KEY');
 const geminiApiKey = defineSecret('GEMINI_API_KEY');
@@ -9,6 +12,19 @@ const livekitApiKey = defineSecret('LIVEKIT_API_KEY');
 const livekitApiSecret = defineSecret('LIVEKIT_API_SECRET');
 
 const NVIDIA_API_URL = 'https://integrate.api.nvidia.com/v1/chat/completions';
+
+async function verifyAuth(req) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return null;
+  }
+  const idToken = authHeader.split('Bearer ')[1];
+  try {
+    return await admin.auth().verifyIdToken(idToken);
+  } catch (err) {
+    return null;
+  }
+}
 
 function allowCors(res) {
   res.set('Access-Control-Allow-Origin', '*');
@@ -112,24 +128,39 @@ async function handleAiTutor(req, res) {
     return;
   }
 
+  const decodedToken = await verifyAuth(req);
+  if (!decodedToken) {
+    sendError(res, 401, 'Unauthorized: Missing or invalid authentication token.');
+    return;
+  }
+
   const provider = getProvider();
   if (!provider) {
     sendError(res, 500, 'AI tutor is not configured on the server.');
     return;
   }
 
-  const tutor = req.body?.tutor;
-  const messages = req.body?.messages;
+  const { tutor, messages } = req.body || {};
 
   if (!tutor?.name || !tutor?.subject || !Array.isArray(messages)) {
     sendError(res, 400, 'Missing tutor details or conversation messages.');
     return;
   }
 
+  // Sanitize
+  const sanitizedTutor = {
+    name: String(tutor.name),
+    subject: String(tutor.subject),
+  };
+  const sanitizedMessages = messages.map((m) => ({
+    role: String(m.role),
+    content: String(m.content),
+  }));
+
   const reply =
     provider === 'nvidia'
-      ? await generateWithNvidia({ tutor, messages })
-      : await generateWithGemini({ tutor, messages });
+      ? await generateWithNvidia({ tutor: sanitizedTutor, messages: sanitizedMessages })
+      : await generateWithGemini({ tutor: sanitizedTutor, messages: sanitizedMessages });
 
   sendJson(res, 200, { reply, provider });
 }
@@ -146,14 +177,51 @@ async function handleLiveKitToken(req, res) {
     return;
   }
 
+  const decodedToken = await verifyAuth(req);
+  if (!decodedToken) {
+    sendError(res, 401, 'Unauthorized: Missing or invalid authentication token.');
+    return;
+  }
+
   if (!livekitApiKey.value() || !livekitApiSecret.value()) {
     sendError(res, 500, 'LiveKit video service is not configured on the server.');
     return;
   }
 
-  const roomName = cleanRoomName(req.body?.roomName);
-  const participantIdentity = String(req.body?.participantIdentity || `user-${Date.now()}`);
-  const participantName = String(req.body?.participantName || 'User');
+  const idToken = req.headers.authorization.split('Bearer ')[1];
+  const { roomName: rawRoomName, participantIdentity: rawIdentity, participantName: rawName } = req.body || {};
+  const roomName = cleanRoomName(rawRoomName);
+  const participantIdentity = String(rawIdentity || `user-${Date.now()}`);
+  const participantName = String(rawName || 'User');
+
+  // Server-side session validation
+  if (roomName.startsWith('senjr-')) {
+    const sessionId = roomName.replace('senjr-', '');
+    const projectId = process.env.FIREBASE_PROJECT_ID || 'senjr-7a60f';
+    const firestoreUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/sessions/${sessionId}`;
+
+    try {
+      const sessionRes = await fetch(firestoreUrl, {
+        headers: { Authorization: `Bearer ${idToken}` },
+      });
+
+      if (!sessionRes.ok) {
+        sendError(res, 403, 'Session not found or access denied.');
+        return;
+      }
+
+      const sessionData = await sessionRes.json();
+      if (sessionData?.fields?.status?.stringValue === 'completed') {
+        sendError(res, 403, 'This session has already been completed.');
+        return;
+      }
+    } catch (err) {
+      console.error('Session validation error:', err);
+      // Fail open or closed? Closed is safer for security.
+      sendError(res, 500, 'Failed to validate session.');
+      return;
+    }
+  }
 
   const token = new AccessToken(livekitApiKey.value(), livekitApiSecret.value(), {
     identity: participantIdentity,

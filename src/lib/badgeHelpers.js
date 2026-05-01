@@ -1,4 +1,4 @@
-import { getUser, updateUser } from './firestore';
+import { getUser, internalUpdateUser } from './firestore';
 
 export const ALL_BADGES = [
   {
@@ -109,7 +109,7 @@ export async function checkAndAwardBadges(userId) {
 
     if (newlyEarned.length > 0) {
       const updatedBadges = [...earnedBadges, ...newlyEarned];
-      await updateUser(userId, { badges: updatedBadges });
+      await internalUpdateUser(userId, { badges: updatedBadges });
     }
 
     return newlyEarned;

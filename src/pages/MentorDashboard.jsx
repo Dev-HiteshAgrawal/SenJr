@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { updateUser, getAllSessions, where, updateSession, getDocument, createDocument, COLLECTIONS } from '../lib/firestore';
+import { updateUser, internalUpdateUser, getAllSessions, where, updateSession, getDocument, createDocument, COLLECTIONS } from '../lib/firestore';
 import { auth, storage } from '../lib/firebase';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import UnreadBadge from '../components/UnreadBadge';
@@ -211,7 +211,7 @@ export default function MentorDashboard() {
   const handleForgiveMiss = async (studentId, currentMisses) => {
     if (currentMisses <= 0) return;
     try {
-      await updateUser(studentId, { miss_count: currentMisses - 1 });
+      await internalUpdateUser(studentId, { miss_count: currentMisses - 1 });
       // Update local state instantly
       setUniqueStudents(prev => prev.map(s => 
         s.id === studentId ? { ...s, miss_count: currentMisses - 1 } : s

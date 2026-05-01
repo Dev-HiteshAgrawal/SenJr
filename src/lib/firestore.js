@@ -29,6 +29,7 @@ import {
   limit,
   serverTimestamp,
   Timestamp,
+  runTransaction,
 } from 'firebase/firestore';
 import { db } from './firebase';
 
@@ -123,6 +124,24 @@ export async function getDocuments(collectionName, ...constraints) {
  * Automatically bumps `updatedAt`.
  */
 export async function updateDocument(collectionName, id, data) {
+  // Prevent sensitive field updates from generic helper
+  const forbiddenFields = ['role', 'xp', 'level', 'banned'];
+  const filteredData = { ...data };
+
+  if (collectionName === COLLECTIONS.USERS) {
+    forbiddenFields.forEach(field => delete filteredData[field]);
+  }
+
+  await updateDoc(docRef(collectionName, id), {
+    ...filteredData,
+    updatedAt: serverTimestamp(),
+  });
+}
+
+/**
+ * Admin-only update helper that bypasses field restrictions.
+ */
+export async function adminUpdateDocument(collectionName, id, data) {
   await updateDoc(docRef(collectionName, id), {
     ...data,
     updatedAt: serverTimestamp(),
@@ -167,6 +186,13 @@ export async function getAllUsers(...constraints) {
 
 export async function updateUser(uid, data) {
   return updateDocument(COLLECTIONS.USERS, uid, data);
+}
+
+/**
+ * Higher-privileged update for internal logic like XP or Badges.
+ */
+export async function internalUpdateUser(uid, data) {
+  return adminUpdateDocument(COLLECTIONS.USERS, uid, data);
 }
 
 export async function deleteUser(uid) {
@@ -230,6 +256,63 @@ export async function deleteStudent(id) {
  */
 export async function createSession(data) {
   return createDocument(COLLECTIONS.SESSIONS, data);
+}
+
+/**
+ * Atomic session booking using a transaction.
+ * Checks if the slot is still available in the mentor's profile.
+ *
+ * @param {object} bookingData
+ */
+export async function bookSessionTransaction(bookingData) {
+  const { mentorId, studentId, dayName, time, ...otherData } = bookingData;
+
+  return runTransaction(db, async (transaction) => {
+    const mentorRef = doc(db, COLLECTIONS.USERS, mentorId);
+    const mentorSnap = await transaction.get(mentorRef);
+
+    if (!mentorSnap.exists()) {
+      throw new Error("Mentor not found.");
+    }
+
+    const mentorData = mentorSnap.data();
+    const availability = mentorData.availability || {};
+    const daySlots = availability[dayName] || [];
+
+    // Check if the requested slot exists and is available
+    const slotIndex = daySlots.findIndex(s => s.start === time);
+    if (slotIndex === -1) {
+      throw new Error("This slot is no longer available.");
+    }
+
+    const slot = daySlots[slotIndex];
+
+    // Create the session document
+    const sessionsCol = collection(db, COLLECTIONS.SESSIONS);
+    const newSessionRef = doc(sessionsCol);
+
+    transaction.set(newSessionRef, {
+      ...otherData,
+      mentorId,
+      studentId,
+      dayName,
+      time,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
+
+    // Update mentor's availability: Remove the slot if it's a 1-on-1 session
+    // For group sessions, we might just decrement a capacity counter
+    if (slot.type === '1-on-1 Session' || slot.type === 'Quick Help') {
+      const updatedDaySlots = daySlots.filter((_, i) => i !== slotIndex);
+      transaction.update(mentorRef, {
+        [`availability.${dayName}`]: updatedDaySlots,
+        updatedAt: serverTimestamp(),
+      });
+    }
+
+    return newSessionRef.id;
+  });
 }
 
 export async function getSession(id) {

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { getDocuments, updateUser, where } from '../lib/firestore';
+import { getDocuments, adminUpdateDocument, where, COLLECTIONS } from '../lib/firestore';
 
 const ADMIN_EMAIL = import.meta.env.VITE_ADMIN_EMAIL || '';
 
@@ -38,7 +38,7 @@ export default function AdminPanel() {
 
   const handleApprove = async (mentorId) => {
     try {
-      await updateUser(mentorId, { verificationStatus: 'verified', verificationRejectionReason: '' });
+      await adminUpdateDocument(COLLECTIONS.USERS, mentorId, { verificationStatus: 'verified', verificationRejectionReason: '' });
       setPendingMentors((prev) => prev.filter((mentor) => mentor.id !== mentorId));
       alert('Mentor approved successfully.');
     } catch (err) {
@@ -49,7 +49,7 @@ export default function AdminPanel() {
 
   const handleReject = async (mentorId) => {
     try {
-      await updateUser(mentorId, {
+      await adminUpdateDocument(COLLECTIONS.USERS, mentorId, {
         verificationStatus: 'unverified',
         verificationRejectionReason: rejectReason.trim(),
       });
