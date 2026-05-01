@@ -129,8 +129,8 @@ async function generateWithNvidia({ tutor, messages, stream, res }) {
     body: JSON.stringify({
       model: 'meta/llama-3.1-70b-instruct',
       messages: apiMessages,
-      temperature: 0.7,
-      max_tokens: 1500,
+      temperature: 0.6,
+      max_tokens: 2048,
       stream: stream,
     }),
   });
@@ -195,7 +195,7 @@ async function generateWithGemini({ tutor, messages, stream, res }) {
     systemInstruction: getSystemInstruction(tutor),
     generationConfig: {
       temperature: 0.7,
-      maxOutputTokens: 1500,
+      maxOutputTokens: 2048,
     }
   });
 

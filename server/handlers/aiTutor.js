@@ -161,7 +161,7 @@ async function generateWithGemini({ tutor, messages, stream, res }) {
     .join('\n\n');
 
   const model = genAI.getGenerativeModel({
-    model: 'gemini-1.5-flash',
+    model: 'gemini-2.0-flash',
     systemInstruction: getSystemInstruction(tutor),
     generationConfig: {
       temperature: 0.7,
