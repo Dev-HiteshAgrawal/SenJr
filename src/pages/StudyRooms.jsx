@@ -5,7 +5,7 @@ import { updateUser } from '../lib/firestore';
 import { enqueueRetry, getConnectionState, replayRetryQueue } from '../lib/offlineQueue';
 import { STUDY_ROOMS, toLocalDateKey } from '../lib/studentOS';
 import { trackEvent } from '../lib/productAnalytics';
-import { collection, query, orderBy, limit, onSnapshot, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, orderBy, limit, onSnapshot, addDoc, serverTimestamp, doc, setDoc, deleteDoc, where } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import './StudyRooms.css';
 
@@ -30,7 +30,6 @@ export default function StudyRooms() {
   const messagesEndRef = useRef(null);
 
   const displayName = userProfile?.displayName || currentUser?.displayName || 'You';
-  const totalStudying = STUDY_ROOMS.reduce((sum, room) => sum + room.activeUsers, 0) + (activeRoom ? 1 : 0);
   const durationSeconds = (activeRoom?.durationMinutes || 25) * 60;
   const progress = Math.min(100, Math.round(((durationSeconds - timer) / durationSeconds) * 100));
 
@@ -120,6 +119,45 @@ export default function StudyRooms() {
     return () => window.removeEventListener('online', syncQueuedWork);
   }, [currentUser?.uid]);
 
+  const [roomCounts, setRoomCounts] = useState({});
+
+  useEffect(() => {
+    // Sync presence
+    if (!currentUser || !activeRoom) return;
+
+    const presenceRef = doc(db, 'room_presence', currentUser.uid);
+    setDoc(presenceRef, {
+      roomId: activeRoom.id,
+      userName: displayName,
+      lastSeen: serverTimestamp()
+    }, { merge: true });
+
+    const interval = setInterval(() => {
+      setDoc(presenceRef, { lastSeen: serverTimestamp() }, { merge: true });
+    }, 30000); // refresh every 30s
+
+    return () => {
+      clearInterval(interval);
+      deleteDoc(presenceRef).catch(() => {});
+    };
+  }, [activeRoom, currentUser, displayName]);
+
+  useEffect(() => {
+    // Listen to all presence to get counts
+    const q = query(collection(db, 'room_presence'), where('lastSeen', '>', new Date(Date.now() - 60000))); // active in last 1m
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const counts = {};
+      snapshot.forEach(docSnap => {
+        const data = docSnap.data();
+        counts[data.roomId] = (counts[data.roomId] || 0) + 1;
+      });
+      setRoomCounts(counts);
+    });
+    return unsubscribe;
+  }, []);
+
+  const totalStudying = Object.values(roomCounts).reduce((a, b) => a + b, 0);
+
   const joinRoom = (room) => {
     setActiveRoom(room);
     setTimer(room.durationMinutes * 60);
@@ -128,7 +166,10 @@ export default function StudyRooms() {
     trackEvent('study_room_joined', { roomId: room.id, mode: room.mode });
   };
 
-  const leaveRoom = () => {
+  const leaveRoom = async () => {
+    if (currentUser) {
+      await deleteDoc(doc(db, 'room_presence', currentUser.uid)).catch(() => {});
+    }
     setActiveRoom(null);
     setIsTimerRunning(false);
     setMessages([]);
@@ -203,7 +244,7 @@ export default function StudyRooms() {
             <div>
               <h1>{activeRoom.name}</h1>
               <div className="room-live-status">
-                <span className="pulse-dot"></span> {activeRoom.activeUsers + 1} focusing now · {activeRoom.mode}
+                <span className="pulse-dot"></span> {roomCounts[activeRoom.id] || 1} focusing now · {activeRoom.mode}
               </div>
             </div>
           </div>
@@ -312,7 +353,7 @@ export default function StudyRooms() {
           <button key={room.id} type="button" className={`room-card theme-${room.theme}`} onClick={() => joinRoom(room)}>
             <div className="room-card-header">
               <span className="room-icon">{room.icon}</span>
-              <span className="live-count"><span className="pulse-dot"></span> {room.activeUsers}</span>
+              <span className="live-count"><span className="pulse-dot"></span> {roomCounts[room.id] || 0}</span>
             </div>
             <span className="room-mode">{room.mode}</span>
             <h3 className="room-name">{room.name}</h3>

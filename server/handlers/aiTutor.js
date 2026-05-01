@@ -71,6 +71,8 @@ function getProvider() {
 
 async function generateWithNvidia({ tutor, messages, stream, res }) {
   const { nvidiaApiKey } = getServerEnv();
+  console.log(`[AI Tutor] Generating with NVIDIA for ${tutor.name} (${tutor.subject})`);
+  
   const apiMessages = [
     { role: 'system', content: getSystemInstruction(tutor) },
     ...messages.map((message) => ({
@@ -79,67 +81,75 @@ async function generateWithNvidia({ tutor, messages, stream, res }) {
     })),
   ];
 
-  const response = await fetch(NVIDIA_API_URL, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${nvidiaApiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'meta/llama-3.1-70b-instruct',
-      messages: apiMessages,
-      temperature: 0.7,
-      max_tokens: 1500,
-      stream: stream,
-    }),
-  });
-
-  if (!response.ok) {
-    throw new Error(`NVIDIA API error: ${response.status} ${response.statusText}`);
-  }
-
-  if (stream) {
-    res.writeHead(200, {
-      'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache',
-      'Connection': 'keep-alive',
+  try {
+    const response = await fetch(NVIDIA_API_URL, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${nvidiaApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'meta/llama-3.1-70b-instruct',
+        messages: apiMessages,
+        temperature: 0.7,
+        max_tokens: 1500,
+        stream: stream,
+      }),
     });
 
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder('utf-8');
-    let buffer = '';
+    if (!response.ok) {
+      const errText = await response.text();
+      console.error(`[AI Tutor] NVIDIA API error: ${response.status}`, errText);
+      throw new Error(`NVIDIA API error: ${response.status} ${response.statusText}`);
+    }
 
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
+    if (stream) {
+      res.writeHead(200, {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
+      });
 
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split('\n');
-      buffer = lines.pop() || '';
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder('utf-8');
+      let buffer = '';
 
-      for (const line of lines) {
-        if (line.startsWith('data: ')) {
-          const dataStr = line.slice(6);
-          if (dataStr === '[DONE]') continue;
-          
-          try {
-            const parsed = JSON.parse(dataStr);
-            const content = parsed.choices?.[0]?.delta?.content || '';
-            if (content) {
-              res.write(`data: ${JSON.stringify({ text: content })}\n\n`);
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          if (line.trim() === '') continue;
+          if (line.startsWith('data: ')) {
+            const dataStr = line.slice(6).trim();
+            if (dataStr === '[DONE]') continue;
+            
+            try {
+              const parsed = JSON.parse(dataStr);
+              const content = parsed.choices?.[0]?.delta?.content || '';
+              if (content) {
+                res.write(`data: ${JSON.stringify({ text: content })}\n\n`);
+              }
+            } catch (e) {
+              // ignore parsing error for incomplete chunks
             }
-          } catch (e) {
-            // ignore parsing error for incomplete chunks
           }
         }
       }
+      
+      res.write('data: [DONE]\n\n');
+      res.end();
+    } else {
+      const data = await response.json();
+      sendJson(res, 200, { reply: data.choices?.[0]?.message?.content?.trim() || '', provider: 'nvidia' });
     }
-    
-    res.write('data: [DONE]\n\n');
-    res.end();
-  } else {
-    const data = await response.json();
-    sendJson(res, 200, { reply: data.choices?.[0]?.message?.content?.trim() || '', provider: 'nvidia' });
+  } catch (err) {
+    console.error("[AI Tutor] generateWithNvidia failed:", err);
+    throw err;
   }
 }
 

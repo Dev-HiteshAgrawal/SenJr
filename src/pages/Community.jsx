@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { collection, query, orderBy, limit, startAfter, getDocs, addDoc, serverTimestamp, doc, updateDoc, deleteDoc, arrayUnion, arrayRemove, where, onSnapshot } from 'firebase/firestore';
@@ -71,6 +71,8 @@ export default function Community() {
   // Comment State
   const [activeCommentPostId, setActiveCommentPostId] = useState(null);
   const [stories, setStories] = useState([]);
+  const [activeStory, setActiveStory] = useState(null); // The story being viewed
+  const storyInputRef = useRef(null);
   
   // Feed State
   const [posts, setPosts] = useState([]);
@@ -126,24 +128,55 @@ export default function Community() {
   }, [activeFilter]);
 
   useEffect(() => {
-    const q = query(collection(db, 'feed'), orderBy('createdAt', 'desc'), limit(25));
+    const q = query(
+      collection(db, 'stories'), 
+      where('expiresAt', '>', new Date()), 
+      orderBy('expiresAt', 'desc'),
+      limit(20)
+    );
     const unsub = onSnapshot(q, (snap) => {
-      const map = new Map();
-      snap.docs.forEach((d, idx) => {
-        const post = d.data();
-        if (!post.userId || map.has(post.userId)) return;
-        map.set(post.userId, {
-          userId: post.userId,
-          userName: post.userName || 'Student',
-          userRole: post.userRole || 'student',
-          createdAt: post.createdAt,
-          style: STORY_GRADIENTS[idx % STORY_GRADIENTS.length],
-        });
-      });
-      setStories(Array.from(map.values()).slice(0, 12));
+      const storyList = snap.docs.map((d, idx) => ({
+        id: d.id,
+        ...d.data(),
+        style: STORY_GRADIENTS[idx % STORY_GRADIENTS.length]
+      }));
+      setStories(storyList);
     });
     return () => unsub();
   }, []);
+
+  const handlePostStory = async (file) => {
+    if (!currentUser) return;
+    notifyInfo("Uploading story...");
+    
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+      const resourceType = file.type.startsWith('image/') ? 'image' : 'video';
+      
+      const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/${resourceType}/upload`, {
+        method: 'POST',
+        body: formData
+      });
+      const data = await res.json();
+      
+      if (data.secure_url) {
+        await addDoc(collection(db, 'stories'), {
+          userId: currentUser.uid,
+          userName: userProfile?.displayName || currentUser.displayName || 'Student',
+          mediaUrl: data.secure_url,
+          mediaType: resourceType,
+          createdAt: serverTimestamp(),
+          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24h
+        });
+        notifySuccess("Story shared!");
+      }
+    } catch (err) {
+      console.error("Story upload failed:", err);
+      notifyError("Failed to share story.");
+    }
+  };
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -336,14 +369,21 @@ export default function Community() {
       <p className="page-subtitle mb-4">A space to learn, share, and grow together.</p>
 
       <section className="stories-strip" aria-label="Community stories">
-        <div className="story-item your-story" onClick={() => document.querySelector('.post-textarea')?.focus()}>
+        <div className="story-item your-story" onClick={() => storyInputRef.current?.click()}>
           <div className="story-ring">
             <div className="story-avatar">+</div>
           </div>
           <span>Share Story</span>
+          <input 
+            type="file" 
+            ref={storyInputRef} 
+            onChange={(e) => e.target.files[0] && handlePostStory(e.target.files[0])} 
+            hidden 
+            accept="image/*,video/*"
+          />
         </div>
         {stories.map((story) => (
-          <div className="story-item" key={story.userId}>
+          <div className="story-item" key={story.id} onClick={() => setActiveStory(story)}>
             <div className="story-ring" style={{ background: story.style }}>
               <div className="story-avatar">{getInitials(story.userName)}</div>
             </div>
@@ -351,6 +391,30 @@ export default function Community() {
           </div>
         ))}
       </section>
+
+      {/* Story Viewer Modal */}
+      {activeStory && (
+        <div className="story-viewer-overlay" onClick={() => setActiveStory(null)}>
+          <div className="story-viewer-content" onClick={(e) => e.stopPropagation()}>
+            <button className="story-close" onClick={() => setActiveStory(null)}>✕</button>
+            <div className="story-progress-bar">
+              <div className="story-progress-fill"></div>
+            </div>
+            <div className="story-header">
+              <div className="story-author-avatar">{getInitials(activeStory.userName)}</div>
+              <div className="story-author-name">{activeStory.userName}</div>
+              <div className="story-time">{timeAgo(activeStory.createdAt)}</div>
+            </div>
+            <div className="story-media-container">
+              {activeStory.mediaType === 'video' ? (
+                <video src={activeStory.mediaUrl} autoPlay playsInline controls={false} onEnded={() => setActiveStory(null)} />
+              ) : (
+                <img src={activeStory.mediaUrl} alt="Story" />
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Create Post Card */}
       <div className="create-post-card">
@@ -528,7 +592,13 @@ export default function Community() {
                   {post.mediaUrl && (
                     <div className="post-media">
                       {post.mediaType === 'video' ? (
-                        <video src={post.mediaUrl} controls />
+                        <video 
+                          src={post.mediaUrl} 
+                          controls 
+                          playsInline 
+                          preload="metadata"
+                          poster={post.mediaUrl.replace(/\.[^/.]+$/, ".jpg")}
+                        />
                       ) : (
                         <img src={post.mediaUrl} alt="Post content" onClick={() => window.open(post.mediaUrl)} />
                       )}

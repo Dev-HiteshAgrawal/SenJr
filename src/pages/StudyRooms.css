@@ -240,7 +240,7 @@
    =================================== */
 
 .study-room-active {
-  min-height: calc(100vh - 100px);
+  min-height: 100dvh;
   padding: 2rem;
   border-radius: 32px;
   background: radial-gradient(circle at top right, rgba(var(--card-accent-rgb, 201,169,110), 0.05), transparent 60%);
