@@ -5,9 +5,9 @@ import './Navbar.css';
 
 const NAV_LINKS = [
   { path: '/',             label: 'Home',        icon: '🏠' },
-  { path: '/find-mentors', label: 'Find Mentor', icon: '🎓' },
-  { path: '/free-courses', label: 'Free Courses', icon: '📚' },
-  { path: '/ai-tutor',     label: 'AI Tutor',    icon: '🤖' },
+  { path: '/find-mentors', label: 'Mentors',     icon: '🎓' },
+  { path: '/free-courses', label: 'Explore',     icon: '📚' },
+  { path: '/ai-tutor',     label: 'AI Space',    icon: '🤖' },
   { path: '/community',    label: 'Community',   icon: '🌐' },
   { path: '/study-rooms',  label: 'Study Rooms', icon: '🎧' },
 ];
@@ -193,7 +193,7 @@ export default function Navbar() {
               /* ─── Logged-out: Login + Signup ─── */
               <>
                 <Link to="/login" className="btn-secondary">Log In</Link>
-                <Link to="/signup" className="btn-primary">Sign Up Free</Link>
+                <Link to="/signup" className="btn-primary">Start Learning</Link>
               </>
             )}
           </div>
@@ -339,7 +339,7 @@ export default function Navbar() {
                 className="btn-primary"
                 onClick={() => setDrawerOpen(false)}
               >
-                ✨ &nbsp;Sign Up Free
+                ✨ &nbsp;Start Learning
               </Link>
             </>
           )}

@@ -21,7 +21,7 @@ const TUTORS = {
 function getGreeting(tutor) {
   return {
     role: 'model',
-    content: `Hi! I'm ${tutor.name}, your ${tutor.subject} tutor. Ask me anything. No question is too basic!`,
+    content: `Hi, I'm ${tutor.name}, your ${tutor.subject} guide. I'm here to help you understand, not just find the answer. What are we working on today?`,
     timestamp: new Date().toISOString(),
   };
 }
@@ -29,7 +29,7 @@ function getGreeting(tutor) {
 function getFreshStartMessage() {
   return {
     role: 'model',
-    content: 'Fresh start! Ask me anything 😊',
+    content: "Cleared and ready. What's next?",
     timestamp: new Date().toISOString(),
   };
 }
@@ -184,13 +184,13 @@ export default function AITutorChat() {
       await persistMessages(finalMessages);
     } catch (error) {
       console.error('Error sending message:', error);
-      notifyError(error.message || 'The AI tutor could not generate a reply.');
+      notifyError(error.message || 'I hit a small snag processing that.');
       setMessages([
         ...nextMessages,
         {
           role: 'model',
           content:
-            "I'm having trouble replying right now. Please check the AI configuration and try again in a moment.",
+            "I hit a small snag. Could you try asking that again?",
           timestamp: new Date().toISOString(),
         },
       ]);
@@ -253,7 +253,7 @@ export default function AITutorChat() {
       {storageConsent === null && (
         <div className="card" style={{ margin: '1rem 1.5rem 0' }}>
           <p style={{ color: 'var(--text-secondary)', marginBottom: '0.9rem' }}>
-            Save your AI tutor chat history on this device? Your notes will be here next time you visit.
+            Would you like to keep your chat history saved on this device for next time?
           </p>
           <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
             <button
@@ -262,10 +262,10 @@ export default function AITutorChat() {
               onClick={() => {
                 localStorage.setItem('senjr_storage_ok', 'yes');
                 setStorageConsent('yes');
-                notifySuccess("Storage allowed! History will be saved.");
+                notifySuccess("History saving enabled.");
               }}
             >
-              Allow ✓
+              Yes, save it
             </button>
             <button
               className="btn-secondary"
@@ -273,10 +273,10 @@ export default function AITutorChat() {
               onClick={() => {
                 localStorage.setItem('senjr_storage_ok', 'no');
                 setStorageConsent('no');
-                notifyInfo("Storage declined. History won't persist.");
+                notifyInfo("History saving skipped.");
               }}
             >
-              No thanks
+              Not right now
             </button>
           </div>
         </div>
@@ -332,7 +332,7 @@ export default function AITutorChat() {
         <input
           type="text"
           className="ai-chat-input"
-          placeholder={`Message ${tutor.name}...`}
+          placeholder={`Ask ${tutor.name}...`}
           value={inputValue}
           onChange={(event) => setInputValue(event.target.value)}
           onKeyDown={handleKeyDown}

@@ -123,6 +123,12 @@ html {
   -webkit-tap-highlight-color: transparent;
 }
 
+@media (max-width: 768px) {
+  html {
+    font-size: 15px; /* Slightly smaller base for better fit, but we'll scale elements */
+  }
+}
+
 body {
   font-family: var(--font-body);
   font-weight: 400;
@@ -131,6 +137,8 @@ body {
   background-color: var(--bg-primary);
   min-height: 100vh;
   overflow-x: hidden;
+  width: 100%;
+  position: relative;
   overscroll-behavior-y: none;
 }
 
@@ -209,6 +217,15 @@ input, textarea, select {
   padding-top: calc(var(--navbar-height) + var(--space-2xl));
   min-height: 100vh;
   background: var(--bg-primary);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 640px) {
+  .page-container {
+    padding: var(--space-lg) var(--space-md);
+    padding-top: calc(var(--navbar-height) + var(--space-lg));
+  }
 }
 
 /* Gradient text title for placeholder pages */
@@ -241,6 +258,13 @@ input, textarea, select {
   box-shadow: 0 4px 24px rgba(0,0,0,0.3);
   transition: all 0.3s ease;
   overflow: hidden;
+}
+
+@media (max-width: 480px) {
+  .card {
+    padding: 16px;
+    border-radius: 12px;
+  }
 }
 
 .card:hover {

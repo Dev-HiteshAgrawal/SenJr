@@ -112,14 +112,14 @@ export default function MentorSetup() {
       <div className="setup-header">
         <div className="progress-container">
           <div className="progress-text">
-            Profile {progress}% complete {progress < 100 && '— finish to attract students!'}
+            Profile {progress}% complete {progress < 100 && '— finish your setup.'}
           </div>
           <div className="progress-bar-bg">
             <div className="progress-bar-fill" style={{ width: `${progress}%` }}></div>
           </div>
         </div>
         <h1 className="page-title">Set up your Mentor Profile</h1>
-        <p className="page-subtitle">This is how students will see you.</p>
+        <p className="page-subtitle">Craft your public persona.</p>
       </div>
 
       <div className="setup-layout">
@@ -132,7 +132,7 @@ export default function MentorSetup() {
             
             {/* Avatar Selection */}
             <div className="form-section">
-              <label>Choose your Avatar Color</label>
+              <label>Avatar Color</label>
               <div className="avatar-options">
                 {AVATAR_COLORS.map(color => (
                   <button
@@ -161,7 +161,7 @@ export default function MentorSetup() {
                 rows="3"
                 value={formData.aboutMe}
                 onChange={handleChange}
-                placeholder="Hi! I'm a senior who loves teaching my subject and helping students grow. Let's learn together!"
+                placeholder="I'm passionate about helping others understand complex topics clearly."
                 maxLength="200"
               ></textarea>
             </div>
@@ -259,7 +259,7 @@ export default function MentorSetup() {
                 onClick={handleSave}
                 disabled={saving}
               >
-                {saving ? 'Saving Profile...' : 'Save & View Dashboard'}
+                {saving ? 'Saving...' : 'Go to Dashboard'}
               </button>
             </div>
           </div>

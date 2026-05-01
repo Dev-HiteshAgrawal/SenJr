@@ -569,18 +569,18 @@ export default function StudentDashboard() {
           <header className="os-header card">
             <div className="os-header-text">
               <p className="os-date">{currentDate}</p>
-              <h1 className="os-title">Welcome back, {displayName}.</h1>
+              <h1 className="os-title">Good to see you, {displayName}.</h1>
               <div className="os-ai-suggestion">
                 <span className="ai-sparkle">✨</span>
                 <p>
                   <strong>AI Coach:</strong>{' '}
                   {upcomingSessions.length > 0
-                    ? `You have a live session at ${upcomingSessions[0].time}. Prepare your questions to make the most of it!`
+                    ? `You have a session at ${upcomingSessions[0].time}. A good moment to gather your questions.`
                     : pendingHomework.length > 0
-                    ? `Focus up! You have ${pendingHomework.length} pending task${pendingHomework.length > 1 ? 's' : ''}. Clear them to keep your momentum.`
+                    ? `You have ${pendingHomework.length} task${pendingHomework.length > 1 ? 's' : ''} lined up. Let's clear them to keep your rhythm.`
                     : userProfile?.streak > 0
-                    ? `Your streak is at ${userProfile.streak} days! Review some community tips to keep the fire alive.`
-                    : "Ready to start fresh? Book a mentor or complete a task to kickstart your streak!"}
+                    ? `${userProfile.streak} days strong. Keep the momentum going by exploring the community.`
+                    : "Ready when you are. Pick a small goal to start your rhythm today."}
                 </p>
               </div>
             </div>
@@ -591,7 +591,7 @@ export default function StudentDashboard() {
               </svg>
               <div className="ring-text">
                 <span className="ring-value">{focusProgress}%</span>
-                <span className="ring-label">Daily Focus</span>
+                <span className="ring-label">Today's Rhythm</span>
               </div>
             </div>
           </header>
@@ -600,8 +600,8 @@ export default function StudentDashboard() {
             {/* Today's Target (Pending Homework) */}
             <section className="os-section card">
               <div className="os-section-header">
-                <h2>Today's Targets</h2>
-                <span className="badge-count">{pendingHomework.length} pending</span>
+                <h2>Today's Goals</h2>
+                <span className="badge-count">{pendingHomework.length} remaining</span>
               </div>
               
               {pendingHomework.length > 0 ? (
@@ -621,7 +621,7 @@ export default function StudentDashboard() {
               ) : (
                 <div className="os-empty-state">
                   <div className="empty-icon">✅</div>
-                  <p>All targets cleared. You're unstoppable.</p>
+                  <p>All goals cleared today. Great rhythm.</p>
                 </div>
               )}
             </section>
@@ -629,7 +629,7 @@ export default function StudentDashboard() {
             {/* Upcoming Sessions */}
             <section className="os-section card">
               <div className="os-section-header">
-                <h2>Live Sessions</h2>
+                <h2>Upcoming Sessions</h2>
               </div>
               
               {upcomingSessions.length > 0 ? (
@@ -645,7 +645,7 @@ export default function StudentDashboard() {
                         <p>{session.sessionType}</p>
                         {canJoin(session) ? (
                           <button className="os-btn-join glow-btn" onClick={() => joinSession(session)}>
-                            Join Now 🔴
+                            Join Room
                           </button>
                         ) : (
                           <span className="s-waiting">Waiting...</span>
@@ -657,8 +657,8 @@ export default function StudentDashboard() {
               ) : (
                 <div className="os-empty-state">
                   <div className="empty-icon">🗓️</div>
-                  <p>No sessions scheduled.</p>
-                  <Link to="/find-mentors" className="os-link">Find a mentor →</Link>
+                  <p>Your upcoming sessions will appear here.</p>
+                  <Link to="/find-mentors" className="os-link">Explore Mentors →</Link>
                 </div>
               )}
             </section>
@@ -666,27 +666,27 @@ export default function StudentDashboard() {
 
           {/* Quick Actions & Courses */}
           <section className="os-section card">
-            <h2>Fast Actions</h2>
+            <h2>Quick Actions</h2>
             <div className="os-quick-actions">
               <Link to="/ai-tutor" className="os-qa-btn">
                 <span className="qa-icon">🤖</span>
                 <div>
-                  <h4>Ask AI Tutor</h4>
-                  <p>Stuck? Get instant help.</p>
+                  <h4>AI Study Space</h4>
+                  <p>Work through a tricky concept.</p>
                 </div>
               </Link>
               <Link to="/free-courses" className="os-qa-btn">
                 <span className="qa-icon">📚</span>
                 <div>
-                  <h4>Free Courses</h4>
-                  <p>Learn something new.</p>
+                  <h4>Explore Courses</h4>
+                  <p>Pick up a new skill.</p>
                 </div>
               </Link>
               <Link to="/find-mentors" className="os-qa-btn">
                 <span className="qa-icon">🎓</span>
                 <div>
-                  <h4>Book Mentor</h4>
-                  <p>1-on-1 guidance.</p>
+                  <h4>Find a Mentor</h4>
+                  <p>Book a 1-on-1 session.</p>
                 </div>
               </Link>
               <button
@@ -698,8 +698,8 @@ export default function StudentDashboard() {
               >
                 <span className="qa-icon">📜</span>
                 <div>
-                  <h4>Download Certificate</h4>
-                  <p>{completedSessions.length < 1 ? 'Complete one session to unlock.' : `Issued (${certificates.length} saved).`}</p>
+                  <h4>Your Certificates</h4>
+                  <p>{completedSessions.length < 1 ? 'Keep going to unlock your first certificate.' : `Issued (${certificates.length} saved).`}</p>
                 </div>
               </button>
             </div>
@@ -765,14 +765,14 @@ export default function StudentDashboard() {
           {/* Friend Requests (NEW) */}
           {friendRequests.length > 0 && (
             <div className="os-requests-card card">
-              <h3>Incoming Requests</h3>
+              <h3>Study Clan Requests</h3>
               <div className="os-friends-list">
                 {friendRequests.map(req => (
                   <div key={req.id} className="friend-item request-item">
                     <div className="friend-avatar">{req.displayName?.charAt(0) || 'S'}</div>
                     <div className="friend-info">
                       <h4>{req.displayName}</h4>
-                      <p>Wants to connect</p>
+                      <p>Wants to study together</p>
                     </div>
                     <div className="request-actions">
                       <button onClick={() => handleAcceptFriend(req.id)} className="btn-accept" title="Accept">✓</button>
@@ -786,7 +786,7 @@ export default function StudentDashboard() {
 
           {/* Social / Friend Activity (NEW) */}
           <div className="os-social-card card">
-            <h3>Study Clan Activity</h3>
+            <h3>Study Clan</h3>
             {friends.length > 0 ? (
               <div className="os-friends-list">
                 {friends.map(friend => (
@@ -794,7 +794,7 @@ export default function StudentDashboard() {
                     <div className="friend-avatar">{friend.displayName?.charAt(0) || 'S'}</div>
                     <div className="friend-info">
                       <h4>{friend.displayName}</h4>
-                      <p>🔥 {friend.streak || 0} day streak</p>
+                      <p>🔥 {friend.streak || 0} days strong</p>
                     </div>
                     <Link to={`/student/${friend.id}`} className="friend-link">→</Link>
                   </div>

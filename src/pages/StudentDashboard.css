@@ -88,6 +88,13 @@
   transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
+@media (max-width: 640px) {
+  .card {
+    padding: 1.25rem;
+    border-radius: 20px;
+  }
+}
+
 .os-section-header {
   display: flex;
   justify-content: space-between;
@@ -177,6 +184,16 @@
   flex-shrink: 0;
 }
 
+@media (max-width: 480px) {
+  .os-focus-ring {
+    width: 100px;
+    height: 100px;
+  }
+  .ring-value {
+    font-size: 1.4rem;
+  }
+}
+
 .circular-chart {
   display: block;
   margin: 0 auto;
@@ -230,9 +247,15 @@
   .os-header {
     flex-direction: column;
     text-align: center;
+    gap: 1.5rem;
   }
   .os-ai-suggestion {
     text-align: left;
+    font-size: 0.9rem;
+  }
+  .os-title {
+    font-size: 1.75rem;
+    line-height: 1.2;
   }
 }
 
@@ -540,6 +563,16 @@
 .os-streak-card {
   display: flex;
   flex-direction: column;
+}
+
+@media (max-width: 480px) {
+  .streak-dots {
+    gap: 6px;
+  }
+  .streak-dots .dot {
+    width: 14px;
+    height: 14px;
+  }
 }
 
 .streak-dots {

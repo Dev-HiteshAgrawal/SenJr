@@ -318,7 +318,7 @@ export default function MentorProfile() {
 
             <section className="profile-section">
               <div className="section-header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h2 className="section-title">What students say</h2>
+                <h2 className="section-title">From the community</h2>
                 <div className="rating-average">
                   <span style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>{averageRating || '—'}</span>
                   {averageRating ? <span className="star" style={{ marginLeft: '4px' }}>⭐</span> : null}
@@ -350,7 +350,7 @@ export default function MentorProfile() {
                 ) : (
                   <div className="reviews-empty">
                     <span className="empty-icon">💬</span>
-                    <p>No reviews yet. Be the first to book a session and leave a review!</p>
+                    <p>Be the first to leave a review.</p>
                   </div>
                 )}
               </div>
@@ -415,7 +415,7 @@ export default function MentorProfile() {
               <div className="sheet-success">
                 <div className="success-icon">🎉</div>
                 <h3>Session Booked!</h3>
-                <p>You'll get a reminder before the session starts.</p>
+                <p>We'll send you a gentle reminder before you start.</p>
                 <button className="btn-primary full-width mt-4" onClick={() => setIsBookingModalOpen(false)}>
                   Done
                 </button>

@@ -309,9 +309,9 @@ export default function MentorDashboard() {
               <span className="badge-text">{collegeName} Verified</span>
             </div>
             <h1 className="dashboard-title">
-              Welcome, Mentor <span className="highlight">{displayName}</span>! 🌟
+              Good to see you, <span className="highlight">{displayName}</span>. 🌟
             </h1>
-            <p className="dashboard-subtitle">You're making a difference.</p>
+            <p className="dashboard-subtitle">Your guidance matters.</p>
           </div>
         </header>
 
@@ -411,9 +411,9 @@ export default function MentorDashboard() {
                 <div className="empty-state-card card">
                   <div className="empty-state-icon">🎒</div>
                   <h3>No students yet</h3>
-                  <p>Ensure your profile is complete with subjects and bio to attract students.</p>
+                  <p>Make sure your profile is complete to help students find you.</p>
                   <Link to="/profile" className="btn-primary mt-3">
-                    Complete your profile →
+                    Personalize your space →
                   </Link>
                 </div>
               )}
@@ -454,7 +454,7 @@ export default function MentorDashboard() {
                 <div className="empty-state-card card">
                   <div className="empty-state-icon">🗓️</div>
                   <h3>No sessions scheduled</h3>
-                  <p>Once students book you, their sessions will appear here.</p>
+                  <p>Your upcoming sessions will appear here.</p>
                 </div>
               )}
             </section>
@@ -465,7 +465,7 @@ export default function MentorDashboard() {
             <section className="dashboard-section">
               <h2 className="section-title">My Availability</h2>
               <div className="availability-card card">
-                <p className="availability-desc">Set your weekly recurring slots.</p>
+                <p className="availability-desc">Set your regular availability.</p>
                 <div className="availability-grid">
                   {WEEKDAYS.map(day => (
                     <div key={day} className="availability-col">
@@ -505,7 +505,7 @@ export default function MentorDashboard() {
                           setEditingDay(day);
                           setNewSlot({ start: '09:00', end: '10:00', type: '1-on-1', recurring: true });
                         }}>
-                          <span>+</span> Add Slot
+                          <span>+</span> Add Availability
                         </button>
                       )}
                     </div>
@@ -519,8 +519,8 @@ export default function MentorDashboard() {
               <h2 className="section-title">Pending Homework Reviews</h2>
               <div className="empty-state-card card">
                 <div className="empty-state-icon">📝</div>
-                <h3>All caught up!</h3>
-                <p>No homework submissions pending review right now.</p>
+                <h3>All clear.</h3>
+                <p>No pending reviews right now.</p>
               </div>
             </section>
 
@@ -546,7 +546,7 @@ export default function MentorDashboard() {
                   </div>
                 ) : (
                   <div>
-                    <h3 style={{ margin: '0 0 0.5rem 0' }}>Verify Your College</h3>
+                    <h3 style={{ margin: '0 0 0.5rem 0' }}>Verify Your Status</h3>
                     <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
                       Upload your College ID, Marksheet, or Admit Card (Image or PDF, max 5MB).
                     </p>
@@ -582,11 +582,11 @@ export default function MentorDashboard() {
             </Link>
             <button className="quick-action-btn card">
               <span className="qa-icon">⏰</span>
-              <span className="qa-text">Add Time Slots</span>
+              <span className="qa-text">Update Availability</span>
             </button>
             <button className="quick-action-btn card" onClick={() => setShowHomeworkModal(true)}>
               <span className="qa-icon">📋</span>
-              <span className="qa-text">Assign Homework</span>
+              <span className="qa-text">Set a Task</span>
             </button>
           </div>
         </section>
@@ -596,8 +596,8 @@ export default function MentorDashboard() {
       {showHomeworkModal && (
         <div className="review-modal-overlay animate-fade-in">
           <div className="review-modal-card">
-            <h3>Assign Homework</h3>
-            <p className="review-subtitle">Give your student a task to complete before the next session.</p>
+            <h3>Set a Task</h3>
+            <p className="review-subtitle">Give your student a clear goal before the next session.</p>
             
             <form onSubmit={handleAssignHomework} className="form-group mt-4">
               <label>Select Student</label>
@@ -643,7 +643,7 @@ export default function MentorDashboard() {
 
               <div className="modal-actions">
                 <button type="button" className="btn-secondary" onClick={() => setShowHomeworkModal(false)}>Cancel</button>
-                <button type="submit" className="btn-primary">Assign Task</button>
+                <button type="submit" className="btn-primary">Send Task</button>
               </div>
             </form>
           </div>
@@ -663,13 +663,13 @@ export default function MentorDashboard() {
         <div className="completion-overlay animate-fade-in">
           <div className="completion-modal card animate-slide-up">
             <div className="completion-icon">✅</div>
-            <h3>Session Completed!</h3>
-            <p>Great job hosting this session. The student will be prompted to leave a review.</p>
+            <h3>Session Complete</h3>
+            <p>Thank you for your time. The student has been asked to share their thoughts.</p>
             <button 
               className="btn-primary full-width mt-4"
               onClick={() => setShowCompletionModal(false)}
             >
-              Back to Dashboard
+              Continue
             </button>
           </div>
         </div>

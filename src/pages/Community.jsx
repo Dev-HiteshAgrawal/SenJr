@@ -333,14 +333,14 @@ export default function Community() {
   return (
     <div className="page-container community-container animate-fade-in-up">
       <h1 className="page-title">Community</h1>
-      <p className="page-subtitle mb-4">Stories + feed. Keep it social, focused, and real.</p>
+      <p className="page-subtitle mb-4">A space to learn, share, and grow together.</p>
 
       <section className="stories-strip" aria-label="Community stories">
         <div className="story-item your-story" onClick={() => document.querySelector('.post-textarea')?.focus()}>
           <div className="story-ring">
             <div className="story-avatar">+</div>
           </div>
-          <span>Your Story</span>
+          <span>Share Story</span>
         </div>
         {stories.map((story) => (
           <div className="story-item" key={story.userId}>
@@ -356,7 +356,7 @@ export default function Community() {
       <div className="create-post-card">
         <textarea 
           className="post-textarea"
-          placeholder="Share something with the community..."
+          placeholder="What's on your mind?"
           maxLength={300}
           value={content}
           onChange={(e) => setContent(e.target.value)}
@@ -390,7 +390,7 @@ export default function Community() {
           <div className="post-actions">
             <div className="media-upload-btn">
               <label htmlFor="media-input">
-                📁 Photo/Video
+                📁 Add Media
               </label>
               <input 
                 id="media-input" 
@@ -408,7 +408,7 @@ export default function Community() {
                   checked={isLiveSession} 
                   onChange={(e) => setIsLiveSession(e.target.checked)} 
                 />
-                <span className="live-toggle-text">🔴 Go Live</span>
+                <span className="live-toggle-text">🔴 Start Room</span>
               </label>
             )}
 
@@ -428,7 +428,7 @@ export default function Community() {
               onClick={handlePost}
               disabled={isSubmitting || (!content.trim() && !mediaFile) || !selectedTopic}
             >
-              {isSubmitting ? 'Posting...' : 'Post'}
+              {isSubmitting ? 'Sharing...' : 'Share'}
             </button>
           </div>
         </div>
@@ -501,7 +501,7 @@ export default function Community() {
                       setShowVideo(true);
                     }}
                   >
-                    Join Session
+                    Join Room
                   </button>
                 </div>
               )}
@@ -548,7 +548,7 @@ export default function Community() {
                   className={`reaction-btn comment-trigger ${activeCommentPostId === post.id ? 'active' : ''}`}
                   onClick={() => setActiveCommentPostId(activeCommentPostId === post.id ? null : post.id)}
                 >
-                  💬 Comment
+                  💬 Discuss
                 </button>
               </div>
 
@@ -564,8 +564,8 @@ export default function Community() {
         {!loading && posts.length === 0 && (
           <div className="empty-state-card card" style={{ textAlign: 'center', padding: '3rem' }}>
             <div className="empty-state-icon" style={{ fontSize: '3rem' }}>🌱</div>
-            <h3>No posts yet</h3>
-            <p>Be the first to share something with the community!</p>
+            <h3>It's quiet here.</h3>
+            <p>Start the conversation by sharing a thought or a question.</p>
           </div>
         )}
 
@@ -685,7 +685,7 @@ function CommentSection({ postId, currentUser, userProfile }) {
             </div>
           </div>
         ))}
-        {loading && <p className="comment-loading">Loading comments...</p>}
+        {loading && <p className="comment-loading">Loading discussion...</p>}
       </div>
 
       <div className="comment-input-area">
@@ -698,12 +698,12 @@ function CommentSection({ postId, currentUser, userProfile }) {
         <div className="comment-input-flex">
           <input 
             type="text" 
-            placeholder="Write a comment..." 
+            placeholder="Add to the discussion..." 
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSendComment()}
           />
-          <button className="send-comment-btn" onClick={handleSendComment}>Send</button>
+          <button className="send-comment-btn" onClick={handleSendComment}>Post</button>
         </div>
       </div>
     </div>

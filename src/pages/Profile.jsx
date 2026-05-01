@@ -94,10 +94,10 @@ export default function Profile() {
         ...(userProfile?.role === 'mentor' ? { subjects: normalizeSubjects(formData.subjects) } : {}),
       });
 
-      setMessage('Profile updated successfully.');
+      setMessage('Changes saved successfully.');
     } catch (err) {
       console.error('Profile update error:', err);
-      setError('Could not save your profile right now. Please try again.');
+      setError("We couldn't save your changes. Please try again.");
     } finally {
       setSaving(false);
     }
@@ -108,7 +108,7 @@ export default function Profile() {
       <div className="profile-header">
         <div>
           <h1 className="page-title">Your Profile</h1>
-          <p className="page-subtitle">Keep your profile fresh so students, mentors, and the platform all stay in sync.</p>
+          <p className="page-subtitle">Keep your details updated to help the community know you better.</p>
         </div>
         <div className="profile-stats-grid">
           {profileStats.map((stat) => (
@@ -239,7 +239,7 @@ export default function Profile() {
 
         <div className="profile-actions">
           <button type="submit" className="btn-primary" disabled={saving}>
-            {saving ? 'Saving...' : 'Save Profile'}
+            {saving ? 'Saving...' : 'Save Changes'}
           </button>
         </div>
       </form>

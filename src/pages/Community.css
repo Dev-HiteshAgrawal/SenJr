@@ -1,7 +1,13 @@
 .community-container {
   max-width: 800px;
   margin: 0 auto;
-  padding: 6rem 1rem 2rem 1rem; /* Added padding-top to prevent navbar overlap */
+  padding: 6rem 1rem 2rem 1rem;
+}
+
+@media (max-width: 640px) {
+  .community-container {
+    padding: 5rem 0.75rem 2rem 0.75rem;
+  }
 }
 
 .stories-strip {
@@ -57,6 +63,17 @@
   padding: 1.5rem;
   margin-bottom: 2rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 640px) {
+  .create-post-card {
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .post-textarea {
+    font-size: 0.95rem;
+    padding: 0.75rem;
+  }
 }
 
 .post-textarea {
@@ -263,6 +280,16 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
   padding: 1.5rem;
+}
+
+@media (max-width: 640px) {
+  .post-card {
+    padding: 1.1rem;
+    border-radius: 16px;
+  }
+  .post-content {
+    font-size: 0.95rem;
+  }
 }
 
 .post-header {
@@ -506,6 +533,12 @@
 .comment-bubble.reply {
   margin-left: 2rem;
   border-left: 2px solid var(--accent-saffron);
+}
+
+@media (max-width: 480px) {
+  .comment-bubble.reply {
+    margin-left: 1rem;
+  }
 }
 
 .comment-author {

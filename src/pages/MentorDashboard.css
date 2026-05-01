@@ -30,6 +30,12 @@
   padding: 2rem;
 }
 
+@media (max-width: 640px) {
+  .availability-card {
+    padding: 1.25rem;
+  }
+}
+
 .availability-desc {
   font-size: 0.9rem;
   color: var(--text-muted);
@@ -203,6 +209,12 @@
   font-size: 2.25rem;
 }
 
+@media (max-width: 480px) {
+  .hud-value {
+    font-size: 1.75rem;
+  }
+}
+
 @media (max-width: 1024px) {
   .availability-grid {
     grid-template-columns: repeat(4, 1fr);
@@ -212,5 +224,11 @@
 @media (max-width: 640px) {
   .availability-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 400px) {
+  .availability-grid {
+    grid-template-columns: 1fr;
   }
 }

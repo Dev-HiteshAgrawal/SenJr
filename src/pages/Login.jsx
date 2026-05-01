@@ -101,7 +101,7 @@ export default function Login() {
 
   const handleForgotPassword = async () => {
     if (!formData.email.trim()) {
-      setError('Enter your email address first so we know where to send the reset link.');
+      setError('Please enter your email so we can send a reset link.');
       return;
     }
 
@@ -111,7 +111,7 @@ export default function Login() {
 
     try {
       await resetPassword(formData.email.trim());
-      setMessage('Password reset link sent. Check your inbox and spam folder.');
+      setMessage("We've sent a reset link to your email. Check your spam folder if it's missing.");
     } catch (authError) {
       console.error('Reset password error:', authError);
       setError(getAuthErrorMessage(authError.code));
@@ -125,7 +125,7 @@ export default function Login() {
       <div className="login-wrapper animate-fade-in-up">
         <div className="login-header">
           <h1 className="page-title">Welcome Back</h1>
-          <p className="page-subtitle">Login and jump straight into your Senjr workspace.</p>
+          <p className="page-subtitle">Step back into your workspace.</p>
         </div>
 
         {error && <div className="auth-error">{error}</div>}
@@ -173,7 +173,7 @@ export default function Login() {
             </div>
 
             <button type="submit" className="btn-primary login-submit-btn" disabled={loading}>
-              {loading ? 'Logging in...' : 'Login'}
+              {loading ? 'Entering workspace...' : 'Enter workspace'}
             </button>
           </form>
         </div>

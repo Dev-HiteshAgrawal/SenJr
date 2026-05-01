@@ -16,8 +16,8 @@ function getDashboardRoute(role) {
 
 function defaultIntroMessage(role) {
   return role === 'mentor'
-    ? 'Teach juniors, earn money, get certificate'
-    : 'Find a senior mentor, learn faster';
+    ? 'Guide the next generation.'
+    : 'Learn from those who have been there.';
 }
 
 function createInitialState(prefill = {}) {
@@ -294,8 +294,8 @@ export default function Signup() {
         <div className="signup-wrapper animate-fade-in-up">
           <div className="card success-card">
             <div className="success-icon">Welcome to Senjr! 🎉</div>
-            <h1 className="page-title">Setting up your profile...</h1>
-            <p className="page-subtitle">We're getting your dashboard ready.</p>
+            <h1 className="page-title">Setting up your space...</h1>
+            <p className="page-subtitle">Just a moment.</p>
           </div>
         </div>
       </div>
@@ -308,7 +308,7 @@ export default function Signup() {
         <div className="signup-header">
           <h1 className="page-title">Join Senjr</h1>
           <p className="page-subtitle">
-            {step === 1 ? 'Choose your path first.' : `Tell us a bit about yourself${role ? ` as a ${role}` : ''}.`}
+            {step === 1 ? 'How would you like to join us?' : "Let's set up your profile."}
           </p>
         </div>
 
@@ -319,13 +319,13 @@ export default function Signup() {
             <div className="role-selection-grid">
               <button type="button" className="role-selection-card card" onClick={() => { setRole('student'); setStep(2); }}>
                 <div className="role-icon">🎓</div>
-                <h2>I am a Student 🎓</h2>
+                <h2>Student</h2>
                 <p>{defaultIntroMessage('student')}</p>
               </button>
 
               <button type="button" className="role-selection-card card" onClick={() => { setRole('mentor'); setStep(2); }}>
                 <div className="role-icon">⭐</div>
-                <h2>I am a Mentor ⭐</h2>
+                <h2>Mentor</h2>
                 <p>{defaultIntroMessage('mentor')}</p>
               </button>
             </div>
@@ -342,7 +342,7 @@ export default function Signup() {
               <button type="button" className="step-back-btn" onClick={() => setStep(1)}>
                 ← Back
               </button>
-              <div className="role-pill">{role === 'mentor' ? 'Mentor onboarding' : 'Student onboarding'}</div>
+              <div className="role-pill">{role === 'mentor' ? 'Mentor Setup' : 'Student Setup'}</div>
             </div>
 
             {hasPendingGoogleSignup && (
@@ -460,7 +460,7 @@ export default function Signup() {
               )}
 
               <div className="auth-section">
-                <div className="auth-section-title">{AUTH_SECTION_SEPARATOR}</div>
+                <div className="auth-section-title">Account Details</div>
 
                 <div className="form-group">
                   <label htmlFor="signup-email">Email</label>

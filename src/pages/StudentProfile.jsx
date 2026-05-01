@@ -91,8 +91,8 @@ export default function StudentProfile() {
     }
   };
 
-  if (loading) return <div className="loading-state">Loading profile...</div>;
-  if (!profile) return <div className="loading-state">Student not found</div>;
+  if (loading) return <div className="loading-state">Fetching details...</div>;
+  if (!profile) return <div className="loading-state">We couldn't find this student.</div>;
 
   return (
     <div className="student-profile-container animate-fade-in">
@@ -108,16 +108,16 @@ export default function StudentProfile() {
             className={`btn-primary friend-btn ${friendStatus}`}
             onClick={handleFriendAction}
           >
-            {friendStatus === 'friends' ? '👥 Friends' : 
-             friendStatus === 'pending' ? '⏳ Request Sent' : 
-             '➕ Add Friend'}
+            {friendStatus === 'friends' ? '👥 Connected' : 
+             friendStatus === 'pending' ? '⏳ Pending' : 
+             '➕ Connect'}
           </button>
         </div>
 
         <div className="student-stats">
           <div className="stat-box">
             <h3>{profile.badges?.length || 0}</h3>
-            <p>Badges Earned</p>
+            <p>Badges</p>
           </div>
           <div className="stat-box">
             <h3>{profile.friends?.length || 0}</h3>

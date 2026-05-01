@@ -19,10 +19,10 @@ export default function ResetPassword() {
 
     try {
       await resetPassword(email.trim());
-      setSuccess('Reset link sent. Check your inbox and spam folder.');
+      setSuccess("We've sent a reset link to your email. Check your spam folder if it's missing.");
     } catch (err) {
       console.error('Reset password error:', err);
-      setError('Could not send the reset email. Please verify the address and try again.');
+      setError("We couldn't send the reset email. Please check the address and try again.");
     } finally {
       setLoading(false);
     }
@@ -36,7 +36,7 @@ export default function ResetPassword() {
             Sen<span>jr</span> ⚡
           </Link>
           <h1 className="page-title">Reset Password</h1>
-          <p className="page-subtitle">We will send you a secure link to get back into your account.</p>
+          <p className="page-subtitle">Let's get you back into your workspace.</p>
         </div>
 
         {error && <div className="auth-error">{error}</div>}
@@ -69,7 +69,7 @@ export default function ResetPassword() {
             </div>
 
             <button type="submit" className="btn-primary login-btn" disabled={loading}>
-              {loading ? 'Sending...' : 'Send Reset Link'}
+              {loading ? 'Sending...' : 'Send Link'}
             </button>
           </form>
         </div>

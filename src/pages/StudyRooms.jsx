@@ -102,7 +102,7 @@ export default function StudyRooms() {
             <div>
               <h1>{activeRoom.name}</h1>
               <div className="room-live-status">
-                <span className="pulse-dot"></span> {activeRoom.activeUsers + 1} studying now
+                <span className="pulse-dot"></span> {activeRoom.activeUsers + 1} focusing now
               </div>
             </div>
           </div>
@@ -111,7 +111,7 @@ export default function StudyRooms() {
         <div className="room-dashboard">
           {/* POMODORO TIMER */}
           <div className="timer-card glass-card">
-            <h3>Group Pomodoro Sync</h3>
+            <h3>Group Rhythm</h3>
             <div className="timer-display">
               <svg viewBox="0 0 100 100" className="timer-circle">
                 <circle cx="50" cy="50" r="45" className="timer-bg" />
@@ -126,14 +126,14 @@ export default function StudyRooms() {
             </div>
             <div className="timer-controls">
               <button onClick={toggleTimer} className={`btn-primary btn-${isTimerRunning ? 'pause' : 'start'}`}>
-                {isTimerRunning ? 'Pause Focus' : 'Start Focus'}
+                {isTimerRunning ? 'Pause' : 'Start'}
               </button>
             </div>
           </div>
 
           {/* ROOM ACTIVITY */}
           <div className="activity-card glass-card">
-            <h3>Live Activity</h3>
+            <h3>Room Activity</h3>
             <div className="activity-feed">
               <div className="feed-item">
                 <div className="feed-avatar">A</div>
@@ -164,12 +164,12 @@ export default function StudyRooms() {
     <div className="page-container study-rooms-page animate-fade-in-up">
       <div className="rooms-header">
         <div>
-          <h1 className="page-title">Study Clans & Rooms</h1>
-          <p className="page-subtitle">Join a live room. Surround yourself with focused peers. Build the habit.</p>
+          <h1 className="page-title">Study Rooms</h1>
+          <p className="page-subtitle">Join a live room. Surround yourself with focus.</p>
         </div>
         <div className="global-stats">
           <div className="stat-badge">
-            <span className="pulse-dot"></span> 826 studying right now
+            <span className="pulse-dot"></span> 826 focusing right now
           </div>
         </div>
       </div>
