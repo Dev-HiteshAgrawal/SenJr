@@ -125,7 +125,7 @@ export async function getDocuments(collectionName, ...constraints) {
  */
 export async function updateDocument(collectionName, id, data) {
   // Prevent sensitive field updates from generic helper
-  const forbiddenFields = ['role', 'xp', 'level', 'banned'];
+  const forbiddenFields = ['role', 'xp', 'level', 'banned', 'miss_count'];
   const filteredData = { ...data };
 
   if (collectionName === COLLECTIONS.USERS) {
