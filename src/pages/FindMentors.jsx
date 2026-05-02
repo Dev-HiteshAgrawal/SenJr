@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { getAllUsers, where } from '../lib/firestore';
+import { getDocumentsPaginated, COLLECTIONS, where, orderBy } from '../lib/firestore';
 import './FindMentors.css';
 
 const SUBJECTS = ['All', 'Maths', 'Physics', 'Chemistry', 'Biology', 'History', 'Economics', 'English', 'Programming', 'Business', 'JEE Prep', 'NEET Prep', 'CUET Prep'];
@@ -11,26 +11,80 @@ const SESSION_TYPES = ['All', '1-on-1', 'Group (max 4)'];
 export default function FindMentors() {
   const [mentors, setMentors] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [search, setSearch] = useState('');
   const [activeSubject, setActiveSubject] = useState('All');
   const [activeCourse, setActiveCourse] = useState('All');
   const [activeTime, setActiveTime] = useState('Any Time');
   const [activeType, setActiveType] = useState('All');
+  const [lastDoc, setLastDoc] = useState(null);
+  const [hasMore, setHasMore] = useState(false);
+
+  const PAGE_SIZE = 12;
+
+  const fetchMentors = useCallback(async (isLoadMore = false) => {
+    if (isLoadMore) setLoadingMore(true);
+    else setLoading(true);
+
+    try {
+      const constraints = [
+        where('role', '==', 'mentor'),
+        orderBy('displayName', 'asc')
+      ];
+
+      if (activeSubject !== 'All') {
+        constraints.push(where('subjects', 'array-contains', activeSubject));
+      }
+      if (activeCourse !== 'All') {
+        constraints.push(where('course', '==', activeCourse));
+      }
+
+      const result = await getDocumentsPaginated(
+        COLLECTIONS.USERS,
+        PAGE_SIZE,
+        isLoadMore ? lastDoc : null,
+        ...constraints
+      );
+
+      const newMentors = result.docs;
+
+      setMentors(prev => isLoadMore ? [...prev, ...newMentors] : newMentors);
+      setLastDoc(result.lastVisible);
+      setHasMore(result.hasMore);
+    } catch (err) {
+      console.error('Error fetching mentors:', err);
+      // If index is missing, we might want to fallback to just role filter
+      if (err.code === 'failed-precondition') {
+        console.warn('Falling back to client-side filtering due to missing Firestore index.');
+        const fallbackResult = await getDocumentsPaginated(
+          COLLECTIONS.USERS,
+          PAGE_SIZE,
+          isLoadMore ? lastDoc : null,
+          where('role', '==', 'mentor')
+          // Removed orderBy in fallback for maximum compatibility
+        );
+        const newMentors = fallbackResult.docs;
+        setMentors(prev => isLoadMore ? [...prev, ...newMentors] : newMentors);
+        setLastDoc(fallbackResult.lastVisible);
+        setHasMore(fallbackResult.hasMore);
+      }
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
+    }
+  }, [lastDoc, activeSubject, activeCourse]);
 
   useEffect(() => {
-    async function loadMentors() {
-      try {
-        const data = await getAllUsers(where('role', '==', 'mentor'));
-        setMentors(data.filter((mentor) => !mentor.banned));
-      } catch (err) {
-        console.error('Error fetching mentors:', err);
-      } finally {
-        setLoading(false);
-      }
-    }
+    // Reset state and fetch from beginning when filters change
+    setMentors([]);
+    setLastDoc(null);
+    setHasMore(false);
+    fetchMentors(false);
+  }, [activeSubject, activeCourse]);
 
-    loadMentors();
-  }, []);
+  // When filters that should be server-side change, we would normally re-fetch.
+  // For now, since we only query by role to avoid index issues, we keep filters client-side.
+  // But if we had more mentors, we'd move these to the query.
 
   const hasSlotMatching = (availability, timeFilter, typeFilter) => {
     if (timeFilter === 'Any Time' && typeFilter === 'All') return true;
@@ -67,6 +121,8 @@ export default function FindMentors() {
   };
 
   const filteredMentors = mentors.filter((mentor) => {
+    if (mentor.banned) return false;
+
     if (search.trim()) {
       const query = search.toLowerCase();
       const matchesName = mentor.displayName?.toLowerCase().includes(query) || false;
@@ -75,6 +131,7 @@ export default function FindMentors() {
       if (!matchesName && !matchesCollege && !matchesSubject) return false;
     }
 
+    // Only apply client-side if we haven't already filtered on the server (though it doesn't hurt to re-check)
     if (activeSubject !== 'All' && !mentor.subjects?.includes(activeSubject)) return false;
     if (activeCourse !== 'All' && mentor.course !== activeCourse) return false;
     if (!hasSlotMatching(mentor.availability, activeTime, activeType)) return false;
@@ -165,9 +222,11 @@ export default function FindMentors() {
         <div className="loading-container">
           <div className="loading-spinner" />
         </div>
-      ) : filteredMentors.length > 0 ? (
-        <div className="mentors-grid">
-          {filteredMentors.map((mentor, index) => {
+      ) : (
+        <>
+          {filteredMentors.length > 0 ? (
+            <div className="mentors-grid">
+              {filteredMentors.map((mentor, index) => {
             const initial = mentor.displayName ? mentor.displayName.charAt(0).toUpperCase() : 'M';
             const avatarColor = mentor.avatarColor || '#FF6B00';
             const hasTodaySlot = isAvailableToday(mentor.availability);
@@ -221,7 +280,7 @@ export default function FindMentors() {
           <div className="empty-state-icon">🔍</div>
           <h3>No mentors found for this filter</h3>
           <p>Try adjusting your search criteria or clearing filters.</p>
-          <button
+              <button
             className="btn-secondary mt-3"
             onClick={() => {
               setSearch('');
@@ -234,6 +293,20 @@ export default function FindMentors() {
             Clear Filters
           </button>
         </div>
+      )}
+
+          {hasMore && (
+            <div className="load-more-container">
+              <button
+                className="btn-secondary load-more-btn"
+                onClick={() => fetchMentors(true)}
+                disabled={loadingMore}
+              >
+                {loadingMore ? 'Loading...' : 'Load More Seniors'}
+              </button>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

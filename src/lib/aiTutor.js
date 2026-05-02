@@ -253,6 +253,24 @@ function buildConversationText(tutor, messages) {
   return `${getSystemInstruction(tutor)}\n\nConversation:\n${transcript}\n\n${tutor.name}:`;
 }
 
+export async function fetchAiRuntimeConfig() {
+  const response = await fetch(AI_TUTOR_API_URL, {
+    method: 'OPTIONS',
+  });
+
+  if (!response.ok && response.status !== 204) {
+    throw new Error('Could not fetch AI runtime configuration.');
+  }
+
+  // The actual check for config availability often happens via a probe or environment info.
+  // In our simplified Vercel-safe handler, we just check if the endpoint responds.
+  return { aiProvider: 'gemini' };
+}
+
+export async function generateTutorReply({ tutor, messages, onStream, signal }) {
+  return streamTutorReply({ tutor, messages, onStream, signal });
+}
+
 export async function streamTutorReply({ tutor, messages, onStream, signal }) {
   const response = await fetch(AI_TUTOR_API_URL, {
     method: 'POST',

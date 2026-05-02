@@ -27,6 +27,7 @@ import {
   where,
   orderBy,
   limit,
+  startAfter,
   serverTimestamp,
   Timestamp,
   runTransaction,
@@ -117,6 +118,33 @@ export async function getDocuments(collectionName, ...constraints) {
     : colRef(collectionName);
   const snap = await getDocs(q);
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+}
+
+/**
+ * Get documents in a collection with pagination support.
+ *
+ * @param {string} collectionName
+ * @param {number} pageSize
+ * @param {import('firebase/firestore').DocumentSnapshot} lastDoc
+ * @param  {...import('firebase/firestore').QueryConstraint} constraints
+ */
+export async function getDocumentsPaginated(collectionName, pageSize, lastDoc = null, ...constraints) {
+  const queryConstraints = [...constraints, limit(pageSize)];
+  if (lastDoc) {
+    queryConstraints.push(startAfter(lastDoc));
+  }
+
+  const q = query(colRef(collectionName), ...queryConstraints);
+  const snap = await getDocs(q);
+
+  const docs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  const lastVisible = snap.docs[snap.docs.length - 1] || null;
+
+  return {
+    docs,
+    lastVisible,
+    hasMore: docs.length === pageSize
+  };
 }
 
 /**
@@ -461,4 +489,4 @@ export async function addXpTransaction(uid, xpAmount) {
 
 // ─── Re-export query helpers for convenience ────────────────
 
-export { where, orderBy, limit, serverTimestamp, Timestamp, runTransaction };
+export { where, orderBy, limit, startAfter, serverTimestamp, Timestamp, runTransaction };
