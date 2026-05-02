@@ -1,9 +1,9 @@
-import { allowCors, readJsonBody, sendError } from '../http.js';
+import { allowCors, readJsonBody, sendError, sendJson } from '../http.js';
 import { sanitize } from '../sanitizer.js';
 import { getServerEnv } from '../env.js';
 
-const GEMINI_STREAM_URL =
-  'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:streamGenerateContent?alt=sse';
+const GEMINI_GENERATE_URL =
+  'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
 
 function getGeminiErrorMessage(rawText) {
   if (!rawText) return '';
@@ -13,13 +13,6 @@ function getGeminiErrorMessage(rawText) {
     return typeof message === 'string' ? message : '';
   } catch {
     return '';
-  }
-}
-
-function forwardSseLine(res, line) {
-  res.write(`${line}\n`);
-  if (!line.trim()) {
-    res.flush?.();
   }
 }
 
@@ -52,12 +45,7 @@ export async function aiTutorHandler(req, res) {
     return;
   }
 
-  res.statusCode = 200;
-  res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
-  res.setHeader('Cache-Control', 'no-cache, no-transform');
-  res.setHeader('Connection', 'keep-alive');
-
-  const upstream = await fetch(`${GEMINI_STREAM_URL}&key=${encodeURIComponent(geminiApiKey)}`, {
+  const upstream = await fetch(`${GEMINI_GENERATE_URL}?key=${encodeURIComponent(geminiApiKey)}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -65,7 +53,7 @@ export async function aiTutorHandler(req, res) {
     body: JSON.stringify(body),
   });
 
-  if (!upstream.ok || !upstream.body) {
+  if (!upstream.ok) {
     const rawText = await upstream.text().catch(() => '');
     const message =
       getGeminiErrorMessage(rawText) ||
@@ -75,30 +63,13 @@ export async function aiTutorHandler(req, res) {
     return;
   }
 
-  const reader = upstream.body.getReader();
-  const decoder = new TextDecoder('utf-8');
-  let buffer = '';
-
   try {
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split(/\r?\n/);
-      buffer = lines.pop() || '';
-
-      for (const line of lines) {
-        forwardSseLine(res, line);
-      }
-    }
+    const payload = await upstream.json();
+    const parts = payload?.candidates?.[0]?.content?.parts || [];
+    const text = parts.map((part) => (typeof part?.text === 'string' ? part.text : '')).join('').trim();
+    sendJson(res, 200, { text });
   } catch (error) {
-    const message = error?.message || 'Upstream stream closed unexpectedly.';
-    forwardSseLine(res, `event: error`);
-    forwardSseLine(res, `data: ${JSON.stringify({ error: { message } })}`);
-    forwardSseLine(res, ``);
-  } finally {
-    res.end();
+    sendError(res, 500, error?.message || 'Failed to parse AI provider response.');
   }
 }
 
