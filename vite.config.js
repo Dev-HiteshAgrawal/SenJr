@@ -1,8 +1,7 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import { aiTutorHandler } from './server/handlers/aiTutor.js';
 import { livekitTokenHandler } from './server/handlers/livekitToken.js';
-import { runtimeConfigHandler } from './server/handlers/runtimeConfig.js';
+import { aiTutorHandler } from './server/handlers/aiTutor.js';
 
 function wrapHandler(handler) {
   return async (req, res, next) => {
@@ -18,9 +17,8 @@ function senjrLocalApiPlugin() {
   return {
     name: 'senjr-local-api',
     configureServer(server) {
-      server.middlewares.use('/api/runtime-config', wrapHandler(runtimeConfigHandler));
-      server.middlewares.use('/api/ai-tutor', wrapHandler(aiTutorHandler));
       server.middlewares.use('/api/livekit-token', wrapHandler(livekitTokenHandler));
+      server.middlewares.use('/api/ai-tutor', wrapHandler(aiTutorHandler));
     },
   };
 }
