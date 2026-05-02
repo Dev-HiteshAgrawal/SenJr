@@ -9,11 +9,9 @@
     "preview": "vite preview",
     "deploy:hosting": "npm run build && firebase deploy --only hosting",
     "deploy:live": "npm run build && firebase deploy --only hosting,functions",
-    "test:ai:gemini": "node test_gemini.js",
     "test:ai:nvidia": "node test_nvidia.js"
   },
   "dependencies": {
-    "@google/generative-ai": "^0.24.1",
     "@livekit/components-react": "^2.9.20",
     "@livekit/components-styles": "^1.2.0",
     "axios": "^1.15.2",

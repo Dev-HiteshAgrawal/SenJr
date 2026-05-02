@@ -9,12 +9,13 @@ export async function fetchAiRuntimeConfig() {
   return data;
 }
 
-export async function generateTutorReply({ tutor, messages, onStream }) {
+export async function generateTutorReply({ tutor, messages, onStream, signal }) {
   const user = auth.currentUser;
   const token = user ? await user.getIdToken() : null;
 
   const response = await fetch('/api/ai-tutor', {
     method: 'POST',
+    signal,
     headers: {
       'Content-Type': 'application/json',
       ...(token ? { Authorization: `Bearer ${token}` } : {}),

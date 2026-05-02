@@ -1,10 +1,9 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
 import { verifyAuth } from '../auth.js';
 import { getServerEnv } from '../env.js';
 import { allowCors, readJsonBody, sendError, sendJson } from '../http.js';
 import { sanitize } from '../sanitizer.js';
 
-const NVIDIA_API_URL = 'https://integrate.api.nvidia.com/v1/chat/completions';
+const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
 const SENJR_PROTOCOL = `
 SENJR TEACHING PROTOCOL:
@@ -63,15 +62,14 @@ function getSystemInstruction(tutor) {
 }
 
 function getProvider() {
-  const { nvidiaApiKey, geminiApiKey } = getServerEnv();
-  if (nvidiaApiKey) return 'nvidia';
-  if (geminiApiKey) return 'gemini';
+  const { groqApiKey } = getServerEnv();
+  if (groqApiKey) return 'groq';
   return null;
 }
 
-async function generateWithNvidia({ tutor, messages, stream, res }) {
-  const { nvidiaApiKey } = getServerEnv();
-  console.log(`[AI Tutor] Generating with NVIDIA for ${tutor.name} (${tutor.subject})`);
+async function generateWithGroq({ tutor, messages, stream, res }) {
+  const { groqApiKey } = getServerEnv();
+  console.log(`[AI Tutor] Generating with Groq for ${tutor.name} (${tutor.subject})`);
   
   const apiMessages = [
     { role: 'system', content: getSystemInstruction(tutor) },
@@ -82,25 +80,25 @@ async function generateWithNvidia({ tutor, messages, stream, res }) {
   ];
 
   try {
-    const response = await fetch(NVIDIA_API_URL, {
+    const response = await fetch(GROQ_API_URL, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${nvidiaApiKey}`,
+        Authorization: `Bearer ${groqApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'meta/llama-3.1-70b-instruct',
+        model: 'llama-3.1-70b-versatile',
         messages: apiMessages,
-        temperature: 0.6,
-        max_tokens: 2048,
+        temperature: 0.7,
+        max_tokens: 2000,
         stream: stream,
       }),
     });
 
     if (!response.ok) {
       const errText = await response.text();
-      console.error(`[AI Tutor] NVIDIA API error: ${response.status}`, errText);
-      throw new Error(`NVIDIA API error: ${response.status} ${response.statusText}`);
+      console.error(`[AI Tutor] Groq API error: ${response.status}`, errText);
+      throw new Error(`Groq API error: ${response.status} ${response.statusText}`);
     }
 
     if (stream) {
@@ -145,56 +143,11 @@ async function generateWithNvidia({ tutor, messages, stream, res }) {
       res.end();
     } else {
       const data = await response.json();
-      sendJson(res, 200, { reply: data.choices?.[0]?.message?.content?.trim() || '', provider: 'nvidia' });
+      sendJson(res, 200, { reply: data.choices?.[0]?.message?.content?.trim() || '', provider: 'groq' });
     }
   } catch (err) {
-    console.error("[AI Tutor] generateWithNvidia failed:", err);
+    console.error("[AI Tutor] generateWithGroq failed:", err);
     throw err;
-  }
-}
-
-async function generateWithGemini({ tutor, messages, stream, res }) {
-  const { geminiApiKey } = getServerEnv();
-  const genAI = new GoogleGenerativeAI(geminiApiKey);
-  const transcript = messages
-    .map((message) => `${message.role === 'model' ? tutor.name : 'Student'}: ${message.content}`)
-    .join('\n\n');
-
-  const model = genAI.getGenerativeModel({
-    model: 'gemini-1.5-flash',
-    systemInstruction: getSystemInstruction(tutor),
-    generationConfig: {
-      temperature: 0.7,
-      maxOutputTokens: 2048,
-    }
-  });
-
-  if (stream) {
-    res.writeHead(200, {
-      'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache',
-      'Connection': 'keep-alive',
-    });
-
-    const result = await model.generateContentStream([
-      'Continue this tutoring conversation and reply as the tutor.',
-      transcript,
-    ].join('\n\n'));
-
-    for await (const chunk of result.stream) {
-      const chunkText = chunk.text();
-      res.write(`data: ${JSON.stringify({ text: chunkText })}\n\n`);
-    }
-
-    res.write('data: [DONE]\n\n');
-    res.end();
-  } else {
-    const result = await model.generateContent([
-      'Continue this tutoring conversation and reply as the tutor.',
-      transcript,
-    ].join('\n\n'));
-
-    sendJson(res, 200, { reply: result.response.text().trim(), provider: 'gemini' });
   }
 }
 
@@ -245,11 +198,7 @@ export async function aiTutorHandler(req, res) {
       content: String(m.content)
     }));
 
-    if (provider === 'nvidia') {
-      await generateWithNvidia({ tutor: sanitizedTutor, messages: sanitizedMessages, stream, res });
-    } else {
-      await generateWithGemini({ tutor: sanitizedTutor, messages: sanitizedMessages, stream, res });
-    }
+    await generateWithGroq({ tutor: sanitizedTutor, messages: sanitizedMessages, stream, res });
   } catch (error) {
     console.error('AI tutor handler error:', error);
     if (!res.headersSent) {

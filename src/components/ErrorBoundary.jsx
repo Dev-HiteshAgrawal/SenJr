@@ -16,6 +16,20 @@ export default class ErrorBoundary extends Component {
 
   render() {
     if (this.state.hasError) {
+      if (this.props.variant === 'tutor') {
+        return (
+          <main className="page-container">
+            <section className="recovery-card card" role="alert">
+              <h1>Arya ran into an issue.</h1>
+              <p>Tap to reload the tutor.</p>
+              <button className="btn-primary" type="button" onClick={() => window.location.reload()}>
+                Reload
+              </button>
+            </section>
+          </main>
+        );
+      }
+
       return (
         <main className="page-container">
           <section className="recovery-card card" role="alert">

@@ -38,7 +38,7 @@ export function getServerEnv() {
 
   return {
     nvidiaApiKey:    t(process.env.NVIDIA_API_KEY    || process.env.VITE_NVIDIA_API_KEY),
-    geminiApiKey:    t(process.env.GEMINI_API_KEY    || process.env.VITE_GEMINI_API_KEY),
+    groqApiKey:      t(process.env.GROQ_API_KEY      || process.env.VITE_GROQ_API_KEY),
     livekitApiKey:   t(process.env.LIVEKIT_API_KEY),
     livekitApiSecret: t(process.env.LIVEKIT_API_SECRET),
     adminEmail:      t(process.env.ADMIN_EMAIL       || process.env.VITE_ADMIN_EMAIL),

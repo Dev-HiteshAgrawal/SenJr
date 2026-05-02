@@ -68,8 +68,8 @@ export default function App() {
                 <Route path="/student/:id" element={<ProtectedRoute><StudentProfile /></ProtectedRoute>} />
                 <Route path="/find-mentors" element={<FindMentors />} />
                 <Route path="/free-courses" element={<FreeCourses />} />
-                <Route path="/ai-tutor" element={<AITutor />} />
-                <Route path="/ai-tutor/:subject" element={<AITutorChat />} />
+                <Route path="/ai-tutor" element={<ErrorBoundary variant="tutor"><AITutor /></ErrorBoundary>} />
+                <Route path="/ai-tutor/:subject" element={<ErrorBoundary variant="tutor"><AITutorChat /></ErrorBoundary>} />
                 <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
                 <Route path="/leaderboard" element={<Leaderboard />} />
                 <Route path="/community" element={<Community />} />
