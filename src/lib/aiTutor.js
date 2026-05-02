@@ -253,7 +253,13 @@ function buildConversationText(tutor, messages) {
   return `${getSystemInstruction(tutor)}\n\nConversation:\n${transcript}\n\n${tutor.name}:`;
 }
 
-export async function streamTutorReply({ tutor, messages, onStream, signal }) {
+export async function fetchAiRuntimeConfig() {
+  const res = await fetch('/api/runtime-config');
+  if (!res.ok) throw new Error('Failed to fetch AI runtime config');
+  return res.json();
+}
+
+export async function generateTutorReply({ tutor, messages, onStream, signal }) {
   const response = await fetch(AI_TUTOR_API_URL, {
     method: 'POST',
     signal,
@@ -261,38 +267,52 @@ export async function streamTutorReply({ tutor, messages, onStream, signal }) {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      contents: [
-        {
-          role: 'user',
-          parts: [
-            {
-              text: buildConversationText(tutor, messages),
-            },
-          ],
-        },
-      ],
+      tutor,
+      messages,
+      stream: true,
     }),
   });
 
-  const contentType = response.headers.get('content-type') || '';
-  const parseAsJson = contentType.includes('application/json');
-
   if (!response.ok) {
-    if (parseAsJson) {
-      const errJson = await response.json().catch(() => null);
-      const message = errJson?.error;
-      if (typeof message === 'string' && message.trim()) {
-        throw new Error(message.trim());
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.error || 'AI Tutor failed to respond.');
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let fullText = '';
+  let buffer = '';
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split('\n');
+    buffer = lines.pop() || '';
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed || !trimmed.startsWith('data: ')) continue;
+
+      const dataStr = trimmed.slice(6).trim();
+      if (dataStr === '[DONE]') break;
+
+      try {
+        const parsed = JSON.parse(dataStr);
+        if (parsed.text) {
+          fullText += parsed.text;
+          onStream?.(fullText);
+        }
+      } catch (e) {
+        // ignore parsing error for malformed lines
       }
     }
-    const errorText = await response.text().catch(() => '');
-    throw new Error(errorText || 'Could not get a response. Please check your internet connection and try again.');
   }
 
-  const json = parseAsJson ? await response.json() : null;
-  const text = typeof json?.text === 'string' ? json.text.trim() : '';
-  if (text) {
-    onStream?.(text);
-  }
-  return text;
+  return fullText;
+}
+
+export async function streamTutorReply({ tutor, messages, onStream, signal }) {
+  return generateTutorReply({ tutor, messages, onStream, signal });
 }
