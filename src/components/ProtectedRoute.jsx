@@ -39,6 +39,11 @@ export default function ProtectedRoute({ children, allowedRoles = null }) {
     );
   }
 
+  // Enforce profile completion
+  if (!userProfile.profileSetupComplete && location.pathname !== '/mentor-setup' && userProfile.role === 'mentor') {
+    return <Navigate to="/mentor-setup" replace />;
+  }
+
   if (allowedRoles && userProfile && !allowedRoles.includes(userProfile.role)) {
     return <Navigate to={getDefaultDashboard(userProfile.role)} replace />;
   }
