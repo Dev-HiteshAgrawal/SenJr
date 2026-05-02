@@ -46,7 +46,9 @@ export default function Login() {
       const profile = await getUser(credential.user.uid);
 
       if (profile?.role) {
-        navigate(location.state?.from?.pathname || getDashboardRoute(profile.role), { replace: true });
+        const from = location.state?.from?.pathname;
+        const redirectTo = (from && from.startsWith('/') && !from.startsWith('//')) ? from : getDashboardRoute(profile.role);
+        navigate(redirectTo, { replace: true });
         return;
       }
 
@@ -77,7 +79,9 @@ export default function Login() {
       const profile = await getUser(credential.user.uid);
 
       if (profile?.role) {
-        navigate(location.state?.from?.pathname || getDashboardRoute(profile.role), { replace: true });
+        const from = location.state?.from?.pathname;
+        const redirectTo = (from && from.startsWith('/') && !from.startsWith('//')) ? from : getDashboardRoute(profile.role);
+        navigate(redirectTo, { replace: true });
         return;
       }
 

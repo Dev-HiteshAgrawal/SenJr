@@ -1,6 +1,7 @@
 import { allowCors, readJsonBody, sendError, sendJson } from '../http.js';
 import { sanitize } from '../sanitizer.js';
 import { getServerEnv } from '../env.js';
+import { verifyAuth } from '../auth.js';
 
 const GEMINI_GENERATE_URL =
   'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
@@ -27,6 +28,12 @@ export async function aiTutorHandler(req, res) {
 
   if (req.method !== 'POST') {
     sendError(res, 405, 'Method not allowed.');
+    return;
+  }
+
+  const user = await verifyAuth(req);
+  if (!user) {
+    sendError(res, 401, 'Unauthorized: Missing or invalid authentication token.');
     return;
   }
 

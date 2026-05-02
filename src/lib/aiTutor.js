@@ -253,46 +253,62 @@ function buildConversationText(tutor, messages) {
   return `${getSystemInstruction(tutor)}\n\nConversation:\n${transcript}\n\n${tutor.name}:`;
 }
 
-export async function streamTutorReply({ tutor, messages, onStream, signal }) {
+export async function fetchAiRuntimeConfig() {
+  const res = await fetch('/api/runtime-config');
+  if (!res.ok) throw new Error('Failed to fetch AI runtime config');
+  return res.json();
+}
+
+export async function generateTutorReply({ tutor, messages, onStream, signal }) {
   const response = await fetch(AI_TUTOR_API_URL, {
     method: 'POST',
     signal,
     headers: {
       'Content-Type': 'application/json',
+      Authorization: `Bearer ${localStorage.getItem('senjr_id_token') || ''}`,
     },
     body: JSON.stringify({
-      contents: [
-        {
-          role: 'user',
-          parts: [
-            {
-              text: buildConversationText(tutor, messages),
-            },
-          ],
-        },
-      ],
+      tutor,
+      messages: messages.map((m) => ({
+        role: m.role,
+        content: m.content,
+      })),
+      stream: true,
     }),
   });
 
-  const contentType = response.headers.get('content-type') || '';
-  const parseAsJson = contentType.includes('application/json');
-
   if (!response.ok) {
-    if (parseAsJson) {
-      const errJson = await response.json().catch(() => null);
-      const message = errJson?.error;
-      if (typeof message === 'string' && message.trim()) {
-        throw new Error(message.trim());
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.error || 'Failed to generate AI response');
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let fullText = '';
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    const chunk = decoder.decode(value, { stream: true });
+    const lines = chunk.split('\n');
+
+    for (const line of lines) {
+      if (line.startsWith('data: ')) {
+        const dataStr = line.slice(6).trim();
+        if (dataStr === '[DONE]') continue;
+        try {
+          const data = JSON.parse(dataStr);
+          if (data.text) {
+            fullText += data.text;
+            onStream?.(fullText);
+          }
+        } catch (e) {
+          // Ignore parse errors
+        }
       }
     }
-    const errorText = await response.text().catch(() => '');
-    throw new Error(errorText || 'Could not get a response. Please check your internet connection and try again.');
   }
 
-  const json = parseAsJson ? await response.json() : null;
-  const text = typeof json?.text === 'string' ? json.text.trim() : '';
-  if (text) {
-    onStream?.(text);
-  }
-  return text;
+  return fullText;
 }
