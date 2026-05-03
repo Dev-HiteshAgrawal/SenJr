@@ -7,7 +7,7 @@ export async function askTutor(systemPrompt, conversationHistory, onToken, signa
     throw new Error('Gemini API key is not configured.');
   }
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:streamGenerateContent?alt=sse&key=${encodeURIComponent(String(apiKey).trim())}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse&key=${encodeURIComponent(String(apiKey).trim())}`;
 
   const fullPrompt =
     systemPrompt +
