@@ -41,10 +41,12 @@ export function getServerEnv() {
   const isProd = isNetlify || isVercel;
 
   return {
-    geminiApiKey: t(process.env.GEMINI_API_KEY || (!isProd ? process.env.VITE_GEMINI_API_KEY : '')),
-    livekitApiKey:   t(process.env.LIVEKIT_API_KEY || (!isProd ? process.env.VITE_LIVEKIT_API_KEY : '')),
-    livekitApiSecret: t(process.env.LIVEKIT_API_SECRET || (!isProd ? process.env.VITE_LIVEKIT_API_SECRET : '')),
+    geminiApiKey: t(process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY),
+    livekitApiKey:   t(process.env.LIVEKIT_API_KEY || process.env.VITE_LIVEKIT_API_KEY),
+    livekitApiSecret: t(process.env.LIVEKIT_API_SECRET || process.env.VITE_LIVEKIT_API_SECRET),
     adminEmail:      t(process.env.ADMIN_EMAIL       || process.env.VITE_ADMIN_EMAIL),
+    firebaseProjectId: t(process.env.FIREBASE_PROJECT_ID || process.env.VITE_FIREBASE_PROJECT_ID || 'senjr-7a60f'),
   };
 }
+
 
