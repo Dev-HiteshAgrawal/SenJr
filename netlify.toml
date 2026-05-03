@@ -1,10 +1,17 @@
 # SenJr — Netlify (Vite SPA + serverless API)
 # API routes are implemented as Netlify Functions and proxied from /api/*
+#
+# Vite inlines import.meta.env.VITE_* at BUILD time — every VITE_* variable must be
+# available in Netlify “Build” environment (use “Same variable for all deploy contexts”
+# or duplicate per context). Server-only vars need “Functions” runtime; they are not bundled.
 
 [build]
   command = "npm run build"
   publish = "dist"
   functions = "netlify/functions"
+
+  [build.environment]
+    NODE_VERSION = "20"
 
 [functions]
   node_bundler = "esbuild"

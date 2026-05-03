@@ -29,3 +29,5 @@ Follow these rules for every change to this repository.
    - Publish directory: `dist`
    - Functions directory: `netlify/functions` (see `netlify.toml`)
    - Environment variables: configure in the Netlify dashboard for Production, Deploy Previews, and branch deploys as needed. Mirror names from `.env.netlify`.
+   - **Build vs runtime:** Vite embeds `VITE_*` at build time. Those variables must be available to **builds**, not only to function runtime, or the deployed SPA will miss Firebase/Gemini/LiveKit settings.
+   - **Firebase Auth:** add each Netlify hostname (and custom domain) under Authentication → Authorized domains.
