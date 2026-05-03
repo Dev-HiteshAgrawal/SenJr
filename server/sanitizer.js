@@ -1,15 +1,11 @@
-import createDOMPurify from 'dompurify';
-import { JSDOM } from 'jsdom';
-
-const window = new JSDOM('').window;
-const DOMPurify = createDOMPurify(window);
-
 /**
- * Sanitizes a string or an object containing strings.
+ * A lightweight HTML sanitizer that strips tags to prevent basic XSS
+ * without requiring jsdom/dompurify (which crashes Vercel Serverless Functions).
  */
 export function sanitize(input) {
   if (typeof input === 'string') {
-    return DOMPurify.sanitize(input);
+    // Strip HTML tags
+    return input.replace(/<\/?[^>]+(>|$)/g, '');
   }
 
   if (Array.isArray(input)) {
