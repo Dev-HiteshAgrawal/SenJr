@@ -26,6 +26,8 @@ const Profile = lazy(() => import('./pages/Profile'));
 const Leaderboard = lazy(() => import('./pages/Leaderboard'));
 const Community = lazy(() => import('./pages/Community'));
 const ChatRoom = lazy(() => import('./pages/ChatRoom'));
+const VideoCall = lazy(() => import('./components/VideoCall'));
+
 const AdminPanel = lazy(() => import('./pages/AdminPanel'));
 const CertificateVerify = lazy(() => import('./pages/CertificateVerify'));
 
@@ -75,7 +77,10 @@ export default function App() {
                 <Route path="/chat/:chatId" element={<ProtectedRoute><ChatRoom /></ProtectedRoute>} />
                 <Route path="/admin" element={<ProtectedRoute><AdminPanel /></ProtectedRoute>} />
                 <Route path="/verify/:certificateId" element={<CertificateVerify />} />
+                <Route path="/verify-certificate/:certificateId" element={<CertificateVerify />} />
+                <Route path="/video-call/:roomName" element={<ProtectedRoute><VideoCall fullScreen /></ProtectedRoute>} />
               </Routes>
+
             </Suspense>
           </AuthProvider>
         </NotificationProvider>
