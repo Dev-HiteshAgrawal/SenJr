@@ -25,12 +25,15 @@ function senjrLocalApiPlugin() {
   };
 }
 
-/** Warn on Netlify builds with empty VITE_FIREBASE_* (runtime fallback handles UI gracefully). */
-function senjrNetlifyEnvPlugin() {
+/** Warn on production builds with empty VITE_FIREBASE_* (runtime fallback handles UI gracefully). */
+function senjrProdEnvPlugin() {
   return {
-    name: 'senjr-netlify-env',
+    name: 'senjr-prod-env',
     configResolved() {
-      if (process.env.NETLIFY !== 'true') return;
+      const isNetlify = process.env.NETLIFY === 'true';
+      const isVercel = process.env.VERCEL === '1';
+      if (!isNetlify && !isVercel) return;
+
       const required = [
         'VITE_FIREBASE_API_KEY',
         'VITE_FIREBASE_AUTH_DOMAIN',
@@ -41,14 +44,15 @@ function senjrNetlifyEnvPlugin() {
       ];
       const missing = required.filter((k) => !process.env[k]?.trim?.());
       if (missing.length) {
-        throw new Error(`[senjr] Netlify build missing env: ${missing.join(', ')}. Add them as Netlify Build variables, then redeploy.`);
+        const host = isVercel ? 'Vercel' : 'Netlify';
+        throw new Error(`[senjr] ${host} build missing env: ${missing.join(', ')}. Add them as ${host} Build variables, then redeploy.`);
       }
     },
   };
 }
 
 export default defineConfig({
-  plugins: [react(), senjrNetlifyEnvPlugin(), senjrLocalApiPlugin()],
+  plugins: [react(), senjrProdEnvPlugin(), senjrLocalApiPlugin()],
   server: {
     host: '127.0.0.1',
     port: 5173,

@@ -28,7 +28,7 @@ const missingFirebaseKeys = requiredClientKeys.filter((key) => !firebaseConfig[k
 export const isFirebaseConfigured = missingFirebaseKeys.length === 0;
 
 if (!isFirebaseConfigured) {
-  const detail = `Missing: ${missingFirebaseKeys.join(', ')}. Set matching VITE_FIREBASE_* vars in Netlify (Build scope).`;
+  const detail = `Missing: ${missingFirebaseKeys.join(', ')}. Set matching VITE_FIREBASE_* vars in Vercel or Netlify (Build scope).`;
   console.error(`Senjr: Firebase client config missing. ${detail}`);
 }
 

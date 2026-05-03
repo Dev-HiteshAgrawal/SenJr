@@ -35,12 +35,16 @@ export function getServerEnv() {
   // Trim every value — host dashboards can inject env vars with \r\n if set
   // via copy-paste on Windows, which corrupts JWT issuer fields.
   const t = (v) => (v || '').trim();
+  
   const isNetlify = process.env.NETLIFY === 'true';
+  const isVercel = process.env.VERCEL === '1';
+  const isProd = isNetlify || isVercel;
 
   return {
-    geminiApiKey: t(process.env.GEMINI_API_KEY || (!isNetlify ? process.env.VITE_GEMINI_API_KEY : '')),
-    livekitApiKey:   t(process.env.LIVEKIT_API_KEY || (!isNetlify ? process.env.VITE_LIVEKIT_API_KEY : '')),
-    livekitApiSecret: t(process.env.LIVEKIT_API_SECRET || (!isNetlify ? process.env.VITE_LIVEKIT_API_SECRET : '')),
+    geminiApiKey: t(process.env.GEMINI_API_KEY || (!isProd ? process.env.VITE_GEMINI_API_KEY : '')),
+    livekitApiKey:   t(process.env.LIVEKIT_API_KEY || (!isProd ? process.env.VITE_LIVEKIT_API_KEY : '')),
+    livekitApiSecret: t(process.env.LIVEKIT_API_SECRET || (!isProd ? process.env.VITE_LIVEKIT_API_SECRET : '')),
     adminEmail:      t(process.env.ADMIN_EMAIL       || process.env.VITE_ADMIN_EMAIL),
   };
 }
+
