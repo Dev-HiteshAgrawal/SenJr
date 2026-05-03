@@ -8,8 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "deploy:hosting": "npm run build && firebase deploy --only hosting",
-    "deploy:live": "npm run build && firebase deploy --only hosting,functions",
-    "test:ai:nvidia": "node test_nvidia.js"
+    "deploy:live": "npm run build && firebase deploy --only hosting,functions"
   },
   "dependencies": {
     "@livekit/components-react": "^2.9.20",

@@ -15,7 +15,6 @@ import { COURSES } from '../lib/coursesData';
 import { generateAndDownloadCertificate } from '../lib/certificateHelpers';
 import { useNotification } from '../contexts/NotificationContext';
 import {
-  STUDY_ROOMS,
   buildFriendStandings,
   buildMemoryInsights,
   buildNextBestAction,
@@ -222,7 +221,10 @@ export default function StudentDashboard() {
 
       async function fetchCertificates() {
         try {
-          const certs = await getDocuments('certificates', where('userId', '==', currentUser.uid));
+          let certs = await getDocuments('certificates', where('studentId', '==', currentUser.uid));
+          if (certs.length === 0) {
+            certs = await getDocuments('certificates', where('userId', '==', currentUser.uid));
+          }
           setCertificates(certs);
         } catch (err) {
           console.error("Failed to load certificates:", err);
@@ -352,14 +354,15 @@ export default function StudentDashboard() {
       const latestSession = completedSessions[0];
       await generateAndDownloadCertificate({
         type: 'student',
+        studentId: currentUser.uid,
         studentName: displayName,
+        mentorId: latestSession?.mentorId || null,
         mentorName: latestSession?.mentorName || 'Senjr Mentor',
-        subject: latestSession?.sessionType || 'Mentorship Programme',
+        subject: latestSession?.subject || latestSession?.sessionType || 'Mentorship Programme',
         duration: `${completedSessions.length} Session${completedSessions.length > 1 ? 's' : ''}`,
         sessionsCompleted: completedSessions.length,
         sessionsTotal: completedSessions.length,
         userId: currentUser.uid,
-        sourceId: latestSession?.id || currentUser.uid,
       });
     } catch (err) {
       console.error('Failed to generate student certificate:', err);
@@ -505,8 +508,6 @@ export default function StudentDashboard() {
     () => buildFriendStandings(userProfile || {}, friends),
     [userProfile, friends]
   );
-
-  const featuredRooms = STUDY_ROOMS.slice(0, 3);
 
   const handleUpdateCourseStatus = async (courseId, currentStatus) => {
     const statusCycle = {
@@ -767,31 +768,13 @@ export default function StudentDashboard() {
                   <p>{completedSessions.length < 1 ? 'Keep going to unlock your first certificate.' : `Issued (${certificates.length} saved).`}</p>
                 </div>
               </button>
-              <Link to="/study-rooms" className="os-qa-btn">
-                <span className="qa-icon">LIVE</span>
+              <Link to="/community" className="os-qa-btn">
+                <span className="qa-icon">🌐</span>
                 <div>
-                  <h4>Study Rooms</h4>
-                  <p>Join students focusing right now.</p>
+                  <h4>Community</h4>
+                  <p>Share tips, resources, and questions.</p>
                 </div>
               </Link>
-            </div>
-          </section>
-
-          <section className="os-section card">
-            <div className="os-section-header">
-              <h2>Live Study Rooms</h2>
-              <Link to="/study-rooms" className="os-link">Open rooms</Link>
-            </div>
-            <div className="os-room-strip">
-              {featuredRooms.map(room => (
-                <Link to="/study-rooms" key={room.id} className={`os-room-chip theme-${room.theme}`}>
-                  <span>{room.icon}</span>
-                  <div>
-                    <strong>{room.name}</strong>
-                    <p>{room.activeUsers} focusing · {room.mode}</p>
-                  </div>
-                </Link>
-              ))}
             </div>
           </section>
 

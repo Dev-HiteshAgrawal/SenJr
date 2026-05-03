@@ -2,29 +2,11 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { createDocument } from './firestore';
 
-/**
- * Generate a formatted certificate ID.
- * Format: SJR-{YEAR}-{5-digit source id}-MNT
- */
-function toStableFiveDigits(sourceId) {
-  if (sourceId === undefined || sourceId === null || sourceId === '') {
-    return String(Math.floor(Math.random() * 100000)).padStart(5, '0');
-  }
-  const digitsOnly = String(sourceId).replace(/\D/g, '');
-  if (digitsOnly) return digitsOnly.slice(-5).padStart(5, '0');
-
-  // Fallback for non-numeric IDs: deterministic hash to 5 digits.
-  let hash = 0;
-  const raw = String(sourceId);
-  for (let i = 0; i < raw.length; i++) {
-    hash = (hash * 31 + raw.charCodeAt(i)) % 100000;
-  }
-  return String(hash).padStart(5, '0');
-}
-
-function generateCertificateId(sourceId) {
+/** Format: SENJR-YEAR-RANDOMNUMBER (6-digit random suffix) */
+function generateCertificateId() {
   const year = new Date().getFullYear();
-  return `SJR-${year}-${toStableFiveDigits(sourceId)}-MNT`;
+  const n = Math.floor(100000 + Math.random() * 900000);
+  return `SENJR-${year}-${n}`;
 }
 
 /**
@@ -49,6 +31,7 @@ function buildCertificateHTML({
   sessionsCompleted,
   sessionsTotal,
   certId,
+  verificationUrl,
   type
 }) {
   const bodyText = type === 'mentor'
@@ -98,7 +81,7 @@ function buildCertificateHTML({
     .cert-title { font-family: 'Cinzel', serif; font-size: 28px; font-weight: 400; color: #1a1a18; letter-spacing: .08em; line-height: 1.1; margin-bottom: 14px; }
     .cert-subtitle-line { width: 120px; height: 1px; background: linear-gradient(90deg, transparent, #c9a96e, transparent); margin: 0 auto 18px; }
     .presented-to { font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: #8a7a5a; margin-bottom: 6px; text-align: center; }
-    .recipient-name { font-family: 'Cormorant Garamond', serif; font-size: 42px; font-weight: 300; font-style: italic; color: #1a1a18; text-align: center; line-height: 1.1; letter-spacing: .02em; margin-bottom: 18px; word-break: break-word; hyphens: auto; }
+    .recipient-name { font-family: 'Cormorant Garamond', serif; font-size: 42px; font-weight: 700; font-style: normal; color: #1a1a18; text-align: center; line-height: 1.1; letter-spacing: .02em; margin-bottom: 18px; word-break: break-word; hyphens: auto; }
     .cert-body-text { font-size: 11.5px; color: #4a4232; line-height: 1.7; text-align: center; max-width: 480px; margin: 0 auto 22px; }
     .highlight { color: #1a1a18; font-weight: 500; }
     .programme-badge { display: flex; align-items: center; gap: 14px; background: linear-gradient(135deg, rgba(201,169,110,.12), rgba(201,169,110,.04)); border: .75px solid rgba(201,169,110,.4); border-radius: 4px; padding: 12px 18px; margin: 0 auto 24px; max-width: 460px; width: 100%; }
@@ -131,11 +114,12 @@ function buildCertificateHTML({
   <div class="cert-body">
     <div class="left-col">
       <div class="logo-mark"><svg viewBox="0 0 34 34" fill="none"><path d="M10 8 C10 8 24 8 24 14 C24 20 10 20 10 26 C10 26 10 26 24 26" stroke="#c9a96e" stroke-width="2.2" stroke-linecap="round" fill="none"/><circle cx="10" cy="8" r="2" fill="#c9a96e"/><circle cx="24" cy="26" r="2" fill="#c9a96e"/></svg></div>
-      <div class="brand-name">SENJR</div><div class="brand-tagline">Mentorship Platform</div><div class="divider"></div>
+      <div class="brand-name">Senjr</div><div class="brand-tagline">SENJR · Mentorship Platform</div><div class="divider"></div>
       <div class="meta-block"><div class="meta-label">Date Issued</div><div class="meta-value">${issueDate}</div></div>
       <div class="meta-block"><div class="meta-label">Duration</div><div class="meta-value">${duration || 'N/A'}</div></div>
       <div class="meta-block"><div class="meta-label">Mentor</div><div class="meta-value">${mentorName}</div></div>
-      <div class="meta-block"><div class="meta-label">Sessions Completed</div><div class="meta-value">${sessionsCompleted || '–'} of ${sessionsTotal || '–'}</div></div>
+      <div class="meta-block"><div class="meta-label">Sessions Completed</div><div class="meta-value">${sessionsCompleted ?? '–'}${sessionsTotal != null ? ` of ${sessionsTotal}` : ''}</div></div>
+      <div class="meta-block"><div class="meta-label">Verification</div><div class="meta-value" style="font-size:12px;line-height:1.4">${verificationUrl || ''}</div></div>
       <div class="left-footer"><div class="divider" style="margin-bottom:14px"></div><div class="cert-id-label">Certificate ID</div><div class="cert-id-value">${certId}</div></div>
     </div>
     <div class="right-col">
@@ -172,6 +156,8 @@ export async function generateAndDownloadCertificate({
   type = 'student',
   studentName,
   mentorName,
+  mentorId,
+  studentId,
   subject,
   duration,
   dateOfIssue,
@@ -183,10 +169,10 @@ export async function generateAndDownloadCertificate({
   userId,
   persist = true,
   certificateId,
-  sourceId,
 }) {
-  const certId = certificateId || generateCertificateId(sourceId);
+  const certId = certificateId || generateCertificateId();
   const issueDate = dateOfIssue || formatDateLong(new Date());
+  const verificationUrl = `https://senjr.vercel.app/verify/${certId}`;
 
   const recipientName = type === 'mentor' ? mentorName : studentName;
   const programmeName = type === 'mentor'
@@ -205,6 +191,7 @@ export async function generateAndDownloadCertificate({
     sessionsCompleted,
     sessionsTotal,
     certId,
+    verificationUrl,
     type,
   });
 
@@ -240,21 +227,37 @@ export async function generateAndDownloadCertificate({
     // Save certificate record to Firestore
     if (persist) {
       try {
-        const certRecord = {
-          certId,
-          userId,
-          type,
-          recipientName: recipientName || null,
-          studentName: studentName || null,
-          mentorName: mentorName || null,
-          subject: subject || programmeName || null,
-          subjects: subjects || null,
-          studentCount: studentCount || null,
-          duration: duration || null,
-          dateOfIssue: issueDate,
-          verificationUrl: `https://senjr.vercel.app/verify/${certId}`,
-          createdAt: new Date().toISOString(),
-        };
+        const generatedAt = new Date().toISOString();
+        const certRecord =
+          type === 'student'
+            ? {
+                certificateId: certId,
+                certId,
+                studentId: studentId || userId || null,
+                studentName: studentName || recipientName || null,
+                mentorId: mentorId || null,
+                mentorName: mentorName || null,
+                subject: subject || programmeName || null,
+                sessionsCompleted: typeof sessionsCompleted === 'number' ? sessionsCompleted : sessionsCompleted ?? null,
+                generatedAt,
+                isValid: true,
+                verificationUrl,
+                type,
+                dateOfIssue: issueDate,
+              }
+            : {
+                certificateId: certId,
+                certId,
+                mentorId: userId || null,
+                mentorName: mentorName || recipientName || null,
+                subject: subjects || subject || programmeName || null,
+                sessionsCompleted: studentCount || null,
+                generatedAt,
+                isValid: true,
+                verificationUrl,
+                type,
+                dateOfIssue: issueDate,
+              };
         await createDocument('certificates', certRecord);
       } catch (err) {
         console.error('Failed to save certificate record:', err);

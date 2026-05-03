@@ -1,4 +1,4 @@
-const AI_TUTOR_API_URL = '/api/ai-tutor';
+import { askTutor } from '../api/geminiTutor.js';
 
 const SENJR_PROTOCOL = `
 SENJR TEACHING PROTOCOL:
@@ -245,54 +245,31 @@ function getSystemInstruction(tutor) {
   return `${prompt}\n\n${SENJR_PROTOCOL}`;
 }
 
-function buildConversationText(tutor, messages) {
-  const transcript = messages
-    .map((message) => `${message.role === 'model' ? tutor.name : 'Student'}: ${message.content}`)
-    .join('\n\n');
-
-  return `${getSystemInstruction(tutor)}\n\nConversation:\n${transcript}\n\n${tutor.name}:`;
+export function isAiTutorConfigured() {
+  return Boolean(import.meta.env.VITE_GEMINI_API_KEY?.trim());
 }
 
-export async function streamTutorReply({ tutor, messages, onStream, signal }) {
-  const response = await fetch(AI_TUTOR_API_URL, {
-    method: 'POST',
-    signal,
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      contents: [
-        {
-          role: 'user',
-          parts: [
-            {
-              text: buildConversationText(tutor, messages),
-            },
-          ],
-        },
-      ],
-    }),
-  });
+/** Runtime-style flags for the tutor UI (AI runs in the browser via Gemini). */
+export async function fetchAiRuntimeConfig() {
+  const ok = isAiTutorConfigured();
+  return {
+    aiTutorEnabled: ok,
+    aiProvider: ok ? 'gemini' : null,
+  };
+}
 
-  const contentType = response.headers.get('content-type') || '';
-  const parseAsJson = contentType.includes('application/json');
+export async function generateTutorReply({ tutor, messages, signal, onStream }) {
+  const systemPrompt = getSystemInstruction(tutor);
+  const conversationHistory = messages.map((m) => ({
+    role: m.role === 'user' ? 'user' : 'model',
+    content: m.content,
+  }));
 
-  if (!response.ok) {
-    if (parseAsJson) {
-      const errJson = await response.json().catch(() => null);
-      const message = errJson?.error;
-      if (typeof message === 'string' && message.trim()) {
-        throw new Error(message.trim());
-      }
-    }
-    const errorText = await response.text().catch(() => '');
-    throw new Error(errorText || 'Could not get a response. Please check your internet connection and try again.');
-  }
+  let accumulated = '';
+  await askTutor(systemPrompt, conversationHistory, (piece) => {
+    accumulated += piece;
+    onStream?.(accumulated);
+  }, signal);
 
-  const json = parseAsJson ? await response.json() : null;
-  const text = typeof json?.text === 'string' ? json.text.trim() : '';
-  if (text) {
-    onStream?.(text);
-  }
-  return text;
+  return accumulated.trim();
 }

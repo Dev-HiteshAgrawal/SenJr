@@ -10,7 +10,6 @@
     "deploy": "firebase deploy --only functions"
   },
   "dependencies": {
-    "@google/generative-ai": "^0.24.1",
     "firebase-functions": "^6.0.1",
     "livekit-server-sdk": "^2.15.2"
   }

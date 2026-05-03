@@ -319,14 +319,14 @@ export default function AITutorChat() {
           </div>
         </div>
         <button className="ai-chat-clear-btn" type="button" onClick={handleClearChat}>
-          Clear History
+          Clear Chat
         </button>
       </header>
 
       {runtimeReady && !aiProvider && (
         <div className="card ai-chat-error-card" style={{ margin: '1rem 1.5rem 0', borderColor: 'rgba(255, 77, 109, 0.35)' }}>
           <p style={{ color: 'var(--text-secondary)' }}>
-            AI tutor is not configured on Groq yet.
+            AI tutor is not configured. Add VITE_GEMINI_API_KEY to your environment and reload.
           </p>
           <button className="btn-secondary" type="button" onClick={() => window.location.reload()}>
             Retry Connection

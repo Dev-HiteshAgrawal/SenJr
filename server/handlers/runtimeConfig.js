@@ -15,12 +15,11 @@ export async function runtimeConfigHandler(req, res) {
     return;
   }
 
-  const { groqApiKey, livekitApiKey, livekitApiSecret, adminEmail } = getServerEnv();
-  const aiProvider = groqApiKey ? 'groq' : null;
+  const { livekitApiKey, livekitApiSecret, adminEmail } = getServerEnv();
 
   sendJson(res, 200, {
-    aiTutorEnabled: Boolean(aiProvider),
-    aiProvider,
+    aiTutorEnabled: false,
+    aiProvider: null,
     livekitEnabled: Boolean(livekitApiKey && livekitApiSecret),
     adminConfigured: Boolean(adminEmail),
   });

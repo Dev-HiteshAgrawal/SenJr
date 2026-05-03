@@ -303,7 +303,11 @@ export async function bookSessionTransaction(bookingData) {
 
     // Update mentor's availability: Remove the slot if it's a 1-on-1 session
     // For group sessions, we might just decrement a capacity counter
-    if (slot.type === '1-on-1 Session' || slot.type === 'Quick Help') {
+    const consumesSlot =
+      slot.type === '1-on-1' ||
+      slot.type === '1-on-1 Session' ||
+      slot.type === 'Quick Help';
+    if (consumesSlot) {
       const updatedDaySlots = daySlots.filter((_, i) => i !== slotIndex);
       transaction.update(mentorRef, {
         [`availability.${dayName}`]: updatedDaySlots,

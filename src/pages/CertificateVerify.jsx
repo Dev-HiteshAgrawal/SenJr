@@ -5,20 +5,38 @@ import { db } from '../lib/firebase';
 import './CertificateVerify.css';
 
 export default function CertificateVerify() {
-  const { certId } = useParams();
+  const { certificateId } = useParams();
   const [cert, setCert] = useState(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
     async function fetchCert() {
+      if (!certificateId) {
+        setNotFound(true);
+        setLoading(false);
+        return;
+      }
+
       try {
-        const q = query(collection(db, 'certificates'), where('certId', '==', certId));
-        const snapshot = await getDocs(q);
+        const qNew = query(collection(db, 'certificates'), where('certificateId', '==', certificateId));
+        let snapshot = await getDocs(qNew);
+
+        if (snapshot.empty) {
+          const qLegacy = query(collection(db, 'certificates'), where('certId', '==', certificateId));
+          snapshot = await getDocs(qLegacy);
+        }
+
         if (snapshot.empty) {
           setNotFound(true);
         } else {
-          setCert({ id: snapshot.docs[0].id, ...snapshot.docs[0].data() });
+          const docSnap = snapshot.docs[0];
+          const data = { id: docSnap.id, ...docSnap.data() };
+          if (data.isValid === false) {
+            setNotFound(true);
+          } else {
+            setCert(data);
+          }
         }
       } catch (err) {
         console.error('Error fetching certificate:', err);
@@ -27,8 +45,9 @@ export default function CertificateVerify() {
         setLoading(false);
       }
     }
-    if (certId) fetchCert();
-  }, [certId]);
+
+    fetchCert();
+  }, [certificateId]);
 
   if (loading) {
     return (
@@ -41,19 +60,29 @@ export default function CertificateVerify() {
     );
   }
 
-  if (notFound) {
+  if (notFound || !cert) {
     return (
       <div className="verify-page">
         <div className="verify-card verify-not-found">
           <div className="verify-icon">❌</div>
-          <h1>Certificate Not Found</h1>
-          <p>The certificate ID <strong>{certId}</strong> does not exist in our records.</p>
-          <p className="verify-muted">This may be an invalid or counterfeit certificate.</p>
+          <h1>Invalid Certificate</h1>
+          <p>
+            The certificate ID <strong>{certificateId}</strong> could not be verified.
+          </p>
+          <p className="verify-muted">This may be an invalid, revoked, or counterfeit certificate.</p>
           <Link to="/" className="verify-home-link">← Back to Senjr</Link>
         </div>
       </div>
     );
   }
+
+  const displayId = cert.certificateId || cert.certId || certificateId;
+  const issuedTo = cert.studentName || cert.recipientName || cert.mentorName || '—';
+  const programme = cert.subject || cert.subjects || '—';
+  const mentorLabel = cert.mentorName || '—';
+  const issuedOn = cert.generatedAt
+    ? new Date(cert.generatedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+    : cert.dateOfIssue || '—';
 
   return (
     <div className="verify-page">
@@ -64,47 +93,37 @@ export default function CertificateVerify() {
             <path d="M20 33 L28 41 L44 25" stroke="#10b981" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" fill="none" />
           </svg>
         </div>
-        <h1>Certificate Verified ✓</h1>
-        <p className="verify-subtitle">This certificate is authentic and issued by Senjr.</p>
+        <h1>Verified ✓</h1>
+        <p className="verify-subtitle">This Senjr certificate is authentic.</p>
 
         <div className="verify-details">
           <div className="verify-row">
             <span className="verify-label">Certificate ID</span>
-            <span className="verify-value mono">{cert.certId}</span>
+            <span className="verify-value mono">{displayId}</span>
           </div>
           <div className="verify-divider"></div>
 
           <div className="verify-row">
-            <span className="verify-label">Issued To</span>
-            <span className="verify-value">{cert.recipientName || cert.studentName || cert.mentorName || '—'}</span>
+            <span className="verify-label">Student</span>
+            <span className="verify-value">{issuedTo}</span>
           </div>
           <div className="verify-divider"></div>
 
           <div className="verify-row">
-            <span className="verify-label">Type</span>
-            <span className="verify-value capitalize">{cert.type === 'mentor' ? 'Mentor Excellence' : 'Student Completion'}</span>
+            <span className="verify-label">Mentor</span>
+            <span className="verify-value">{mentorLabel}</span>
           </div>
           <div className="verify-divider"></div>
 
           <div className="verify-row">
-            <span className="verify-label">Programme</span>
-            <span className="verify-value">{cert.subject || cert.subjects || '—'}</span>
+            <span className="verify-label">Subject / Programme</span>
+            <span className="verify-value">{programme}</span>
           </div>
           <div className="verify-divider"></div>
 
-          {cert.mentorName && cert.type === 'student' && (
-            <>
-              <div className="verify-row">
-                <span className="verify-label">Mentor</span>
-                <span className="verify-value">{cert.mentorName}</span>
-              </div>
-              <div className="verify-divider"></div>
-            </>
-          )}
-
           <div className="verify-row">
-            <span className="verify-label">Date of Issue</span>
-            <span className="verify-value">{cert.dateOfIssue || '—'}</span>
+            <span className="verify-label">Date</span>
+            <span className="verify-value">{issuedOn}</span>
           </div>
         </div>
 

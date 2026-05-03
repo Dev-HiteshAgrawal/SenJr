@@ -9,7 +9,6 @@ const NAV_LINKS = [
   { path: '/free-courses', label: 'Knowledge',   icon: '📚' },
   { path: '/ai-tutor',     label: 'AI Tutor',    icon: '🤖' },
   { path: '/community',    label: 'Community',   icon: '🌐' },
-  { path: '/study-rooms',  label: 'Focus Flow',  icon: '🎧' },
 ];
 
 // Returns initials from a display name or email

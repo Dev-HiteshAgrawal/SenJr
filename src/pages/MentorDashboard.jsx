@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { updateUser, internalUpdateUser, getAllSessions, where, updateSession, getDocument, createDocument, COLLECTIONS } from '../lib/firestore';
+import { updateUser, internalUpdateUser, getAllSessions, getDocuments, where, updateSession, getDocument, createDocument, setDocument, COLLECTIONS } from '../lib/firestore';
 import { auth, storage } from '../lib/firebase';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import UnreadBadge from '../components/UnreadBadge';
@@ -65,6 +65,7 @@ export default function MentorDashboard() {
   const [showHomeworkModal, setShowHomeworkModal] = useState(false);
   const [hwForm, setHwForm] = useState({ studentId: '', title: '', description: '', dueDate: '' });
   const [showCompletionModal, setShowCompletionModal] = useState(false);
+  const [mentorshipMarked, setMentorshipMarked] = useState({});
   
   const [isUploadingDocument, setIsUploadingDocument] = useState(false);
 
@@ -119,6 +120,13 @@ export default function MentorDashboard() {
           );
           
           setUniqueStudents(studentsWithProfiles);
+
+          const completions = await getDocuments('mentorship_completions', where('mentorId', '==', currentUser.uid));
+          const marked = {};
+          completions.forEach((row) => {
+            if (row.studentId) marked[row.studentId] = true;
+          });
+          setMentorshipMarked(marked);
         } catch (err) {
           console.error("Failed to load sessions:", err);
         }
@@ -251,6 +259,7 @@ export default function MentorDashboard() {
       await generateAndDownloadCertificate({
         type: 'mentor',
         mentorName: displayName,
+        mentorId: currentUser.uid,
         studentCount: uniqueStudents.length || (userProfile.uniqueStudentsHelped || 0),
         subjects: userProfile.subjects?.join(', ') || 'Various Subjects',
         userId: currentUser.uid
@@ -264,16 +273,54 @@ export default function MentorDashboard() {
   const handleMarkMentorshipComplete = async (studentId, studentName) => {
     if (!currentUser || !userProfile) return;
     try {
+      await setDocument(
+        'mentorship_completions',
+        `${currentUser.uid}_${studentId}`,
+        {
+          mentorId: currentUser.uid,
+          studentId,
+          studentName,
+          markedCompleteAt: new Date().toISOString(),
+        },
+        true
+      );
+      setMentorshipMarked((prev) => ({ ...prev, [studentId]: true }));
+      notifySuccess(`Marked complete for ${studentName}. Generate a certificate when session requirements are met.`);
+    } catch (err) {
+      console.error("Error saving mentorship completion", err);
+      notifyError("Could not mark complete. Try again.");
+    }
+  };
+
+  const handleGenerateStudentCertificate = async (studentId, studentName) => {
+    if (!currentUser || !userProfile) return;
+    try {
+      const sessions = await getAllSessions(
+        where('mentorId', '==', currentUser.uid),
+        where('studentId', '==', studentId)
+      );
+      const completed = sessions.filter((s) => s.status === 'completed').length;
+      if (!mentorshipMarked[studentId]) {
+        notifyError('Click Mark Complete for this student before generating a certificate.');
+        return;
+      }
+      if (completed < 5) {
+        notifyError(`At least 5 completed sessions are required (currently ${completed}).`);
+        return;
+      }
       await generateAndDownloadCertificate({
         type: 'student',
-        studentName: studentName,
+        studentId,
+        studentName,
+        mentorId: currentUser.uid,
         mentorName: displayName,
-        mentorCollege: userProfile.college || 'Senjr Mentor',
-        subject: userProfile.subjects?.[0] || 'Mentorship Program',
-        duration: '1 Month',
-        userId: studentId
+        subject: userProfile.subjects?.[0] || 'Mentorship Programme',
+        duration: `${completed} sessions`,
+        sessionsCompleted: completed,
+        sessionsTotal: completed,
+        persist: true,
       });
-      notifySuccess(`Mentorship marked complete for ${studentName}. Certificate downloaded!`);
+      notifySuccess(`Certificate downloaded for ${studentName}.`);
     } catch (err) {
       console.error("Error generating student certificate", err);
       notifyError("Could not generate certificate.");
@@ -344,10 +391,10 @@ export default function MentorDashboard() {
               <button 
                 className="btn-secondary btn-sm" 
                 onClick={handleDownloadMentorCertificate}
-                disabled={(userProfile?.totalSessionsCompleted || 0) < 10}
+                disabled={(userProfile?.totalSessionsCompleted || 0) < 5}
                 style={{ fontSize: '0.8rem', padding: '0.3rem 0.5rem' }}
               >
-                {(userProfile?.totalSessionsCompleted || 0) >= 10 ? 'Download Certificate 📥' : '10 Sessions Required'}
+                {(userProfile?.totalSessionsCompleted || 0) >= 5 ? 'Download Certificate 📥' : '5 Sessions Required'}
               </button>
               <span className="hud-label" style={{marginTop: '0.3rem'}}>Mentor Cert</span>
             </div>
@@ -392,6 +439,13 @@ export default function MentorDashboard() {
                              onClick={() => handleMarkMentorshipComplete(s.id, s.name)}
                            >
                              Mark Complete 🎓
+                           </button>
+                           <button 
+                             className="btn-secondary btn-sm"
+                             style={{ display: 'flex', alignItems: 'center', background: 'rgba(59, 130, 246, 0.12)', color: '#60a5fa', border: '1px solid rgba(59,130,246,0.35)' }}
+                             onClick={() => handleGenerateStudentCertificate(s.id, s.name)}
+                           >
+                             Generate Certificate 📜
                            </button>
                            <Link 
                              to={`/chat/${s.id}_${currentUser.uid}`} 

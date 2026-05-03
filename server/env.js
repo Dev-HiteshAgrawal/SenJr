@@ -37,9 +37,8 @@ export function getServerEnv() {
   const t = (v) => (v || '').trim();
 
   return {
-    livekitApiKey:   t(process.env.LIVEKIT_API_KEY),
-    livekitApiSecret: t(process.env.LIVEKIT_API_SECRET),
-    geminiApiKey:    t(process.env.GEMINI_API_KEY),
+    livekitApiKey:   t(process.env.LIVEKIT_API_KEY || process.env.VITE_LIVEKIT_API_KEY),
+    livekitApiSecret: t(process.env.LIVEKIT_API_SECRET || process.env.VITE_LIVEKIT_API_SECRET),
     adminEmail:      t(process.env.ADMIN_EMAIL       || process.env.VITE_ADMIN_EMAIL),
   };
 }

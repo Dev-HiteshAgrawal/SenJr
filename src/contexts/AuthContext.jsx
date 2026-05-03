@@ -164,6 +164,13 @@ export function AuthProvider({ children }) {
   async function handleLogout() {
     await logout();
     setUserProfile(null);
+    try {
+      Object.keys(localStorage)
+        .filter((k) => k.startsWith('senjr_'))
+        .forEach((k) => localStorage.removeItem(k));
+    } catch {
+      /* ignore */
+    }
   }
 
   async function handleResetPassword(email) {

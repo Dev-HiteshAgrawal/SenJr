@@ -27,7 +27,6 @@ const Leaderboard = lazy(() => import('./pages/Leaderboard'));
 const Community = lazy(() => import('./pages/Community'));
 const ChatRoom = lazy(() => import('./pages/ChatRoom'));
 const AdminPanel = lazy(() => import('./pages/AdminPanel'));
-const StudyRooms = lazy(() => import('./pages/StudyRooms'));
 const CertificateVerify = lazy(() => import('./pages/CertificateVerify'));
 
 function RouteFallback() {
@@ -73,11 +72,9 @@ export default function App() {
                 <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
                 <Route path="/leaderboard" element={<Leaderboard />} />
                 <Route path="/community" element={<Community />} />
-                <Route path="/study-rooms" element={<ProtectedRoute><StudyRooms /></ProtectedRoute>} />
-                <Route path="/chatroom" element={<ProtectedRoute><StudyRooms /></ProtectedRoute>} />
                 <Route path="/chat/:chatId" element={<ProtectedRoute><ChatRoom /></ProtectedRoute>} />
                 <Route path="/admin" element={<ProtectedRoute><AdminPanel /></ProtectedRoute>} />
-                <Route path="/verify/:certId" element={<CertificateVerify />} />
+                <Route path="/verify/:certificateId" element={<CertificateVerify />} />
               </Routes>
             </Suspense>
           </AuthProvider>
