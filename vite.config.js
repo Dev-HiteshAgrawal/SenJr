@@ -23,7 +23,7 @@ function senjrLocalApiPlugin() {
   };
 }
 
-/** Fail Netlify builds before publishing a bundle with empty VITE_FIREBASE_* (common blank-screen cause). */
+/** Warn on Netlify builds with empty VITE_FIREBASE_* (runtime fallback handles UI gracefully). */
 function senjrNetlifyEnvPlugin() {
   return {
     name: 'senjr-netlify-env',
@@ -39,8 +39,8 @@ function senjrNetlifyEnvPlugin() {
       ];
       const missing = required.filter((k) => !process.env[k]?.trim?.());
       if (missing.length) {
-        throw new Error(
-          `[senjr] Netlify build missing required env (add under Site settings → Environment variables, scope to Builds): ${missing.join(', ')}`
+        console.warn(
+          `[senjr] Netlify build missing env: ${missing.join(', ')}. App will render fallback state until keys are configured.`
         );
       }
     },
