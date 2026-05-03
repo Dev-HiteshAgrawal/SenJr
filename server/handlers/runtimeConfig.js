@@ -15,11 +15,11 @@ export async function runtimeConfigHandler(req, res) {
     return;
   }
 
-  const { livekitApiKey, livekitApiSecret, adminEmail } = getServerEnv();
+  const { geminiApiKey, livekitApiKey, livekitApiSecret, adminEmail } = getServerEnv();
 
   sendJson(res, 200, {
-    aiTutorEnabled: false,
-    aiProvider: null,
+    aiTutorEnabled: Boolean(geminiApiKey),
+    aiProvider: geminiApiKey ? 'gemini' : null,
     livekitEnabled: Boolean(livekitApiKey && livekitApiSecret),
     adminConfigured: Boolean(adminEmail),
   });

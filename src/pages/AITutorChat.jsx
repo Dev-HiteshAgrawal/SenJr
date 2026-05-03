@@ -326,7 +326,7 @@ export default function AITutorChat() {
       {runtimeReady && !aiProvider && (
         <div className="card ai-chat-error-card" style={{ margin: '1rem 1.5rem 0', borderColor: 'rgba(255, 77, 109, 0.35)' }}>
           <p style={{ color: 'var(--text-secondary)' }}>
-            AI tutor is not configured. Add VITE_GEMINI_API_KEY to your environment and reload.
+            AI tutor is not configured. Add GEMINI_API_KEY to the Netlify Functions environment and redeploy.
           </p>
           <button className="btn-secondary" type="button" onClick={() => window.location.reload()}>
             Retry Connection

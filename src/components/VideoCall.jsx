@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import { 
   LiveKitRoom, 
   VideoConference, 
@@ -9,11 +10,13 @@ import { useAuth } from '../contexts/AuthContext';
 import '@livekit/components-styles';
 
 export default function VideoCall({ roomName, participantName, participantIdentity, onSessionEnd }) {
+  const params = useParams();
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [retryTick, setRetryTick] = useState(0);
   const { currentUser } = useAuth();
+  const effectiveRoomName = roomName || params.roomName || 'senjr-session';
   const livekitUrl = import.meta.env.VITE_LIVEKIT_URL;
 
   useEffect(() => {
@@ -26,15 +29,15 @@ export default function VideoCall({ roomName, participantName, participantIdenti
         }
 
         const idToken = await currentUser.getIdToken();
-        const cleanRoom = String(roomName || 'senjr-session')
+        const cleanRoom = String(effectiveRoomName)
           .replace(/[^a-zA-Z0-9_-]/g, '-')
           .slice(0, 64) || 'senjr-session';
 
-        const cleanIdentity = String(participantIdentity || `user-${Date.now()}`)
+        const cleanIdentity = String(participantIdentity || currentUser.uid || `user-${Date.now()}`)
           .replace(/[^a-zA-Z0-9_-]/g, '-')
           .slice(0, 64) || `user-${Date.now()}`;
 
-        const cleanName = String(participantName || 'Senjr User').slice(0, 80);
+        const cleanName = String(participantName || currentUser.displayName || currentUser.email || 'Senjr User').slice(0, 80);
 
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), 15000);
@@ -77,7 +80,7 @@ export default function VideoCall({ roomName, participantName, participantIdenti
 
     getToken();
     return () => { cancelled = true; };
-  }, [roomName, participantName, participantIdentity, currentUser, retryTick]);
+  }, [effectiveRoomName, participantName, participantIdentity, currentUser, retryTick]);
 
   if (loading) {
     return (
@@ -118,7 +121,7 @@ export default function VideoCall({ roomName, participantName, participantIdenti
       onDisconnected={onSessionEnd}
       onError={(err) => console.error('LiveKitRoom error:', err)}
     >
-      <ConferenceInternal roomName={roomName} onSessionEnd={onSessionEnd} />
+      <ConferenceInternal roomName={effectiveRoomName} onSessionEnd={onSessionEnd} />
     </LiveKitRoom>
   );
 }

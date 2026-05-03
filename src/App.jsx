@@ -75,7 +75,7 @@ export default function App() {
                 <Route path="/leaderboard" element={<Leaderboard />} />
                 <Route path="/community" element={<Community />} />
                 <Route path="/chat/:chatId" element={<ProtectedRoute><ChatRoom /></ProtectedRoute>} />
-                <Route path="/admin" element={<ProtectedRoute><AdminPanel /></ProtectedRoute>} />
+                <Route path="/admin" element={<ProtectedRoute allowedRoles={['admin']}><AdminPanel /></ProtectedRoute>} />
                 <Route path="/verify/:certificateId" element={<CertificateVerify />} />
                 <Route path="/verify-certificate/:certificateId" element={<CertificateVerify />} />
                 <Route path="/video-call/:roomName" element={<ProtectedRoute><VideoCall fullScreen /></ProtectedRoute>} />

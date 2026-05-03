@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import { aiTutorHandler } from './server/handlers/aiTutor.js';
 import { livekitTokenHandler } from './server/handlers/livekitToken.js';
 import { runtimeConfigHandler } from './server/handlers/runtimeConfig.js';
 
@@ -19,6 +20,7 @@ function senjrLocalApiPlugin() {
     configureServer(server) {
       server.middlewares.use('/api/livekit-token', wrapHandler(livekitTokenHandler));
       server.middlewares.use('/api/runtime-config', wrapHandler(runtimeConfigHandler));
+      server.middlewares.use('/api/ai-tutor', wrapHandler(aiTutorHandler));
     },
   };
 }
@@ -39,9 +41,7 @@ function senjrNetlifyEnvPlugin() {
       ];
       const missing = required.filter((k) => !process.env[k]?.trim?.());
       if (missing.length) {
-        console.warn(
-          `[senjr] Netlify build missing env: ${missing.join(', ')}. App will render fallback state until keys are configured.`
-        );
+        throw new Error(`[senjr] Netlify build missing env: ${missing.join(', ')}. Add them as Netlify Build variables, then redeploy.`);
       }
     },
   };

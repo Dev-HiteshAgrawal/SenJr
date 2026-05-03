@@ -1,7 +1,6 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Helper functions
     function isAuthenticated() {
       return request.auth != null;
     }
@@ -15,35 +14,62 @@ service cloud.firestore {
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
-    // Users collection: Profiles
+    function changedOnly(fields) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(fields);
+    }
+
+    function chatMember(chatId) {
+      return isAuthenticated() && chatId.matches('.*' + request.auth.uid + '.*');
+    }
+
     match /users/{userId} {
       allow read: if isAuthenticated();
       allow create: if isOwner(userId);
-      allow update: if (isOwner(userId) &&
-        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'xp', 'level', 'banned'])) ||
-        isAdmin();
+      allow update: if isAdmin()
+        || (
+          isOwner(userId)
+          && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role'])
+        )
+        || (
+          isAuthenticated()
+          && changedOnly([
+            'friendRequests',
+            'outgoingFriendRequests',
+            'friends',
+            'followers',
+            'following',
+            'reviews',
+            'averageRating',
+            'totalReviews',
+            'totalSessionsCompleted',
+            'studentIdsHelped',
+            'uniqueStudentsHelped',
+            'availability'
+          ])
+        );
       allow delete: if isAdmin();
     }
 
-    // Mentors/Students collections
     match /mentors/{docId} {
       allow read: if isAuthenticated();
-      allow write: if isAuthenticated() && (request.resource.data.uid == request.auth.uid || resource.data.uid == request.auth.uid || isAdmin());
+      allow write: if isAuthenticated() &&
+        (request.resource.data.uid == request.auth.uid || resource.data.uid == request.auth.uid || isAdmin());
     }
 
     match /students/{docId} {
       allow read: if isAuthenticated();
-      allow write: if isAuthenticated() && (request.resource.data.uid == request.auth.uid || resource.data.uid == request.auth.uid || isAdmin());
+      allow write: if isAuthenticated() &&
+        (request.resource.data.uid == request.auth.uid || resource.data.uid == request.auth.uid || isAdmin());
     }
 
-    // Sessions: Only involved parties can access
     match /sessions/{sessionId} {
       allow read: if isAuthenticated() && (
         resource.data.mentorId == request.auth.uid ||
         resource.data.studentId == request.auth.uid ||
         isAdmin()
       );
-      allow create: if isAuthenticated();
+      allow create: if isAuthenticated() &&
+        (request.resource.data.mentorId == request.auth.uid || request.resource.data.studentId == request.auth.uid);
       allow update: if isAuthenticated() && (
         resource.data.mentorId == request.auth.uid ||
         resource.data.studentId == request.auth.uid ||
@@ -52,7 +78,6 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
-    // Homework: Only involved parties
     match /homework/{hwId} {
       allow read: if isAuthenticated() && (
         resource.data.mentorId == request.auth.uid ||
@@ -71,7 +96,6 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
-    // Courses & Badges: Read-only for users, Write for admins
     match /courses/{courseId} {
       allow read: if isAuthenticated();
       allow write: if isAdmin();
@@ -82,7 +106,46 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    // Feed: Read for authenticated users, write only by the author.
+    match /certificates/{certificateId} {
+      allow read: if true;
+      allow create: if isAuthenticated() && (
+        request.resource.data.studentId == request.auth.uid ||
+        request.resource.data.userId == request.auth.uid ||
+        request.resource.data.mentorId == request.auth.uid
+      );
+      allow update, delete: if isAdmin();
+    }
+
+    match /ai_chats/{chatId} {
+      allow read: if chatMember(chatId);
+      allow create, update: if chatMember(chatId);
+      allow delete: if chatMember(chatId) || isAdmin();
+    }
+
+    match /chats/{chatId} {
+      allow read, create, update: if chatMember(chatId);
+      allow delete: if isAdmin();
+
+      match /messages/{messageId} {
+        allow read: if chatMember(chatId);
+        allow create: if chatMember(chatId) && request.resource.data.senderId == request.auth.uid;
+        allow update: if chatMember(chatId) && changedOnly(['read']);
+        allow delete: if isAdmin();
+      }
+    }
+
+    match /mentorship_completions/{completionId} {
+      allow read: if isAuthenticated() && (
+        completionId.matches('.*' + request.auth.uid + '.*') || isAdmin()
+      );
+      allow create, update: if isAuthenticated() && (
+        request.resource.data.mentorId == request.auth.uid ||
+        request.resource.data.studentId == request.auth.uid ||
+        isAdmin()
+      );
+      allow delete: if isAdmin();
+    }
+
     match /feed/{postId} {
       allow read: if isAuthenticated();
       allow create: if isAuthenticated()
@@ -92,7 +155,7 @@ service cloud.firestore {
         resource.data.authorId == request.auth.uid ||
         resource.data.userId == request.auth.uid ||
         isAdmin() ||
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reactions', 'savedBy', 'shareCount', 'commentCount'])
+        changedOnly(['reactions', 'savedBy', 'shareCount', 'commentCount'])
       );
       allow delete: if isAuthenticated() && (
         resource.data.authorId == request.auth.uid ||
@@ -103,20 +166,17 @@ service cloud.firestore {
       match /comments/{commentId} {
         allow read: if isAuthenticated();
         allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
-        allow update: if isAuthenticated()
-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes']);
+        allow update: if isAuthenticated() && changedOnly(['likes']);
         allow delete: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
       }
     }
 
-    // Stories expire in the app after 24 hours; writes are scoped to owner.
     match /stories/{storyId} {
       allow read: if isAuthenticated();
       allow create: if isAuthenticated()
         && request.resource.data.userId == request.auth.uid
         && request.resource.data.user_id == request.auth.uid;
-      allow update: if isAuthenticated()
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['viewCount', 'view_count']);
+      allow update: if isAuthenticated() && changedOnly(['viewCount', 'view_count']);
       allow delete: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
     }
   }

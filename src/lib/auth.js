@@ -17,8 +17,21 @@ import {
   sendPasswordResetEmail,
   updateProfile,
   onAuthStateChanged,
+  setPersistence,
+  browserLocalPersistence,
 } from 'firebase/auth';
 import { auth, googleProvider } from './firebase';
+
+let persistenceReady = null;
+
+function ensureAuthPersistence() {
+  if (!persistenceReady) {
+    persistenceReady = setPersistence(auth, browserLocalPersistence).catch((error) => {
+      console.warn('Could not set auth persistence:', error);
+    });
+  }
+  return persistenceReady;
+}
 
 // ─── Email / Password ────────────────────────────────────────
 
@@ -32,6 +45,7 @@ import { auth, googleProvider } from './firebase';
  * @returns {Promise<import('firebase/auth').UserCredential>}
  */
 export async function signUpWithEmail(email, password, displayName) {
+  await ensureAuthPersistence();
   const credential = await createUserWithEmailAndPassword(auth, email, password);
 
   // Set display name if provided
@@ -50,6 +64,7 @@ export async function signUpWithEmail(email, password, displayName) {
  * @returns {Promise<import('firebase/auth').UserCredential>}
  */
 export async function signInWithEmail(email, password) {
+  await ensureAuthPersistence();
   return signInWithEmailAndPassword(auth, email, password);
 }
 
@@ -63,6 +78,7 @@ export async function signInWithEmail(email, password) {
  * @returns {Promise<import('firebase/auth').UserCredential>}
  */
 export async function signInWithGoogle() {
+  await ensureAuthPersistence();
   return signInWithPopup(auth, googleProvider);
 }
 
@@ -99,5 +115,6 @@ export async function resetPassword(email) {
  * @returns {import('firebase/auth').Unsubscribe}
  */
 export function onAuthChange(callback) {
+  ensureAuthPersistence();
   return onAuthStateChanged(auth, callback);
 }

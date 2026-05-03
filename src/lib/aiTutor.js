@@ -246,15 +246,16 @@ function getSystemInstruction(tutor) {
 }
 
 export function isAiTutorConfigured() {
-  return Boolean(import.meta.env.VITE_GEMINI_API_KEY?.trim());
+  return false;
 }
 
-/** Runtime-style flags for the tutor UI (AI runs in the browser via Gemini). */
 export async function fetchAiRuntimeConfig() {
-  const ok = isAiTutorConfigured();
+  const response = await fetch('/api/runtime-config', { headers: { Accept: 'application/json' } });
+  if (!response.ok) throw new Error('Could not load runtime configuration.');
+  const config = await response.json();
   return {
-    aiTutorEnabled: ok,
-    aiProvider: ok ? 'gemini' : null,
+    aiTutorEnabled: Boolean(config.aiTutorEnabled),
+    aiProvider: config.aiProvider || null,
   };
 }
 

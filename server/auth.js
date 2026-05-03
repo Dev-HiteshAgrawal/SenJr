@@ -8,8 +8,32 @@ function parseServiceAccountJson() {
     process.env.GOOGLE_SERVICE_ACCOUNT_JSON ||
     process.env.FIREBASE_SERVICE_ACCOUNT;
   if (!raw || !String(raw).trim()) return null;
+
+  const value = String(raw).trim();
+  const candidates = [value];
+
+  if (!value.startsWith('{')) {
+    try {
+      candidates.push(Buffer.from(value, 'base64').toString('utf8'));
+    } catch {
+      // Not base64; JSON parse below will report the real issue.
+    }
+  }
+
+  for (const candidate of candidates) {
+    try {
+      const parsed = JSON.parse(candidate);
+      if (parsed?.private_key) {
+        parsed.private_key = String(parsed.private_key).replace(/\\n/g, '\n');
+      }
+      return parsed;
+    } catch {
+      // Try the next representation.
+    }
+  }
+
   try {
-    return JSON.parse(String(raw).trim());
+    return JSON.parse(value);
   } catch (e) {
     console.error('Invalid Firebase service account JSON in environment');
     return null;
