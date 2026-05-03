@@ -256,13 +256,32 @@ export default function MentorDashboard() {
   const handleDownloadMentorCertificate = async () => {
     if (!currentUser || !userProfile) return;
     try {
+      // First check if they already have a certificate generated
+      const certs = await getDocuments('certificates', where('mentorId', '==', currentUser.uid), where('type', '==', 'mentor'));
+      if (certs && certs.length > 0) {
+        const latestCert = certs.sort((a,b) => new Date(b.generatedAt || b.dateOfIssue) - new Date(a.generatedAt || a.dateOfIssue))[0];
+        await generateAndDownloadCertificate({
+          type: 'mentor',
+          mentorName: latestCert.mentorName || latestCert.recipientName || displayName,
+          mentorId: latestCert.mentorId || currentUser.uid,
+          studentCount: latestCert.sessionsCompleted || latestCert.studentCount || uniqueStudents.length || (userProfile.uniqueStudentsHelped || 0),
+          subjects: latestCert.subject || latestCert.subjects || userProfile.subjects?.join(', ') || 'Various Subjects',
+          userId: currentUser.uid,
+          certificateId: latestCert.certificateId || latestCert.certId,
+          dateOfIssue: latestCert.dateOfIssue || latestCert.generatedAt,
+          persist: false // don't re-save it
+        });
+        return;
+      }
+
       await generateAndDownloadCertificate({
         type: 'mentor',
         mentorName: displayName,
         mentorId: currentUser.uid,
         studentCount: uniqueStudents.length || (userProfile.uniqueStudentsHelped || 0),
         subjects: userProfile.subjects?.join(', ') || 'Various Subjects',
-        userId: currentUser.uid
+        userId: currentUser.uid,
+        persist: true
       });
     } catch (err) {
       console.error("Error generating mentor certificate", err);

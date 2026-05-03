@@ -346,11 +346,33 @@ export default function StudentDashboard() {
 
   const handleDownloadStudentCertificate = async () => {
     if (!currentUser) return;
-    if (completedSessions.length < 1) {
-      notifyInfo('Complete at least one session to unlock your certificate.');
-      return;
-    }
+    
     try {
+      // If the student already has certificates saved, download the most recent one!
+      if (certificates && certificates.length > 0) {
+        const latestCert = [...certificates].sort((a,b) => new Date(b.generatedAt || b.dateOfIssue) - new Date(a.generatedAt || a.dateOfIssue))[0];
+        await generateAndDownloadCertificate({
+          type: 'student',
+          studentId: latestCert.studentId || currentUser.uid,
+          studentName: latestCert.studentName || latestCert.recipientName || displayName,
+          mentorId: latestCert.mentorId,
+          mentorName: latestCert.mentorName || 'Senjr Mentor',
+          subject: latestCert.subject || latestCert.subjects || 'Mentorship Programme',
+          sessionsCompleted: latestCert.sessionsCompleted || completedSessions.length,
+          sessionsTotal: latestCert.sessionsTotal || latestCert.sessionsCompleted || completedSessions.length,
+          userId: latestCert.studentId || currentUser.uid,
+          certificateId: latestCert.certificateId || latestCert.certId,
+          dateOfIssue: latestCert.dateOfIssue || latestCert.generatedAt,
+          persist: false // don't re-save it
+        });
+        return;
+      }
+
+      if (completedSessions.length < 1) {
+        notifyInfo('Complete at least one session to unlock your certificate.');
+        return;
+      }
+      
       const latestSession = completedSessions[0];
       await generateAndDownloadCertificate({
         type: 'student',
@@ -364,6 +386,12 @@ export default function StudentDashboard() {
         sessionsTotal: completedSessions.length,
         userId: currentUser.uid,
       });
+      
+      // Auto-refresh certificates list
+      let newCerts = await getDocuments('certificates', where('studentId', '==', currentUser.uid));
+      if (newCerts.length === 0) newCerts = await getDocuments('certificates', where('userId', '==', currentUser.uid));
+      setCertificates(newCerts);
+      
     } catch (err) {
       console.error('Failed to generate student certificate:', err);
       notifyError('Could not generate certificate. Please try again.');
@@ -759,8 +787,8 @@ export default function StudentDashboard() {
                 type="button"
                 className="os-qa-btn"
                 onClick={handleDownloadStudentCertificate}
-                disabled={completedSessions.length < 1}
-                title={completedSessions.length < 1 ? 'Complete one session to unlock' : 'Download your certificate'}
+                disabled={completedSessions.length < 1 && certificates.length < 1}
+                title={(completedSessions.length < 1 && certificates.length < 1) ? 'Complete one session to unlock' : 'Download your certificate'}
               >
                 <span className="qa-icon">📜</span>
                 <div>
