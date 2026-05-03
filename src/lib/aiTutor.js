@@ -266,10 +266,71 @@ export async function generateTutorReply({ tutor, messages, signal, onStream }) 
   }));
 
   let accumulated = '';
-  await askTutor(systemPrompt, conversationHistory, (piece) => {
-    accumulated += piece;
-    onStream?.(accumulated);
-  }, signal);
+  let displayAccumulated = '';
+  let queue = '';
+  let isTyping = false;
+  let isApiDone = false;
 
-  return accumulated.trim();
+  return new Promise(async (resolve, reject) => {
+    let timeoutId;
+
+    const abortHandler = () => {
+      clearTimeout(timeoutId);
+      reject(new DOMException('Aborted', 'AbortError'));
+    };
+
+    if (signal) {
+      signal.addEventListener('abort', abortHandler);
+      if (signal.aborted) return abortHandler();
+    }
+
+    const typeNext = () => {
+      if (signal?.aborted) return;
+      
+      if (queue.length > 0) {
+        // Dynamic chunk size based on remaining queue to catch up if needed
+        let chunkSize = 1;
+        if (queue.length > 200) chunkSize = 6;
+        else if (queue.length > 100) chunkSize = 4;
+        else if (queue.length > 40) chunkSize = 2;
+
+        const chunk = queue.substring(0, chunkSize);
+        queue = queue.substring(chunkSize);
+        displayAccumulated += chunk;
+        onStream?.(displayAccumulated);
+        
+        // Randomize typing delay between 15-30ms to feel natural
+        const delay = Math.floor(Math.random() * 15) + 15;
+        timeoutId = setTimeout(typeNext, delay);
+      } else {
+        isTyping = false;
+        if (isApiDone) {
+          if (signal) signal.removeEventListener('abort', abortHandler);
+          resolve(accumulated.trim());
+        }
+      }
+    };
+
+    try {
+      await askTutor(systemPrompt, conversationHistory, (piece) => {
+        if (signal?.aborted) return;
+        queue += piece;
+        accumulated += piece;
+        if (!isTyping) {
+          isTyping = true;
+          typeNext();
+        }
+      }, signal);
+      
+      isApiDone = true;
+      if (!isTyping && queue.length === 0) {
+        if (signal) signal.removeEventListener('abort', abortHandler);
+        resolve(accumulated.trim());
+      }
+    } catch (err) {
+      if (signal) signal.removeEventListener('abort', abortHandler);
+      clearTimeout(timeoutId);
+      reject(err);
+    }
+  });
 }
