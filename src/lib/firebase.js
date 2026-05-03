@@ -25,30 +25,49 @@ const requiredClientKeys = [
 ];
 
 const missingFirebaseKeys = requiredClientKeys.filter((key) => !firebaseConfig[key]?.trim?.());
+export const isFirebaseConfigured = missingFirebaseKeys.length === 0;
 
-if (missingFirebaseKeys.length > 0) {
+if (!isFirebaseConfigured) {
   const detail = `Missing: ${missingFirebaseKeys.join(', ')}. Set matching VITE_FIREBASE_* vars in Netlify (Build scope).`;
-  if (import.meta.env.PROD) {
-    throw new Error(`Senjr: Firebase client is not configured. ${detail}`);
-  }
-  console.warn(`Senjr: ${detail}`);
+  console.error(`Senjr: Firebase client config missing. ${detail}`);
 }
+
+// Prevent blank-screen boot crash: use safe placeholder config if required keys are absent.
+const safeFirebaseConfig = isFirebaseConfigured
+  ? firebaseConfig
+  : {
+      apiKey: 'missing-api-key',
+      authDomain: 'missing-auth-domain.invalid',
+      projectId: 'missing-project-id',
+      storageBucket: 'missing-storage-bucket',
+      messagingSenderId: '0',
+      appId: '1:0:web:0',
+      measurementId: '',
+    };
 
 // Prevent duplicate-app error during Vite HMR
 let app;
 try {
-  app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+  app = getApps().length ? getApp() : initializeApp(safeFirebaseConfig);
 } catch (e) {
   const msg = e?.message || String(e);
-  throw new Error(
-    `Senjr: Firebase initializeApp failed (${msg}). Verify VITE_FIREBASE_* in the Netlify build environment.`
-  );
+  console.error(`Senjr: Firebase initializeApp failed (${msg}).`);
+  app = getApps().length
+    ? getApp()
+    : initializeApp({
+        apiKey: 'fallback',
+        authDomain: 'fallback.invalid',
+        projectId: 'fallback-project',
+        storageBucket: 'fallback-bucket',
+        messagingSenderId: '0',
+        appId: '1:0:web:0',
+      });
 }
 
 // Firebase Authentication
 export const auth = getAuth(app);
 
-// Google Auth Provider — always show account picker
+// Google Auth Provider ? always show account picker
 export const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({ prompt: 'select_account' });
 
