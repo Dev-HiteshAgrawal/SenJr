@@ -15,16 +15,35 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
 
-const missingFirebaseKeys = Object.entries(firebaseConfig)
-  .filter(([key, value]) => key !== 'measurementId' && !value)
-  .map(([key]) => key);
+const requiredClientKeys = [
+  'apiKey',
+  'authDomain',
+  'projectId',
+  'storageBucket',
+  'messagingSenderId',
+  'appId',
+];
+
+const missingFirebaseKeys = requiredClientKeys.filter((key) => !firebaseConfig[key]?.trim?.());
 
 if (missingFirebaseKeys.length > 0) {
-  console.warn(`Missing Firebase environment values: ${missingFirebaseKeys.join(', ')}`);
+  const detail = `Missing: ${missingFirebaseKeys.join(', ')}. Set matching VITE_FIREBASE_* vars in Netlify (Build scope).`;
+  if (import.meta.env.PROD) {
+    throw new Error(`Senjr: Firebase client is not configured. ${detail}`);
+  }
+  console.warn(`Senjr: ${detail}`);
 }
 
 // Prevent duplicate-app error during Vite HMR
-const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+let app;
+try {
+  app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+} catch (e) {
+  const msg = e?.message || String(e);
+  throw new Error(
+    `Senjr: Firebase initializeApp failed (${msg}). Verify VITE_FIREBASE_* in the Netlify build environment.`
+  );
+}
 
 // Firebase Authentication
 export const auth = getAuth(app);

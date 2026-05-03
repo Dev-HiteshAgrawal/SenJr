@@ -23,8 +23,32 @@ function senjrLocalApiPlugin() {
   };
 }
 
+/** Fail Netlify builds before publishing a bundle with empty VITE_FIREBASE_* (common blank-screen cause). */
+function senjrNetlifyEnvPlugin() {
+  return {
+    name: 'senjr-netlify-env',
+    configResolved() {
+      if (process.env.NETLIFY !== 'true') return;
+      const required = [
+        'VITE_FIREBASE_API_KEY',
+        'VITE_FIREBASE_AUTH_DOMAIN',
+        'VITE_FIREBASE_PROJECT_ID',
+        'VITE_FIREBASE_STORAGE_BUCKET',
+        'VITE_FIREBASE_MESSAGING_SENDER_ID',
+        'VITE_FIREBASE_APP_ID',
+      ];
+      const missing = required.filter((k) => !process.env[k]?.trim?.());
+      if (missing.length) {
+        throw new Error(
+          `[senjr] Netlify build missing required env (add under Site settings → Environment variables, scope to Builds): ${missing.join(', ')}`
+        );
+      }
+    },
+  };
+}
+
 export default defineConfig({
-  plugins: [react(), senjrLocalApiPlugin()],
+  plugins: [react(), senjrNetlifyEnvPlugin(), senjrLocalApiPlugin()],
   server: {
     host: '127.0.0.1',
     port: 5173,
