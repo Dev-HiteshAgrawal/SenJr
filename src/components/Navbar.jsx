@@ -322,7 +322,7 @@ export default function Navbar() {
               className="btn-drawer-login"
               style={{ color: '#FF6B6B', borderColor: 'rgba(255,107,107,0.2)' }}
             >
-              🚪 &nbsp;Log Out
+              🚪 Log Out
             </button>
           ) : (
             <>
@@ -338,7 +338,7 @@ export default function Navbar() {
                 className="btn-primary"
                 onClick={() => setDrawerOpen(false)}
               >
-                ✨ &nbsp;Start Learning
+                ✨ Start Learning
               </Link>
             </>
           )}
