@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { livekitTokenHandler } from './server/handlers/livekitToken.js';
+import { runtimeConfigHandler } from './server/handlers/runtimeConfig.js';
 
 function wrapHandler(handler) {
   return async (req, res, next) => {
@@ -17,6 +18,7 @@ function senjrLocalApiPlugin() {
     name: 'senjr-local-api',
     configureServer(server) {
       server.middlewares.use('/api/livekit-token', wrapHandler(livekitTokenHandler));
+      server.middlewares.use('/api/runtime-config', wrapHandler(runtimeConfigHandler));
     },
   };
 }

@@ -1,0 +1,39 @@
+# SenJr — Netlify (Vite SPA + serverless API)
+# API routes are implemented as Netlify Functions and proxied from /api/*
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+  functions = "netlify/functions"
+
+[functions]
+  node_bundler = "esbuild"
+  # Avoid bundling firebase-admin (native / dynamic requires)
+  external_node_modules = ["firebase-admin"]
+
+# API proxies must run before the SPA fallback
+[[redirects]]
+  from = "/api/livekit-token"
+  to = "/.netlify/functions/livekit-token"
+  status = 200
+
+[[redirects]]
+  from = "/api/runtime-config"
+  to = "/.netlify/functions/runtime-config"
+  status = 200
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Security headers (aligned with previous production config)
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://www.gstatic.com https://www.googletagmanager.com https://www.google-analytics.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://*.googleusercontent.com https://*.firebaseapp.com https://*.googleapis.com https://firebasestorage.googleapis.com; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://*.livekit.cloud wss://*.livekit.cloud https://generativelanguage.googleapis.com https://firebasestorage.googleapis.com https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com; media-src 'self' blob: https://firebasestorage.googleapis.com; frame-src 'self' https://*.firebaseapp.com;"
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=self, microphone=self, geolocation=()"
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains; preload"

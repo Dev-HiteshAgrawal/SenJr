@@ -172,7 +172,11 @@ export async function generateAndDownloadCertificate({
 }) {
   const certId = certificateId || generateCertificateId();
   const issueDate = dateOfIssue || formatDateLong(new Date());
-  const verificationUrl = `https://senjr.vercel.app/verify/${certId}`;
+  const siteOrigin =
+    (typeof window !== 'undefined' && window.location?.origin) ||
+    import.meta.env.VITE_PUBLIC_SITE_URL ||
+    '';
+  const verificationUrl = `${siteOrigin}/verify/${certId}`;
 
   const recipientName = type === 'mentor' ? mentorName : studentName;
   const programmeName = type === 'mentor'

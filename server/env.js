@@ -32,8 +32,8 @@ export function ensureServerEnv() {
 export function getServerEnv() {
   ensureServerEnv();
 
-  // Trim every value — Vercel can inject env vars with \r\n if set via
-  // dashboard copy-paste on Windows, which corrupts JWT issuer fields.
+  // Trim every value — host dashboards can inject env vars with \r\n if set
+  // via copy-paste on Windows, which corrupts JWT issuer fields.
   const t = (v) => (v || '').trim();
 
   return {

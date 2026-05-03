@@ -2,16 +2,39 @@ import admin from 'firebase-admin';
 
 let initialized = false;
 
+function parseServiceAccountJson() {
+  const raw =
+    process.env.FIREBASE_SERVICE_ACCOUNT_JSON ||
+    process.env.GOOGLE_SERVICE_ACCOUNT_JSON ||
+    process.env.FIREBASE_SERVICE_ACCOUNT;
+  if (!raw || !String(raw).trim()) return null;
+  try {
+    return JSON.parse(String(raw).trim());
+  } catch (e) {
+    console.error('Invalid Firebase service account JSON in environment');
+    return null;
+  }
+}
+
 export function ensureAdmin() {
   if (initialized) return;
+  if (admin.apps.length > 0) {
+    initialized = true;
+    return;
+  }
 
-  // In Vercel or Firebase environment, the credentials are often
-  // picked up automatically if configured correctly.
-  // We check if it's already initialized (Firebase Functions case)
-  if (admin.apps.length === 0) {
-    admin.initializeApp({
-      projectId: process.env.VITE_FIREBASE_PROJECT_ID || 'senjr-7a60f',
-    });
+  const projectId =
+    process.env.VITE_FIREBASE_PROJECT_ID ||
+    process.env.FIREBASE_PROJECT_ID ||
+    'senjr-7a60f';
+  const serviceAccount = parseServiceAccountJson();
+
+  if (serviceAccount) {
+    admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
+  } else {
+    // Firebase Functions / GCP: default credentials. Netlify & local: set
+    // FIREBASE_SERVICE_ACCOUNT_JSON for verifyIdToken in serverless APIs.
+    admin.initializeApp({ projectId });
   }
 
   initialized = true;

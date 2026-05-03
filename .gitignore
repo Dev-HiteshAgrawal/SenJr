@@ -18,7 +18,7 @@ dist-ssr
 .env.production
 firebase-login.txt
 .firebase/
-.vercel/
+.netlify/
 
 # Editor directories and files
 .vscode/*
@@ -30,8 +30,6 @@ firebase-login.txt
 *.njsproj
 *.sln
 *.sw?
-
-.vercel
 
 # Test/debug scripts
 *.ps1

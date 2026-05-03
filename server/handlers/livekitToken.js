@@ -89,6 +89,7 @@ export async function livekitTokenHandler(req, res) {
       room: roomName,
       canPublish: true,
       canSubscribe: true,
+      canPublishData: true,
     });
 
     sendJson(res, 200, {
