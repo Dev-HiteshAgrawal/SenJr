@@ -1,7 +1,9 @@
 import React from 'react';
 import { Menu, Bell, Wallet, Calendar, User, Star, BarChart2, ArrowRight, Home, IndianRupee } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const MentorDashboard = () => {
+  const navigate = useNavigate();
   return (
     <div className="min-h-screen bg-white font-sans text-gray-900 flex flex-col pb-24">
       
@@ -76,7 +78,7 @@ const MentorDashboard = () => {
             <div className="flex-1 bg-[#34d399] rounded-t-sm h-[80%]"></div>
           </div>
           
-          <button className="w-full bg-white border border-[#10b981] text-[#10b981] font-bold py-3 rounded-full active:bg-green-50 transition-colors">
+          <button className="w-full bg-white border-2 border-[#10b981] text-[#10b981] font-bold py-3 rounded-full active:bg-green-50 transition-colors shadow-sm">
             Withdraw to UPI
           </button>
         </div>
@@ -106,8 +108,8 @@ const MentorDashboard = () => {
                 </div>
               </div>
               <div className="flex flex-col items-end gap-2">
-                <span className="bg-[#EFF6FF] text-blue-600 px-2 py-0.5 rounded-full text-[10px] font-bold">Upcoming</span>
-                <button className="bg-[#10b981] text-white text-xs font-bold px-4 py-1.5 rounded-full active:bg-emerald-600">
+                <span className="bg-[#FFF7ED] text-orange-600 px-2 py-0.5 rounded-full text-[10px] font-bold">Upcoming</span>
+                <button className="bg-[#f97316] text-white text-xs font-bold px-4 py-1.5 rounded-full active:bg-orange-700 shadow-sm">
                   Start
                 </button>
               </div>
@@ -134,7 +136,7 @@ const MentorDashboard = () => {
 
         {/* Action Grid */}
         <div className="grid grid-cols-2 gap-3">
-          <button className="bg-white border border-gray-200 rounded-2xl p-4 flex flex-col items-center justify-center gap-3 shadow-sm active:bg-gray-50 transition-colors">
+          <button onClick={() => navigate('/mentor/availability')} className="bg-white border border-gray-200 rounded-2xl p-4 flex flex-col items-center justify-center gap-3 shadow-sm active:bg-gray-50 transition-colors">
             <div className="w-10 h-10 rounded-full flex items-center justify-center">
               <Calendar className="w-6 h-6 text-blue-500" />
             </div>
@@ -213,35 +215,23 @@ const MentorDashboard = () => {
 
       {/* Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-6 py-2 flex justify-between items-center z-50">
-        <button className="flex flex-col items-center gap-1">
+        <button onClick={() => navigate('/dashboard/mentor')} className="flex flex-col items-center gap-1 opacity-50">
           <Home className="w-6 h-6 text-gray-600" />
           <span className="text-[10px] font-medium text-gray-600">Home</span>
         </button>
-        <button className="flex flex-col items-center gap-1">
+        <button onClick={() => navigate('/mentor/availability')} className="flex flex-col items-center gap-1 opacity-50">
           <Calendar className="w-6 h-6 text-gray-600" />
           <span className="text-[10px] font-medium text-gray-600">Schedule</span>
         </button>
-        
-        {/* Empty space for FAB */}
-        <div className="w-12"></div>
-        
-        <button className="flex flex-col items-center gap-1">
-          <IndianRupee className="w-6 h-6 text-gray-600" />
-          <span className="text-[10px] font-medium text-gray-600">Earnings</span>
+        <button onClick={() => navigate('/mentor/earnings')} className="flex flex-col items-center gap-1 border-t-2 border-[#10b981] pt-1 -mt-[9px]">
+          <IndianRupee className="w-6 h-6 text-[#10b981]" />
+          <span className="text-[10px] font-bold text-[#10b981]">Earnings</span>
         </button>
-        <button className="flex flex-col items-center gap-1">
+        <button onClick={() => navigate('/profile/mentor/me')} className="flex flex-col items-center gap-1 opacity-50">
           <User className="w-6 h-6 text-gray-600" />
           <span className="text-[10px] font-medium text-gray-600">Profile</span>
         </button>
       </nav>
-
-      {/* FAB */}
-      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 flex justify-center">
-        <button className="w-14 h-14 bg-white border border-gray-200 rounded-full flex items-center justify-center shadow-lg active:scale-95 transition-transform">
-          {/* Typically a + or mic icon, leaving it blank/circle as per mockup, wait, the mockup has an empty circle wireframe? No, it looks like a large empty circle or maybe a scan button. I will put a simple plus or just a white circle with a drop shadow. Let's make it a prominent empty button. */}
-          <div className="w-8 h-8 rounded-full border-2 border-gray-200"></div>
-        </button>
-      </div>
 
     </div>
   );
