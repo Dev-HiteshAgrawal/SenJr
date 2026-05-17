@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app'
-import { getAuth } from 'firebase/auth'
+import { browserLocalPersistence, getAuth, setPersistence } from 'firebase/auth'
 import { getFirestore } from 'firebase/firestore'
 import { getStorage } from 'firebase/storage'
 import { getAnalytics, isSupported } from 'firebase/analytics'
@@ -14,15 +14,31 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 }
 
+const requiredEnv = [
+  'VITE_FIREBASE_API_KEY',
+  'VITE_FIREBASE_AUTH_DOMAIN',
+  'VITE_FIREBASE_PROJECT_ID',
+  'VITE_FIREBASE_STORAGE_BUCKET',
+  'VITE_FIREBASE_MESSAGING_SENDER_ID',
+  'VITE_FIREBASE_APP_ID'
+]
+
+const missingEnv = requiredEnv.filter(key => !import.meta.env[key])
+
+if (missingEnv.length > 0) {
+  throw new Error(`Missing Firebase environment variables: ${missingEnv.join(', ')}`)
+}
+
 const app = initializeApp(firebaseConfig)
 export const auth = getAuth(app)
+setPersistence(auth, browserLocalPersistence).catch((error) => {
+  if (import.meta.env.DEV) {
+    console.warn('Firebase auth persistence could not be set:', error)
+  }
+})
 export const db = getFirestore(app)
 export const storage = getStorage(app)
 
-// Analytics - only runs in browser, not SSR
-// TODO: Ensure 'senjr.vercel.app' (or your production Vercel domain) is whitelisted 
-// in the Firebase Console (Authentication -> Settings -> Authorized Domains) 
-// to prevent CORS failures on installations and webConfig endpoints.
 export const analytics = isSupported().then(yes => yes ? getAnalytics(app) : null)
 
 export default app

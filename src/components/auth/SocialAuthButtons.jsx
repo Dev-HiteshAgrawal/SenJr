@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { useAuthContext } from '../../context/AuthContext';
@@ -29,8 +29,6 @@ const SocialAuthButtons = ({ role = 'student', onError }) => {
   const { signInWithGoogle, signInWithApple } = useAuth();
   const { setUserData } = useAuthContext();
   const [loading, setLoading] = useState(''); // 'google' | 'apple'
-
-  const dashboardPath = role === 'mentor' ? '/dashboard/mentor' : '/dashboard/student';
 
   const handleSocial = async (provider) => {
     setLoading(provider);
@@ -96,7 +94,7 @@ const SocialAuthButtons = ({ role = 'student', onError }) => {
           type="button"
           onClick={() => handleSocial('apple')}
           disabled={!!loading}
-          className="flex items-center justify-center gap-2.5 bg-gray-900 border-2 border-gray-900 rounded-xl py-3 font-semibold text-white text-sm hover:bg-gray-800 active:scale-95 transition-all disabled:opacity-60"
+          className="flex items-center justify-center gap-2.5 bg-gray-900 border border-gray-800 rounded-2xl py-3 font-semibold text-white text-sm shadow-sm hover:bg-gray-800 active:scale-95 transition-all disabled:opacity-60"
         >
           {loading === 'apple' ? (
             <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />

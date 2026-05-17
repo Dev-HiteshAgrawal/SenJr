@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Copy, CheckCircle2, Clock, Calendar, User, Loader2, AlertCircle } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { ArrowLeft, Copy, CheckCircle2, Clock, Calendar, Loader2, AlertCircle } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../../firebase/config';
+import toast from 'react-hot-toast';
 
 const Payment = () => {
   const navigate = useNavigate();
@@ -70,7 +71,7 @@ const Payment = () => {
           }
         }
       } catch (err) {
-        console.error('Error fetching payment details:', err);
+        if (import.meta.env.DEV) console.error('Error fetching payment details:', err);
         setError('Failed to load payment details');
       } finally {
         setLoading(false);
@@ -107,8 +108,8 @@ const Payment = () => {
       }
       setSuccess(true);
     } catch (err) {
-      console.error('Error confirming payment:', err);
-      alert('Failed to submit payment details');
+      if (import.meta.env.DEV) console.error('Error confirming payment:', err);
+      toast.error('Failed to submit payment details');
     } finally {
       setSubmitting(false);
     }

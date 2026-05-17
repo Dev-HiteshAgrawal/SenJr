@@ -3,6 +3,7 @@ import {
   signInWithEmailAndPassword,
   signOut,
   sendPasswordResetEmail,
+  sendEmailVerification,
   updateProfile,
   GoogleAuthProvider,
   OAuthProvider,
@@ -18,7 +19,9 @@ appleProvider.addScope('email')
 appleProvider.addScope('name')
 
 export const registerWithEmail = async (email, password) => {
-  return await createUserWithEmailAndPassword(auth, email, password)
+  const credential = await createUserWithEmailAndPassword(auth, email, password)
+  await sendEmailVerification(credential.user)
+  return credential
 }
 
 export const loginWithEmail = async (email, password) => {

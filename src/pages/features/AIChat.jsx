@@ -1,7 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { ArrowLeft, MoreVertical, Mic, Send, Bot, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { GoogleGenerativeAI } from '@google/generative-ai';
 
 const AIChat = () => {
   const navigate = useNavigate();
@@ -41,42 +40,19 @@ const AIChat = () => {
 
     try {
       const apiMessages = [...messages, userMessage].map(m => ({ role: m.role, content: m.content }));
-      let aiResponseText = '';
+      const response = await fetch('/api/gemini-chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: apiMessages })
+      });
 
-      try {
-        const response = await fetch('/api/gemini-chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ messages: apiMessages })
-        });
-        
-        if (response.ok) {
-          const data = await response.json();
-          aiResponseText = data.content;
-        } else {
-          throw new Error('Serverless function failed');
-        }
-      } catch (fetchErr) {
-        console.warn('Falling back to client-side Gemini call:', fetchErr);
-        const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-        if (!apiKey) throw new Error('No API Key', { cause: fetchErr });
-        
-        const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-        
-        const history = messages.map(m => ({
-          role: m.role === 'user' ? 'user' : 'model',
-          parts: [{ text: m.content }],
-        }));
-        
-        const chat = model.startChat({
-          history,
-          systemInstruction: 'You are EduPulse AI Tutor, a highly intelligent and encouraging academic assistant designed to help students with their studies, exam prep, and career guidance. Provide clear, concise, and accurate explanations. Use emojis occasionally.',
-        });
-        
-        const result = await chat.sendMessage(userMessage.content);
-        aiResponseText = await result.response.text();
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.error || 'AI tutor is temporarily unavailable');
       }
+
+      const data = await response.json();
+      const aiResponseText = data.content;
 
       setMessages(prev => [...prev, {
         id: Date.now() + 1,
@@ -86,7 +62,9 @@ const AIChat = () => {
       }]);
 
     } catch (error) {
-      console.error('Chat error:', error);
+      if (import.meta.env.DEV) {
+        console.error('Chat error:', error);
+      }
       setMessages(prev => [...prev, {
         id: Date.now() + 1,
         role: 'model',

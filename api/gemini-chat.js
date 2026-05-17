@@ -1,8 +1,12 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
+/* global process */
+
 export default async function handler(req, res) {
   // CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  const allowedOrigin = process.env.ALLOWED_ORIGIN || 'https://senjr.vercel.app';
+  const requestOrigin = req.headers.origin;
+  res.setHeader('Access-Control-Allow-Origin', requestOrigin === allowedOrigin ? allowedOrigin : 'https://senjr.vercel.app');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
@@ -14,15 +18,26 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  // eslint-disable-next-line no-undef
-  const apiKey = process.env.VITE_GEMINI_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     return res.status(500).json({ error: 'Gemini API key not configured' });
   }
 
   const { messages, systemInstruction } = req.body;
-  if (!messages || !Array.isArray(messages)) {
+  if (!messages || !Array.isArray(messages) || messages.length === 0) {
     return res.status(400).json({ error: 'Valid messages array is required' });
+  }
+  if (messages.length > 20) {
+    return res.status(400).json({ error: 'Please keep the conversation shorter and try again' });
+  }
+  const hasInvalidMessage = messages.some(message => (
+    !message ||
+    !['user', 'model'].includes(message.role) ||
+    typeof message.content !== 'string' ||
+    message.content.length > 4000
+  ));
+  if (hasInvalidMessage) {
+    return res.status(400).json({ error: 'Invalid message format' });
   }
 
   try {

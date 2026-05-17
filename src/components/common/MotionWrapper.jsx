@@ -1,4 +1,3 @@
-import React from 'react';
 import { motion } from 'framer-motion';
 
 // Common entrance animations
@@ -83,7 +82,7 @@ export const PrimaryButton = ({ children, className = '', onClick, disabled }) =
     whileHover={disabled ? {} : { scale: 1.03 }}
     whileTap={disabled ? {} : { scale: 0.95 }}
     transition={{ type: "spring", stiffness: 400, damping: 17 }}
-    className={`bg-gray-900 text-white font-bold px-6 py-3 rounded-xl hover:bg-gray-800 transition-colors shadow-[4px_4px_0px_0px_rgba(249,115,22,1)] disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
+    className={`bg-gray-900 text-white font-bold px-6 py-3 rounded-2xl hover:bg-gray-800 transition-colors shadow-md disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
     onClick={onClick}
     disabled={disabled}
   >
@@ -96,7 +95,7 @@ export const AccentButton = ({ children, className = '', onClick, disabled }) =>
     whileHover={disabled ? {} : { scale: 1.03, filter: 'brightness(1.05)' }}
     whileTap={disabled ? {} : { scale: 0.95 }}
     transition={{ type: "spring", stiffness: 400, damping: 17 }}
-    className={`bg-[#f97316] text-gray-900 border-2 border-gray-900 font-bold px-6 py-3 rounded-xl shadow-[4px_4px_0px_0px_rgba(17,24,39,1)] disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
+    className={`bg-[#f97316] text-white font-bold px-6 py-3 rounded-2xl shadow-md shadow-orange-500/20 disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
     onClick={onClick}
     disabled={disabled}
   >
@@ -128,4 +127,3 @@ export const XpPopup = ({ amount, isVisible, onComplete }) => (
     +{amount} XP
   </motion.div>
 );
-

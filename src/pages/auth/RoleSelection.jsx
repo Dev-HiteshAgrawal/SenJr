@@ -51,7 +51,7 @@ const RoleSelection = () => {
           {/* Mentor Card */}
           <SlideUp delay={0.3}>
             <HoverCard 
-              className="h-full p-8 flex flex-col items-center text-center cursor-pointer border-2 border-transparent hover:border-gray-900 group"
+              className="h-full p-8 flex flex-col items-center text-center cursor-pointer border border-transparent hover:border-primary-200 group"
               onClick={() => navigate('/signup/mentor/1')}
             >
               <div className="w-16 h-16 bg-gray-100 text-gray-900 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">

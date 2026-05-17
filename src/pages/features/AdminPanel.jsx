@@ -1,13 +1,13 @@
-import React, { useState, useMemo } from 'react';
-import { Menu, ShieldAlert, CheckCircle, XCircle, FileText, IndianRupee, ExternalLink, RefreshCw, Loader2, AlertCircle } from 'lucide-react';
-import { useNavigate, Navigate } from 'react-router-dom';
+import { useState, useMemo } from 'react';
+import { ShieldAlert, CheckCircle, XCircle, FileText, IndianRupee, ExternalLink, RefreshCw, Loader2, AlertCircle } from 'lucide-react';
+import { Navigate } from 'react-router-dom';
 import { useAuthContext } from '../../context/AuthContext';
 import { useFirestoreQuery } from '../../hooks/useFirestoreQuery';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../../firebase/config';
+import toast from 'react-hot-toast';
 
 const AdminPanel = () => {
-  const navigate = useNavigate();
   const { user, userData, loading: authLoading } = useAuthContext();
   const [activeTab, setActiveTab] = useState('Mentors');
   const [actionLoading, setActionLoading] = useState(null);
@@ -30,7 +30,7 @@ const AdminPanel = () => {
   const adminEmail = import.meta.env.VITE_ADMIN_EMAIL;
   
   if (authLoading) return <div className="min-h-screen flex items-center justify-center bg-gray-50"><Loader2 className="w-10 h-10 animate-spin text-primary-500" /></div>;
-  if (!user || user.email !== adminEmail) {
+  if (!user || (user.email !== adminEmail && userData?.role !== 'admin')) {
     return <Navigate to="/dashboard/student" replace />;
   }
 
@@ -41,8 +41,8 @@ const AdminPanel = () => {
         verificationStatus: 'verified'
       });
     } catch (err) {
-      console.error('Failed to approve mentor:', err);
-      alert('Error updating mentor status');
+      if (import.meta.env.DEV) console.error('Failed to approve mentor:', err);
+      toast.error('Error updating mentor status');
     }
     setActionLoading(null);
   };
@@ -54,8 +54,8 @@ const AdminPanel = () => {
         verificationStatus: 'rejected'
       });
     } catch (err) {
-      console.error('Failed to reject mentor:', err);
-      alert('Error updating mentor status');
+      if (import.meta.env.DEV) console.error('Failed to reject mentor:', err);
+      toast.error('Error updating mentor status');
     }
     setActionLoading(null);
   };
@@ -68,8 +68,8 @@ const AdminPanel = () => {
         status: 'upcoming' // Move from payment pending to upcoming session
       });
     } catch (err) {
-      console.error('Failed to confirm payment:', err);
-      alert('Error confirming payment');
+      if (import.meta.env.DEV) console.error('Failed to confirm payment:', err);
+      toast.error('Error confirming payment');
     }
     setActionLoading(null);
   };
@@ -82,8 +82,8 @@ const AdminPanel = () => {
         status: 'cancelled'
       });
     } catch (err) {
-      console.error('Failed to reject payment:', err);
-      alert('Error rejecting payment');
+      if (import.meta.env.DEV) console.error('Failed to reject payment:', err);
+      toast.error('Error rejecting payment');
     }
     setActionLoading(null);
   };

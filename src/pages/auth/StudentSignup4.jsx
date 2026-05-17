@@ -237,7 +237,7 @@ const StudentSignup4 = () => {
             }`}
           >
             <div className={`absolute top-0.5 w-6 h-6 rounded-full bg-white shadow-sm transition-transform ${
-              whatsappSameNumber ? 'translate-x-5' : 'translate-x-0.5'
+              whatsappSameNumber ? 'translate-x-5' : 'translate-x-1'
             }`} />
           </button>
         </div>

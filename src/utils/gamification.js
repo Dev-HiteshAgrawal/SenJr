@@ -73,7 +73,9 @@ export const awardXP = async (uid, amount, reason = '') => {
       level: newLevel,
     });
 
-    console.log(`[XP] +${amount} XP to ${uid} for "${reason}" → Total: ${newXp} (Level ${newLevel})`);
+    if (import.meta.env.DEV) {
+      console.info(`[XP] +${amount} XP awarded for "${reason}"`);
+    }
     return { newXp, newLevel, levelName: getLevelName(newXp) };
   } catch (error) {
     console.error('[XP] Error awarding XP:', error);

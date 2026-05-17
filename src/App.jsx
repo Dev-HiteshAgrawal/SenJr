@@ -8,6 +8,7 @@ import Footer from './components/common/Footer'
 import ProtectedRoute from './components/common/ProtectedRoute'
 import RoleRoute from './components/common/RoleRoute'
 import Loader from './components/common/Loader'
+import ErrorBoundary from './components/common/ErrorBoundary'
 
 // Eagerly-loaded auth pages (tiny, needed immediately)
 import Landing from './pages/Landing'
@@ -45,15 +46,17 @@ const HelpCenter = React.lazy(() => import('./pages/legal/HelpCenter'))
 const ContactUs = React.lazy(() => import('./pages/legal/ContactUs'))
 const PrivacyPolicy = React.lazy(() => import('./pages/legal/PrivacyPolicy'))
 const TermsOfService = React.lazy(() => import('./pages/legal/TermsOfService'))
+const NotFound = React.lazy(() => import('./pages/NotFound'))
 
 const DashboardRedirect = React.lazy(() => import('./components/common/DashboardRedirect'))
 
 function App() {
   return (
-    <Router>
-      <AuthProvider>
-        <AppProvider>
-          <div className="min-h-screen flex flex-col">
+    <ErrorBoundary>
+      <Router>
+        <AuthProvider>
+          <AppProvider>
+            <div className="min-h-screen flex flex-col">
             <Navbar />
             <main className="flex-1 pt-16">
               <Suspense fallback={<Loader fullScreen />}>
@@ -181,6 +184,7 @@ function App() {
                       <AdminPanel />
                     </RoleRoute>
                   } />
+                  <Route path="*" element={<NotFound />} />
                 </Routes>
               </Suspense>
             </main>
@@ -190,6 +194,7 @@ function App() {
         </AppProvider>
       </AuthProvider>
     </Router>
+    </ErrorBoundary>
   )
 }
 

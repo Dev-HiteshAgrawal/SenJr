@@ -125,7 +125,7 @@ const Login = () => {
     <div className="min-h-screen bg-white font-sans text-gray-900 pb-8 flex flex-col">
       {/* Header */}
       <header className="flex items-center px-4 py-4 relative">
-        <button onClick={() => navigate(-1)} className="w-10 h-10 rounded-full border-2 border-gray-900 flex items-center justify-center z-10 hover:bg-gray-50 transition-colors">
+        <button onClick={() => navigate(-1)} className="w-10 h-10 rounded-full border border-gray-200 shadow-sm flex items-center justify-center z-10 hover:bg-gray-50 transition-colors">
           <ArrowLeft className="w-5 h-5" />
         </button>
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
@@ -173,7 +173,7 @@ const Login = () => {
             type="button"
             onClick={() => handleSocialSignIn('apple')}
             disabled={!!socialLoading || loading}
-            className="relative group flex items-center justify-center gap-2.5 bg-gray-900 border-2 border-gray-900 rounded-xl py-3 font-semibold text-white text-sm hover:bg-gray-800 active:scale-95 transition-all disabled:opacity-60"
+            className="relative group flex items-center justify-center gap-2.5 bg-gray-900 border border-gray-800 rounded-2xl py-3 font-semibold text-white text-sm shadow-sm hover:bg-gray-800 active:scale-95 transition-all disabled:opacity-60"
           >
             {socialLoading === 'apple' ? (
               <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />

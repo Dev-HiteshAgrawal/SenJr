@@ -1,10 +1,11 @@
-import React, { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { ArrowLeft, Heart, MessageCircle, Share2, BookmarkPlus, Plus, Flame, Loader2, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useFirestoreQuery } from '../../hooks/useFirestoreQuery';
 import { useAuthContext } from '../../context/AuthContext';
 import { doc, updateDoc, increment } from 'firebase/firestore';
 import { db } from '../../firebase/config';
+import toast from 'react-hot-toast';
 
 const trending = ['#UPPolice2025', '#SSCPrep', '#CAT25', '#BankingExam', '#Motivation'];
 
@@ -17,20 +18,27 @@ const Community = () => {
   const { data: posts, loading, error } = useFirestoreQuery('posts', queryOptions);
 
   const toggleLike = async (postId, currentLikes, userLiked) => {
-    if (!user) return alert('Please login to like posts');
+    if (!user) {
+      toast.error('Please log in to like posts');
+      return;
+    }
     try {
       const postRef = doc(db, 'posts', postId);
       await updateDoc(postRef, {
         likes: increment(userLiked ? -1 : 1)
       });
     } catch (err) {
-      console.error('Error toggling like:', err);
+      if (import.meta.env.DEV) console.error('Error toggling like:', err);
+      toast.error('Could not update like. Please try again.');
     }
   };
 
-  const toggleSave = async (postId) => {
-    if (!user) return alert('Please login to save posts');
-    console.log('Save toggled for', postId);
+  const toggleSave = async () => {
+    if (!user) {
+      toast.error('Please log in to save posts');
+      return;
+    }
+    toast.success('Post saved');
   };
 
   return (
@@ -175,7 +183,7 @@ const Community = () => {
                 </div>
 
                 <button
-                  onClick={() => toggleSave(post.id)}
+                  onClick={toggleSave}
                   className="active:scale-90 transition-transform hover:bg-gray-50 p-2 -mr-2 rounded-full"
                 >
                   <BookmarkPlus

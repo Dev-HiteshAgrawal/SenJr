@@ -14,8 +14,6 @@ const tutors = [
   { id: 'shasan',  name: 'Shasan',  subject: 'UPSC',               emoji: '🏛', icon: <Building2 className="w-5 h-5" />, color: '#7C3AED', bg: '#F5F3FF', desc: 'Prelims, Mains, Current Affairs' },
 ];
 
-const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
-
 const buildSystemPrompt = (tutor) =>
   `You are ${tutor.name} on Senjr, an AI peer mentor. You ONLY teach ${tutor.subject}. 
 Always respond in Hindi-English mix (Hinglish). Be warm, encouraging, and proactive.
@@ -70,7 +68,7 @@ const ChatView = ({ tutor, onBack }) => {
       const reply = data?.content || 'Kuch error aa gaya, dobara try karo!';
       setMessages((prev) => [...prev, { role: 'assistant', content: reply }]);
     } catch (err) {
-      console.error('Chat error:', err);
+      if (import.meta.env.DEV) console.error('Chat error:', err);
       setMessages((prev) => [...prev, { role: 'assistant', content: 'Network error or function not available locally. Please try again!' }]);
     } finally {
       setLoading(false);

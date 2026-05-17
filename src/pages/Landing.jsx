@@ -53,7 +53,7 @@ const Landing = () => {
         {!user ? (
           <Link
             to="/login"
-            className="px-5 py-2 rounded-full border border-gray-900 text-sm font-semibold hover:bg-gray-50 transition-colors"
+            className="px-5 py-2 rounded-full border border-gray-200 shadow-sm text-sm font-semibold hover:bg-gray-50 transition-colors"
           >
             Login
           </Link>
@@ -97,7 +97,7 @@ const Landing = () => {
         {/* CTA Button */}
         <button
           onClick={handleCTA}
-          className="w-full py-3.5 rounded-full border-2 border-gray-900 text-center font-bold text-base hover:bg-gray-50 active:scale-[0.98] transition-all mb-5"
+          className="w-full py-3.5 rounded-2xl border border-gray-200 text-center font-bold text-base shadow-sm hover:bg-gray-50 active:scale-[0.98] transition-all mb-5"
         >
           {!user ? 'Start Learning Free' : userData?.role === 'mentor' ? 'Open Mentor Hub' : 'Continue Learning'}
         </button>
