@@ -3,10 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, UserCheck, Lightbulb, Zap, AlertCircle } from 'lucide-react';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../firebase/config';
+import { useAuthContext } from '../../context/AuthContext';
 import { awardXP, XP_REWARDS } from '../../utils/gamification';
 
 const MentorSignup4 = () => {
   const navigate = useNavigate();
+  const { setUserData } = useAuthContext();
   
   // State for multi-selects
   const [subjects, setSubjects] = useState(['BBA', 'Economics', 'English']);
@@ -45,12 +47,10 @@ const MentorSignup4 = () => {
         displayName: signupData.fullName,
         phone: signupData.phone,
         role: 'mentor',
-        // Profile
         college: signupData.college || '',
         degree: signupData.degree || '',
         graduationYear: signupData.graduationYear || '',
         upiId: signupData.upiId || '',
-        // Step 4
         subjects,
         languages,
         experience,
@@ -58,22 +58,25 @@ const MentorSignup4 = () => {
         hourlyRate: Number(hourlyRate),
         bio,
         availability,
-        // Gamification
         xp: XP_REWARDS.SIGNUP,
         level: 1,
         streak: 1,
         lastLoginDate: serverTimestamp(),
-        // Status — mentors need admin approval
         verificationStatus: 'pending',
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       };
 
       await setDoc(doc(db, 'users', signupData.uid), userDoc);
-      await awardXP(signupData.uid, XP_REWARDS.PROFILE_COMPLETE, 'Mentor profile complete');
+
+      // Update AuthContext immediately so RoleRoute doesn't redirect to /join
+      setUserData({ id: signupData.uid, ...userDoc });
+
+      // Fire-and-forget XP award
+      awardXP(signupData.uid, XP_REWARDS.PROFILE_COMPLETE, 'Mentor profile complete').catch(console.error);
 
       sessionStorage.removeItem('senjr_signup');
-      navigate('/signup/mentor/success');
+      navigate('/signup/mentor/success', { replace: true });
     } catch (err) {
       console.error('Mentor signup error:', err);
       setError('Failed to save your profile. Please try again.');

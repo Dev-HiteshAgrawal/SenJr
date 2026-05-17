@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import { useAuthContext } from '../../context/AuthContext';
+import { getDocument } from '../../firebase/firestore';
 
 const GoogleIcon = () => (
   <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -25,6 +27,7 @@ const AppleIcon = () => (
 const SocialAuthButtons = ({ role = 'student', onError }) => {
   const navigate = useNavigate();
   const { signInWithGoogle, signInWithApple } = useAuth();
+  const { setUserData } = useAuthContext();
   const [loading, setLoading] = useState(''); // 'google' | 'apple'
 
   const dashboardPath = role === 'mentor' ? '/dashboard/mentor' : '/dashboard/student';
@@ -36,21 +39,25 @@ const SocialAuthButtons = ({ role = 'student', onError }) => {
         ? await signInWithGoogle()
         : await signInWithApple();
 
-      // Pre-populate sessionStorage so the multi-step flow can pick it up
-      // This data is used by Signup steps 2-4 to write the Firestore profile doc
-      const existing = JSON.parse(sessionStorage.getItem('senjr_signup') || '{}');
-      if (!existing.uid) {
-        sessionStorage.setItem('senjr_signup', JSON.stringify({
-          uid: result.user.uid,
-          email: result.user.email,
-          fullName: result.user.displayName || '',
-          phone: '',
-          role,
-          fromSocial: true,
-        }));
+      // Check if this user already completed signup
+      const existingDoc = await getDocument('users', result.user.uid);
+      if (existingDoc) {
+        // Returning user — go straight to their dashboard
+        setUserData(existingDoc);
+        navigate(existingDoc.role === 'mentor' ? '/dashboard/mentor' : '/dashboard/student', { replace: true });
+        return;
       }
 
-      // If social sign-in, user already exists — navigate to step 2 to complete profile
+      // New user — populate session and continue signup flow
+      sessionStorage.setItem('senjr_signup', JSON.stringify({
+        uid: result.user.uid,
+        email: result.user.email,
+        fullName: result.user.displayName || '',
+        phone: '',
+        role,
+        fromSocial: true,
+      }));
+
       navigate(role === 'mentor' ? '/signup/mentor/2' : '/signup/student/2');
     } catch (err) {
       const code = err?.code || '';

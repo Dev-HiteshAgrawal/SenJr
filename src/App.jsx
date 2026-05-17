@@ -46,6 +46,8 @@ const ContactUs = React.lazy(() => import('./pages/legal/ContactUs'))
 const PrivacyPolicy = React.lazy(() => import('./pages/legal/PrivacyPolicy'))
 const TermsOfService = React.lazy(() => import('./pages/legal/TermsOfService'))
 
+const DashboardRedirect = React.lazy(() => import('./components/common/DashboardRedirect'))
+
 function App() {
   return (
     <Router>
@@ -60,6 +62,9 @@ function App() {
                   <Route path="/" element={<Landing />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/join" element={<RoleSelection />} />
+
+                  {/* Smart dashboard redirect */}
+                  <Route path="/dashboard" element={<DashboardRedirect />} />
 
                   {/* Legal & Support pages */}
                   <Route path="/help" element={<HelpCenter />} />

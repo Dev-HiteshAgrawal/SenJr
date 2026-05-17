@@ -1,23 +1,41 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Camera, CheckCircle2, Link as LinkIcon, MessageSquare, AlertCircle } from 'lucide-react';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
-import { db } from '../../firebase/config';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { db, storage } from '../../firebase/config';
+import { useAuthContext } from '../../context/AuthContext';
 import { awardXP, XP_REWARDS } from '../../utils/gamification';
 
 const StudentSignup4 = () => {
   const navigate = useNavigate();
+  const { setUserData } = useAuthContext();
   const [formData, setFormData] = useState({ username: '', bio: '', linkedin: '' });
   const [useWhatsapp, setUseWhatsapp] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [profilePic, setProfilePic] = useState(null);
+  const [profilePicPreview, setProfilePicPreview] = useState(null);
+  const fileInputRef = useRef(null);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const handleProfilePicChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        setError('Image must be under 5MB.');
+        return;
+      }
+      setProfilePic(file);
+      setProfilePicPreview(URL.createObjectURL(file));
+    }
+  };
+
   const handleComplete = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     setError('');
 
     const signupData = JSON.parse(sessionStorage.getItem('senjr_signup') || '{}');
@@ -28,52 +46,56 @@ const StudentSignup4 = () => {
 
     setLoading(true);
     try {
+      // Upload profile picture if selected
+      let photoURL = '';
+      if (profilePic) {
+        const storageRef = ref(storage, `profile-pictures/${signupData.uid}`);
+        await uploadBytes(storageRef, profilePic);
+        photoURL = await getDownloadURL(storageRef);
+      }
+
       const userDoc = {
         uid: signupData.uid,
         email: signupData.email,
         displayName: signupData.fullName,
         phone: signupData.phone,
         role: 'student',
+        photoURL,
         username: formData.username || `student_${signupData.uid.slice(0, 6)}`,
         bio: formData.bio || '',
         linkedin: formData.linkedin || '',
         useWhatsappForContact: useWhatsapp,
-        // Goals & preferences (from step 2)
         primaryGoal: signupData.primaryGoal || '',
         targetExams: signupData.targetExams || [],
         weakSubjects: signupData.weakSubjects || [],
         strongSubjects: signupData.strongSubjects || [],
         preferredLanguage: signupData.preferredLanguage || 'Hinglish',
         studyHoursPerDay: signupData.studyHoursPerDay || '3-4h',
-        // Education (from step 3)
         educationLevel: signupData.educationLevel || '',
         college: signupData.college || '',
         city: signupData.city || '',
         state: signupData.state || '',
         yearOfStudy: signupData.yearOfStudy || '',
         graduationYear: signupData.graduationYear || '',
-        // Gamification
         xp: XP_REWARDS.SIGNUP,
         level: 1,
         streak: 1,
         lastLoginDate: serverTimestamp(),
-        // Meta
-        verificationStatus: 'verified', // Students are auto-verified
+        verificationStatus: 'verified',
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       };
 
-      // Write the full user document to Firestore using the Firebase Auth UID
       await setDoc(doc(db, 'users', signupData.uid), userDoc);
 
-      // Award profile complete XP (in addition to signup XP already in the doc)
-      await awardXP(signupData.uid, XP_REWARDS.PROFILE_COMPLETE, 'Profile complete');
+      // Update AuthContext immediately so RoleRoute doesn't redirect to /join
+      setUserData({ id: signupData.uid, ...userDoc });
 
-      // Clear the temporary session data
+      // Award profile complete XP (fire-and-forget, don't block navigation)
+      awardXP(signupData.uid, XP_REWARDS.PROFILE_COMPLETE, 'Profile complete').catch(console.error);
+
       sessionStorage.removeItem('senjr_signup');
-
-      // Navigate to student dashboard
-      navigate('/dashboard/student');
+      navigate('/dashboard/student', { replace: true });
     } catch (err) {
       console.error('Signup error:', err);
       setError('Failed to save your profile. Please try again.');
@@ -128,12 +150,29 @@ const StudentSignup4 = () => {
           </div>
         )}
 
-        {/* Profile Picture Upload (UI only - can be wired to Firebase Storage later) */}
+        {/* Profile Picture Upload */}
         <div className="flex justify-center mb-8">
-          <button className="relative w-28 h-28 border-2 border-dashed border-gray-900 rounded-2xl bg-gray-100 flex flex-col items-center justify-center gap-2 hover:bg-gray-200 transition-colors group">
-            <Camera className="w-8 h-8 text-gray-500 group-hover:text-gray-900 transition-colors" />
-            <span className="text-xs font-bold text-gray-500 group-hover:text-gray-900 transition-colors">Tap to upload</span>
-            <span className="text-[10px] text-gray-400">(Optional)</span>
+          <input
+            type="file"
+            ref={fileInputRef}
+            accept="image/*"
+            onChange={handleProfilePicChange}
+            className="hidden"
+          />
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="relative w-28 h-28 border-2 border-dashed border-gray-900 rounded-2xl bg-gray-100 flex flex-col items-center justify-center gap-2 hover:bg-gray-200 transition-colors group overflow-hidden"
+          >
+            {profilePicPreview ? (
+              <img src={profilePicPreview} alt="Preview" className="w-full h-full object-cover" />
+            ) : (
+              <>
+                <Camera className="w-8 h-8 text-gray-500 group-hover:text-gray-900 transition-colors" />
+                <span className="text-xs font-bold text-gray-500 group-hover:text-gray-900 transition-colors">Tap to upload</span>
+                <span className="text-[10px] text-gray-400">(Optional)</span>
+              </>
+            )}
           </button>
         </div>
 

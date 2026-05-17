@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Mail, Lock, Eye, EyeOff, AlertCircle, GraduationCap } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
+import { useAuthContext } from '../../context/AuthContext';
+import { getDocument } from '../../firebase/firestore';
 import { updateStreak } from '../../utils/gamification';
 
 const GoogleIcon = () => (
@@ -22,6 +24,7 @@ const AppleIcon = () => (
 const Login = () => {
   const navigate = useNavigate();
   const { login, signInWithGoogle, signInWithApple, forgotPassword } = useAuth();
+  const { setUserData } = useAuthContext();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -61,8 +64,16 @@ const Login = () => {
     setLoading(true);
     try {
       const result = await login(email, password);
-      updateStreak(result.user.uid).catch(console.error);
-      navigate('/dashboard/student');
+      // Fetch user doc to determine role and update context
+      const userDoc = await getDocument('users', result.user.uid);
+      if (userDoc) {
+        setUserData(userDoc);
+        updateStreak(result.user.uid).catch(console.error);
+        navigate(userDoc.role === 'mentor' ? '/dashboard/mentor' : '/dashboard/student', { replace: true });
+      } else {
+        // No profile doc — send to role selection to complete signup
+        navigate('/join', { replace: true });
+      }
     } catch (err) {
       setError(getErrorMessage(err.code));
     } finally {
@@ -74,12 +85,21 @@ const Login = () => {
     setError('');
     setSocialLoading(provider);
     try {
-      if (provider === 'google') {
-        await signInWithGoogle();
+      const result = provider === 'google'
+        ? await signInWithGoogle()
+        : await signInWithApple();
+
+      // Check if this user already has a Firestore profile
+      const userDoc = await getDocument('users', result.user.uid);
+      if (userDoc) {
+        // Returning user — update context and go to their dashboard
+        setUserData(userDoc);
+        updateStreak(result.user.uid).catch(console.error);
+        navigate(userDoc.role === 'mentor' ? '/dashboard/mentor' : '/dashboard/student', { replace: true });
       } else {
-        await signInWithApple();
+        // First-time social sign-in — send to role selection
+        navigate('/join', { replace: true });
       }
-      navigate('/dashboard/student');
     } catch (err) {
       const msg = getErrorMessage(err.code);
       if (msg) setError(msg);
