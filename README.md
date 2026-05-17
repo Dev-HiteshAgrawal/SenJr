@@ -1,16 +1,34 @@
-# React + Vite
+# SenJr — Mentor/Student Matching Platform
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+SenJr is a platform designed to connect mentors and students, facilitating knowledge sharing and professional growth.
 
-Currently, two official plugins are available:
+## 🚀 Tech Stack (Target)
+- **Framework:** Next.js (App Router)
+- **Language:** TypeScript
+- **Backend/Auth:** Supabase (Postgres, RLS, PKCE Auth)
+- **UI:** React 19
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## 🛠️ Current Status
+The project is currently in the **migration phase** from a Vite/React boilerplate to the target Next.js/Supabase stack.
 
-## React Compiler
+### Roadmap
+1. **Phase 1: Project Re-scaffolding** (In Progress)
+   - [x] Initialize TypeScript configuration
+   - [x] Scaffold Next.js-like directory structure
+   - [x] Initialize Supabase client placeholders
+2. **Phase 2: Authentication & RLS** (Pending)
+   - [ ] Implement Supabase Auth (PKCE flow)
+   - [ ] Define Row Level Security (RLS) policies
+3. **Phase 3: Core Features** (Pending)
+   - [ ] Mentor/Student profile creation
+   - [ ] Booking system with race condition handling
+   - [ ] Secure API routes
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 📦 Getting Started
+1. Clone the repository
+2. Install dependencies: `npm install`
+3. Start the development server: `npm run dev`
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## 🛡️ Audit & Security
+Security audits and bug tracking are maintained in `BUGS.md`.
+System architecture mapping is documented in `SYSTEM_MAP.md`.
