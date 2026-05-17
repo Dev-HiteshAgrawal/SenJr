@@ -7,7 +7,9 @@ import Navbar from './components/common/Navbar'
 import Footer from './components/common/Footer'
 import ProtectedRoute from './components/common/ProtectedRoute'
 import RoleRoute from './components/common/RoleRoute'
+import Loader from './components/common/Loader'
 
+// Eagerly-loaded auth pages (tiny, needed immediately)
 import Landing from './pages/Landing'
 import Login from './pages/auth/Login'
 import StudentSignup1 from './pages/auth/StudentSignup1'
@@ -21,6 +23,7 @@ import MentorSignup4 from './pages/auth/MentorSignup4'
 import MentorSuccess from './pages/auth/MentorSuccess'
 
 // Lazy-loaded routes for performance optimization
+const RoleSelection = React.lazy(() => import('./pages/auth/RoleSelection'))
 const StudentDashboard = React.lazy(() => import('./pages/dashboard/StudentDashboard'))
 const MentorDashboard = React.lazy(() => import('./pages/dashboard/MentorDashboard'))
 const StudentProfile = React.lazy(() => import('./pages/profile/StudentProfile'))
@@ -39,8 +42,6 @@ const MentorEarnings = React.lazy(() => import('./pages/features/MentorEarnings'
 const Payment = React.lazy(() => import('./pages/features/Payment'))
 const VideoCall = React.lazy(() => import('./pages/features/VideoCall'))
 
-import Loader from './components/common/Loader'
-
 function App() {
   return (
     <Router>
@@ -51,20 +52,25 @@ function App() {
             <main className="flex-1 pt-16">
               <Suspense fallback={<Loader fullScreen />}>
                 <Routes>
+                  {/* Public routes */}
                   <Route path="/" element={<Landing />} />
                   <Route path="/login" element={<Login />} />
-                  
+                  <Route path="/join" element={<RoleSelection />} />
+
+                  {/* Student signup flow */}
                   <Route path="/signup/student/1" element={<StudentSignup1 />} />
                   <Route path="/signup/student/2" element={<StudentSignup2 />} />
                   <Route path="/signup/student/3" element={<StudentSignup3 />} />
                   <Route path="/signup/student/4" element={<StudentSignup4 />} />
-                  
+
+                  {/* Mentor signup flow */}
                   <Route path="/signup/mentor/1" element={<MentorSignup1 />} />
                   <Route path="/signup/mentor/2" element={<MentorSignup2 />} />
                   <Route path="/signup/mentor/3" element={<MentorSignup3 />} />
                   <Route path="/signup/mentor/4" element={<MentorSignup4 />} />
                   <Route path="/signup/mentor/success" element={<MentorSuccess />} />
 
+                  {/* Protected dashboards */}
                   <Route path="/dashboard/student" element={
                     <RoleRoute allowedRoles={['student']}>
                       <StudentDashboard />
@@ -76,6 +82,7 @@ function App() {
                     </RoleRoute>
                   } />
 
+                  {/* Profiles */}
                   <Route path="/profile/student/:id" element={
                     <RoleRoute allowedRoles={['student', 'mentor']}>
                       <StudentProfile />
@@ -87,6 +94,7 @@ function App() {
                     </RoleRoute>
                   } />
 
+                  {/* Student features */}
                   <Route path="/find-mentor" element={
                     <RoleRoute allowedRoles={['student']}>
                       <FindMentor />
@@ -112,16 +120,30 @@ function App() {
                       <AIChat />
                     </RoleRoute>
                   } />
-                  <Route path="/mentor/availability" element={
-                    <RoleRoute allowedRoles={['mentor']}>
-                      <AvailabilitySettings />
-                    </RoleRoute>
-                  } />
                   <Route path="/courses" element={
                     <RoleRoute allowedRoles={['student']}>
                       <Courses />
                     </RoleRoute>
                   } />
+                  <Route path="/pay/:sessionId" element={
+                    <RoleRoute allowedRoles={['student']}>
+                      <Payment />
+                    </RoleRoute>
+                  } />
+
+                  {/* Mentor features */}
+                  <Route path="/mentor/availability" element={
+                    <RoleRoute allowedRoles={['mentor']}>
+                      <AvailabilitySettings />
+                    </RoleRoute>
+                  } />
+                  <Route path="/mentor/earnings" element={
+                    <RoleRoute allowedRoles={['mentor']}>
+                      <MentorEarnings />
+                    </RoleRoute>
+                  } />
+
+                  {/* Shared protected routes */}
                   <Route path="/sessions" element={
                     <ProtectedRoute>
                       <Sessions />
@@ -132,21 +154,13 @@ function App() {
                       <Community />
                     </ProtectedRoute>
                   } />
-                  <Route path="/mentor/earnings" element={
-                    <RoleRoute allowedRoles={['mentor']}>
-                      <MentorEarnings />
-                    </RoleRoute>
-                  } />
-                  <Route path="/pay/:sessionId" element={
-                    <RoleRoute allowedRoles={['student']}>
-                      <Payment />
-                    </RoleRoute>
-                  } />
                   <Route path="/video-call/:roomName" element={
                     <ProtectedRoute>
                       <VideoCall />
                     </ProtectedRoute>
                   } />
+
+                  {/* Admin */}
                   <Route path="/admin" element={
                     <RoleRoute allowedRoles={['admin']}>
                       <AdminPanel />

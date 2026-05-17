@@ -1,165 +1,221 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { GraduationCap, Star, BookOpen, User, Home, Book } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { GraduationCap, ArrowRight, Star, Users, Zap, BookOpen, Briefcase } from 'lucide-react';
+import { useAuth } from '../hooks/useAuth';
+import { FadeIn, SlideUp, StaggerContainer, StaggerItem } from '../components/common/MotionWrapper';
+
+const TRUST_COLLEGES = ['IIT', 'BITS', 'DU', 'VIT', 'NID', 'Oxford', 'MIT'];
+
+const FEATURES = [
+  {
+    icon: <Users className="w-6 h-6" />,
+    title: '1:1 Mentorship',
+    desc: 'Book sessions with alumni who have been exactly where you are.'
+  },
+  {
+    icon: <Zap className="w-6 h-6" />,
+    title: 'AI Tutor',
+    desc: 'Instant AI-powered explanations, practice sets, and study guides.'
+  },
+  {
+    icon: <Briefcase className="w-6 h-6" />,
+    title: 'Career Clarity',
+    desc: 'Internship guides, resume reviews, and interview simulations.'
+  },
+  {
+    icon: <BookOpen className="w-6 h-6" />,
+    title: 'War Room',
+    desc: 'Curated prep packs for competitive exams and top-company interviews.'
+  }
+];
 
 const Landing = () => {
+  const { user, userData } = useAuth();
+  const navigate = useNavigate();
+
+  const handleCTA = () => {
+    if (!user) {
+      navigate('/join');
+    } else if (userData?.role === 'mentor') {
+      navigate('/dashboard/mentor');
+    } else {
+      navigate('/dashboard/student');
+    }
+  };
+
+  const ctaLabel = !user
+    ? 'Start Learning Free'
+    : userData?.role === 'mentor'
+    ? 'Open Mentor Hub'
+    : 'Continue Learning';
+
   return (
-    <div className="min-h-screen bg-white font-sans text-gray-900 pb-20">
-      {/* Navbar */}
-      <nav className="flex items-center justify-between px-6 py-4 bg-white sticky top-0 z-50">
-        <div className="flex items-center gap-2">
-          <GraduationCap className="w-6 h-6 text-primary-600" />
-          <span className="text-xl font-bold tracking-tight text-primary-700 uppercase">Senjr</span>
-        </div>
-        <Link 
-          to="/login"
-          className="px-5 py-1.5 text-sm font-medium border-2 border-gray-900 rounded-full hover:bg-gray-50 transition-colors"
-        >
-          Login
-        </Link>
-      </nav>
+    <div className="min-h-screen bg-white font-sans text-gray-900 overflow-x-hidden">
 
-      <main className="px-6 pt-6">
-        {/* Hero Section */}
-        <section className="mb-12 relative">
-          <div className="relative mb-8">
-            {/* Decorative orange blob */}
-            <div className="absolute -top-4 -left-4 w-16 h-16 bg-orange-200 rounded-full mix-blend-multiply opacity-70 -z-10"></div>
-            <h1 className="text-5xl font-extrabold leading-[1.1] tracking-tight">
-              Learn from
-              <br />
-              <span className="relative inline-block">
-                Seniors,
-                <svg className="absolute w-full h-3 -bottom-1 left-0 text-gray-900" viewBox="0 0 100 20" preserveAspectRatio="none">
-                  <path d="M0 15 Q 50 0 100 15" stroke="currentColor" strokeWidth="4" fill="transparent" />
-                </svg>
-              </span>
-              <br />
-              Not Teachers.
-            </h1>
+      {/* ===== HERO ===== */}
+      <section className="relative pt-28 pb-20 px-5 max-w-5xl mx-auto text-center">
+        {/* Decorative blobs */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-primary-500/8 rounded-full blur-[120px] pointer-events-none" />
+
+        <FadeIn delay={0.1}>
+          <span className="inline-flex items-center gap-2 px-4 py-1.5 bg-primary-50 text-primary-600 rounded-full text-sm font-semibold mb-8 border border-primary-100">
+            <Star className="w-3.5 h-3.5 fill-primary-500" /> Mentorship without borders
+          </span>
+        </FadeIn>
+
+        <SlideUp delay={0.2}>
+          <h1 className="text-5xl md:text-7xl font-extrabold leading-[1.07] tracking-tight text-gray-900 mb-6">
+            Learn from Seniors,
+            <br />
+            <span className="relative inline-block">
+              <span className="relative z-10 text-primary-500">Not Teachers.</span>
+              <svg className="absolute -bottom-2 left-0 w-full" viewBox="0 0 300 12" fill="none">
+                <path d="M0 9 Q 150 0 300 9" stroke="#ed7d12" strokeWidth="3" strokeLinecap="round"/>
+              </svg>
+            </span>
+          </h1>
+        </SlideUp>
+
+        <SlideUp delay={0.3}>
+          <p className="text-xl text-gray-500 max-w-xl mx-auto mb-10 leading-relaxed">
+            Real guidance from people who cracked the same exams, landed the same internships, and built the careers you want.
+          </p>
+        </SlideUp>
+
+        <FadeIn delay={0.4}>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
+            <motion.button
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={handleCTA}
+              className="inline-flex items-center gap-2 bg-gray-900 text-white font-bold px-8 py-4 rounded-2xl shadow-xl shadow-gray-900/20 text-lg"
+            >
+              {ctaLabel} <ArrowRight className="w-5 h-5" />
+            </motion.button>
+
+            {!user && (
+              <Link
+                to="/join"
+                className="inline-flex items-center gap-2 text-gray-700 font-semibold px-6 py-4 rounded-2xl border-2 border-gray-200 hover:border-gray-900 transition-colors text-base"
+              >
+                Become a Mentor
+              </Link>
+            )}
           </div>
 
-          <div className="relative rounded-2xl overflow-hidden border-2 border-gray-900 bg-white mb-6">
-            <div className="absolute inset-0 bg-orange-400 translate-x-2 translate-y-2 -z-10 rounded-2xl"></div>
-            <img 
-              src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=800&auto=format&fit=crop" 
-              alt="Students learning together"
-              className="w-full h-56 object-cover"
-            />
-            <div className="absolute bottom-3 right-3 bg-white px-3 py-1.5 rounded-full border-2 border-gray-900 flex items-center gap-2 shadow-sm">
-              <GraduationCap className="w-4 h-4" />
-              <span className="text-xs font-bold">Real advice</span>
-            </div>
-          </div>
-
-          <Link to="/signup/student/1" className="block w-full group relative mb-6">
-            <div className="absolute inset-0 bg-gray-900 translate-y-1.5 translate-x-1.5 rounded-xl transition-transform group-active:translate-x-0 group-active:translate-y-0"></div>
-            <div className="relative bg-primary-500 border-2 border-gray-900 text-gray-900 text-center py-4 rounded-xl font-bold text-lg flex items-center justify-center transition-transform group-active:translate-x-1.5 group-active:translate-y-1.5">
-              Start Learning Free
-            </div>
-          </Link>
-
-          <div className="flex items-center justify-center gap-3">
+          {/* Trust indicators */}
+          <div className="flex flex-col items-center gap-4">
             <div className="flex -space-x-2">
-              <img src="https://i.pravatar.cc/100?img=1" className="w-8 h-8 rounded-full border-2 border-white bg-gray-200" alt="Student" />
-              <img src="https://i.pravatar.cc/100?img=2" className="w-8 h-8 rounded-full border-2 border-white bg-gray-200" alt="Student" />
-              <img src="https://i.pravatar.cc/100?img=3" className="w-8 h-8 rounded-full border-2 border-white bg-gray-200" alt="Student" />
+              {[1, 2, 3, 4, 5].map(i => (
+                <img
+                  key={i}
+                  src={`https://i.pravatar.cc/100?img=${i + 10}`}
+                  className="w-9 h-9 rounded-full border-2 border-white"
+                  alt="Student"
+                  loading="lazy"
+                  decoding="async"
+                />
+              ))}
             </div>
-            <span className="text-sm font-medium text-gray-600">500+ students joined</span>
+            <span className="text-sm text-gray-400 font-medium">
+              Joined by students from{' '}
+              {TRUST_COLLEGES.slice(0, 4).join(', ')} & more
+            </span>
           </div>
-        </section>
+        </FadeIn>
+      </section>
 
-        {/* Popular Lessons */}
-        <section className="mb-12">
-          <div className="flex items-center gap-2 mb-6">
-            <Star className="w-5 h-5 text-orange-400" />
-            <h2 className="text-2xl font-bold">Popular Lessons</h2>
-          </div>
-
-          <div className="space-y-6">
-            {/* Card 1 */}
-            <div className="relative group">
-              <div className="absolute inset-0 bg-gray-900 translate-y-1.5 translate-x-1.5 rounded-2xl transition-transform"></div>
-              <div className="absolute -top-3 -right-3 w-8 h-8 bg-orange-400 border-2 border-gray-900 rounded-full z-10 flex items-center justify-center">
-                <span className="text-white text-xs">🚀</span>
-              </div>
-              <div className="relative bg-green-50 border-2 border-gray-900 rounded-2xl p-4 flex flex-col gap-4">
-                <div className="relative rounded-xl overflow-hidden border-2 border-gray-900 h-40">
-                  <img src="https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=800&auto=format&fit=crop" alt="Desk setup" className="w-full h-full object-cover" />
-                  <div className="absolute bottom-2 left-2 bg-white px-2 py-1 rounded text-xs font-bold border border-gray-900">45 mins</div>
-                </div>
-                <div>
-                  <h3 className="font-bold text-lg mb-1">Mastering DSA for FAANG</h3>
-                  <div className="flex items-center gap-2 text-gray-600 text-sm mb-3">
-                    <User className="w-4 h-4" />
-                    <span>By Rahul S., IIT Delhi '24</span>
-                  </div>
-                  <div className="flex gap-2">
-                    <span className="px-3 py-1 bg-gray-200 border border-gray-900 rounded-full text-xs font-medium">Algorithms</span>
-                    <span className="px-3 py-1 bg-gray-200 border border-gray-900 rounded-full text-xs font-medium">Interview</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Card 2 */}
-            <div className="relative group">
-              <div className="absolute inset-0 bg-gray-900 translate-y-1.5 translate-x-1.5 rounded-2xl transition-transform"></div>
-              <div className="absolute -top-3 -right-3 w-8 h-8 bg-primary-500 border-2 border-gray-900 rounded-full z-10 flex items-center justify-center">
-                <span className="text-white text-xs">💡</span>
-              </div>
-              <div className="relative bg-white border-2 border-gray-900 rounded-2xl p-4 flex flex-col gap-4">
-                <div className="relative rounded-xl border-2 border-gray-900 h-40 bg-pink-100 flex items-center justify-center">
-                  <span className="text-4xl">🎨</span>
-                  <div className="absolute bottom-2 left-2 bg-white px-2 py-1 rounded text-xs font-bold border border-gray-900">1.5 hrs</div>
-                </div>
-                <div>
-                  <h3 className="font-bold text-lg mb-1">UI/UX Basics for Devs</h3>
-                  <div className="flex items-center gap-2 text-gray-600 text-sm mb-3">
-                    <User className="w-4 h-4" />
-                    <span>By Priya M., NID '23</span>
-                  </div>
-                </div>
-              </div>
+      {/* ===== HERO IMAGE ===== */}
+      <FadeIn delay={0.5}>
+        <div className="max-w-4xl mx-auto px-5 mb-24">
+          <div className="relative rounded-3xl overflow-hidden border border-gray-200 shadow-2xl shadow-gray-200/60">
+            <img
+              src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=1200&auto=format&fit=crop"
+              alt="Students collaborating with mentors"
+              className="w-full h-[340px] md:h-[440px] object-cover"
+              loading="lazy"
+              decoding="async"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-gray-900/30 to-transparent" />
+            <div className="absolute bottom-5 left-5 bg-white/95 backdrop-blur-sm px-4 py-2.5 rounded-2xl flex items-center gap-3 shadow-lg">
+              <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+              <span className="text-sm font-semibold text-gray-800">Mentors live now</span>
             </div>
           </div>
-        </section>
+        </div>
+      </FadeIn>
 
-        {/* Footer */}
-        <footer className="pt-8 pb-12 text-center border-t border-gray-200">
-          <div className="font-bold text-gray-900 mb-6">Senjr</div>
-          <div className="flex justify-center gap-6 text-sm font-medium text-gray-600 mb-8">
-            <a href="#" className="underline decoration-orange-400 decoration-2 underline-offset-4">Terms</a>
-            <a href="#" className="underline decoration-orange-400 decoration-2 underline-offset-4">Privacy</a>
-            <a href="#" className="underline decoration-orange-400 decoration-2 underline-offset-4">Support</a>
+      {/* ===== FEATURES ===== */}
+      <section className="px-5 pb-24 max-w-5xl mx-auto">
+        <FadeIn>
+          <div className="text-center mb-14">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Everything you need to accelerate
+            </h2>
+            <p className="text-gray-400 text-lg max-w-md mx-auto">
+              Built for ambitious students who don't want to wait until graduation to figure things out.
+            </p>
           </div>
-          <div className="text-xs text-gray-500 font-medium">
-            © 2024 Senjr EdTech. Made in India 🇮🇳
-          </div>
-        </footer>
-      </main>
+        </FadeIn>
 
-      {/* Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-gray-900 flex justify-around p-3 z-50 rounded-t-xl">
-        <Link to="/" className="flex flex-col items-center gap-1">
-          <div className="bg-primary-500 p-2 rounded-xl border-2 border-gray-900">
-            <Home className="w-6 h-6 text-gray-900" />
+        <StaggerContainer staggerDelay={0.1} className="grid sm:grid-cols-2 gap-5">
+          {FEATURES.map((f) => (
+            <StaggerItem key={f.title}>
+              <div className="group p-6 rounded-2xl border border-gray-100 hover:border-primary-200 hover:shadow-lg hover:shadow-primary-500/5 transition-all duration-300 bg-white cursor-default">
+                <div className="w-12 h-12 bg-primary-50 text-primary-500 rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
+                  {f.icon}
+                </div>
+                <h3 className="font-bold text-gray-900 text-lg mb-2">{f.title}</h3>
+                <p className="text-gray-500 text-sm leading-relaxed">{f.desc}</p>
+              </div>
+            </StaggerItem>
+          ))}
+        </StaggerContainer>
+      </section>
+
+      {/* ===== CTA BAND ===== */}
+      <section className="mx-5 mb-24">
+        <FadeIn>
+          <div className="max-w-4xl mx-auto bg-gray-900 rounded-3xl p-10 md:p-14 text-center relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-primary-500/10 rounded-full blur-[80px] pointer-events-none" />
+            <div className="relative z-10">
+              <h2 className="text-3xl md:text-4xl font-extrabold text-white mb-5 tracking-tight">
+                Built for ambitious students everywhere.
+              </h2>
+              <p className="text-gray-400 text-lg mb-8 max-w-sm mx-auto">
+                Stop Googling. Start talking to people who've actually done it.
+              </p>
+              <motion.button
+                whileHover={{ scale: 1.04 }}
+                whileTap={{ scale: 0.96 }}
+                onClick={handleCTA}
+                className="inline-flex items-center gap-2 bg-primary-500 text-white font-bold px-8 py-4 rounded-2xl shadow-lg shadow-primary-500/30 text-base"
+              >
+                {ctaLabel} <ArrowRight className="w-5 h-5" />
+              </motion.button>
+            </div>
           </div>
-          <span className="text-[10px] font-bold text-gray-900">Home</span>
-        </Link>
-        <Link to="/courses" className="flex flex-col items-center gap-1 p-2">
-          <GraduationCap className="w-6 h-6 text-gray-500" />
-          <span className="text-[10px] font-medium text-gray-500">Courses</span>
-        </Link>
-        <Link to="/learning" className="flex flex-col items-center gap-1 p-2">
-          <BookOpen className="w-6 h-6 text-gray-500" />
-          <span className="text-[10px] font-medium text-gray-500">My Learning</span>
-        </Link>
-        <Link to="/profile" className="flex flex-col items-center gap-1 p-2">
-          <User className="w-6 h-6 text-gray-500" />
-          <span className="text-[10px] font-medium text-gray-500">Profile</span>
-        </Link>
-      </div>
+        </FadeIn>
+      </section>
+
+      {/* ===== FOOTER ===== */}
+      <footer className="border-t border-gray-100 py-10 px-5 text-center">
+        <div className="flex items-center justify-center gap-2 mb-5">
+          <div className="w-6 h-6 bg-primary-500 rounded-lg flex items-center justify-center">
+            <GraduationCap className="w-4 h-4 text-white" />
+          </div>
+          <span className="font-bold text-gray-900">Senjr</span>
+        </div>
+        <div className="flex justify-center gap-6 text-sm text-gray-400 mb-5">
+          <a href="#" className="hover:text-gray-700 transition-colors">Terms</a>
+          <a href="#" className="hover:text-gray-700 transition-colors">Privacy</a>
+          <a href="#" className="hover:text-gray-700 transition-colors">Support</a>
+        </div>
+        <p className="text-xs text-gray-300">
+          © 2025 Senjr EdTech. Designed for the next generation of builders.
+        </p>
+      </footer>
     </div>
   );
 };
