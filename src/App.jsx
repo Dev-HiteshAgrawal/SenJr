@@ -41,6 +41,10 @@ const Community = React.lazy(() => import('./pages/features/Community'))
 const MentorEarnings = React.lazy(() => import('./pages/features/MentorEarnings'))
 const Payment = React.lazy(() => import('./pages/features/Payment'))
 const VideoCall = React.lazy(() => import('./pages/features/VideoCall'))
+const HelpCenter = React.lazy(() => import('./pages/legal/HelpCenter'))
+const ContactUs = React.lazy(() => import('./pages/legal/ContactUs'))
+const PrivacyPolicy = React.lazy(() => import('./pages/legal/PrivacyPolicy'))
+const TermsOfService = React.lazy(() => import('./pages/legal/TermsOfService'))
 
 function App() {
   return (
@@ -56,6 +60,12 @@ function App() {
                   <Route path="/" element={<Landing />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/join" element={<RoleSelection />} />
+
+                  {/* Legal & Support pages */}
+                  <Route path="/help" element={<HelpCenter />} />
+                  <Route path="/contact" element={<ContactUs />} />
+                  <Route path="/privacy" element={<PrivacyPolicy />} />
+                  <Route path="/terms" element={<TermsOfService />} />
 
                   {/* Student signup flow */}
                   <Route path="/signup/student/1" element={<StudentSignup1 />} />
