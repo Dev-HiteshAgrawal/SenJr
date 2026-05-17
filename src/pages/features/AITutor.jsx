@@ -1,166 +1,233 @@
-import { useState } from 'react'
-import { motion } from 'framer-motion'
-import toast from 'react-hot-toast'
-import { Send, Sparkles, BookOpen, Calculator, Code, Lightbulb, RotateCcw } from 'lucide-react'
+import React, { useState, useRef, useEffect } from 'react';
+import { ArrowLeft, Send, Mic, Sparkles, BookOpen, FlaskConical, Atom, Leaf, PenLine, TrendingUp, Code2, Shield, Building2, X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
-const AITutor = () => {
+const tutors = [
+  { id: 'arya',    name: 'Arya',    subject: 'Mathematics',        emoji: '📐', icon: <BookOpen className="w-5 h-5" />, color: '#1E40AF', bg: '#EFF6FF',  desc: 'Calculus, Algebra, Geometry & Stats' },
+  { id: 'veda',    name: 'Veda',    subject: 'Physics',            emoji: '⚡', icon: <Atom className="w-5 h-5" />,     color: '#7C3AED', bg: '#F5F3FF',  desc: 'Mechanics, Waves, Modern Physics' },
+  { id: 'rasayan', name: 'Rasayan', subject: 'Chemistry',          emoji: '🧪', icon: <FlaskConical className="w-5 h-5" />, color: '#B45309', bg: '#FFF7ED', desc: 'Organic, Inorganic, Physical Chem' },
+  { id: 'jeev',    name: 'Jeev',    subject: 'Biology',            emoji: '🌿', icon: <Leaf className="w-5 h-5" />,     color: '#065F46', bg: '#ECFDF5',  desc: 'Botany, Zoology, Human Body' },
+  { id: 'lekhak',  name: 'Lekhak',  subject: 'English',            emoji: '✍️', icon: <PenLine className="w-5 h-5" />,  color: '#BE123C', bg: '#FFF1F2',  desc: 'Grammar, Comprehension, Writing' },
+  { id: 'arth',    name: 'Arth',    subject: 'Economics',          emoji: '📊', icon: <TrendingUp className="w-5 h-5" />, color: '#0F766E', bg: '#F0FDFA', desc: 'Micro, Macro, Indian Economy' },
+  { id: 'codebot', name: 'CodeBot', subject: 'Programming',        emoji: '💻', icon: <Code2 className="w-5 h-5" />,   color: '#374151', bg: '#F9FAFB',  desc: 'Python, C++, DSA, Web Dev' },
+  { id: 'sarkar',  name: 'Sarkar',  subject: 'Government Exams',   emoji: '🏛️', icon: <Shield className="w-5 h-5" />,  color: '#1E40AF', bg: '#EFF6FF',  desc: 'UP Police, SSC CGL, Banking, GK' },
+  { id: 'shasan',  name: 'Shasan',  subject: 'UPSC',               emoji: '🏛', icon: <Building2 className="w-5 h-5" />, color: '#7C3AED', bg: '#F5F3FF', desc: 'Prelims, Mains, Current Affairs' },
+];
+
+const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+
+const buildSystemPrompt = (tutor) =>
+  `You are ${tutor.name} on Senjr, an AI peer mentor. You ONLY teach ${tutor.subject}. 
+Always respond in Hindi-English mix (Hinglish). Be warm, encouraging, and proactive.
+When a student asks a question:
+1. First ask their level if you don't know it.
+2. Give a structured explanation: Definition → Indian real-life example → Step-by-step → Practice question.
+Never answer questions outside ${tutor.subject}. If asked, politely redirect: "Yeh mere subject ke bahar hai! ${tutor.subject} ke baare mein poochho 😊"`;
+
+const ChatView = ({ tutor, onBack }) => {
   const [messages, setMessages] = useState([
     {
       role: 'assistant',
-      content: "Hi! I'm your AI learning assistant. I can help you with:\n\n📚 **Subjects** - Any topic explanation\n🧮 **Math** - Problem solving & step-by-step solutions\n💻 **Coding** - Programming help & debugging\n💡 **Concepts** - Clarify any doubts\n\nWhat would you like to learn today?"
+      content: `Namaste! Main hoon ${tutor.name} ${tutor.emoji} — aapka ${tutor.subject} expert!\n\nAaj kya seekhna hai? Apna sawaal poochho, main poori detail se explain karoonga! 🚀`,
+    },
+  ]);
+  const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(false);
+  const bottomRef = useRef(null);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  const sendMessage = async () => {
+    if (!input.trim() || loading) return;
+    const userMsg = { role: 'user', content: input.trim() };
+    const updatedMessages = [...messages, userMsg];
+    setMessages(updatedMessages);
+    setInput('');
+    setLoading(true);
+
+    try {
+      // Build Gemini API conversation
+      const contents = updatedMessages.map((m) => ({
+        role: m.role === 'assistant' ? 'model' : 'user',
+        parts: [{ text: m.content }],
+      }));
+
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            system_instruction: { parts: [{ text: buildSystemPrompt(tutor) }] },
+            contents,
+            generationConfig: { temperature: 0.7, maxOutputTokens: 800 },
+          }),
+        }
+      );
+
+      const data = await res.json();
+      const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text || 'Kuch error aa gaya, dobara try karo!';
+      setMessages((prev) => [...prev, { role: 'assistant', content: reply }]);
+    } catch {
+      setMessages((prev) => [...prev, { role: 'assistant', content: 'Network error. Please try again!' }]);
+    } finally {
+      setLoading(false);
     }
-  ])
-  const [input, setInput] = useState('')
-  const [loading, setLoading] = useState(false)
+  };
 
-  const quickActions = [
-    { icon: BookOpen, label: 'Explain Topic', prompt: 'Explain ' },
-    { icon: Calculator, label: 'Solve Problem', prompt: 'Solve this: ' },
-    { icon: Code, label: 'Code Help', prompt: 'Help me with code: ' },
-    { icon: Lightbulb, label: 'Concept Clarification', prompt: 'What is ' }
-  ]
+  return (
+    <div className="flex flex-col h-screen bg-[#F8FAF9] font-sans">
+      {/* Chat Header */}
+      <header className="bg-white px-4 py-3 flex items-center gap-3 sticky top-0 z-50 border-b border-gray-100 shadow-sm">
+        <button onClick={onBack} className="p-1">
+          <X className="w-5 h-5 text-gray-700" />
+        </button>
+        <div
+          className="w-10 h-10 rounded-full flex items-center justify-center text-xl shrink-0"
+          style={{ backgroundColor: tutor.bg }}
+        >
+          {tutor.emoji}
+        </div>
+        <div>
+          <p className="font-bold text-gray-900 leading-tight">{tutor.name}</p>
+          <p className="text-[10px] text-gray-500 font-medium">{tutor.subject} Expert</p>
+        </div>
+        <div className="ml-auto flex items-center gap-1.5">
+          <div className="w-2 h-2 rounded-full bg-green-400"></div>
+          <span className="text-[10px] font-medium text-gray-500">Online</span>
+        </div>
+      </header>
 
-  const handleSend = async () => {
-    if (!input.trim()) return
+      {/* Messages */}
+      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3 pb-24">
+        {messages.map((msg, i) => (
+          <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+            <div
+              className={`max-w-[85%] px-4 py-3 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${
+                msg.role === 'user'
+                  ? 'bg-[#10b981] text-white rounded-tr-sm'
+                  : 'bg-white border border-gray-100 text-gray-800 rounded-tl-sm shadow-sm'
+              }`}
+            >
+              {msg.content}
+            </div>
+          </div>
+        ))}
 
-    const userMessage = { role: 'user', content: input }
-    setMessages(prev => [...prev, userMessage])
-    setInput('')
-    setLoading(true)
+        {loading && (
+          <div className="flex justify-start">
+            <div className="bg-white border border-gray-100 rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm">
+              <div className="flex gap-1 items-center">
+                <div className="w-2 h-2 bg-gray-300 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                <div className="w-2 h-2 bg-gray-300 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                <div className="w-2 h-2 bg-gray-300 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+              </div>
+            </div>
+          </div>
+        )}
+        <div ref={bottomRef} />
+      </div>
 
-    setTimeout(() => {
-      const aiResponse = generateResponse(input)
-      setMessages(prev => [...prev, { role: 'assistant', content: aiResponse }])
-      setLoading(false)
-    }, 1500)
-  }
+      {/* Input Bar */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-3 py-2.5 flex items-end gap-2">
+        <div className="flex-1 bg-gray-50 border border-gray-200 rounded-2xl flex items-center px-4 py-1.5">
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
+            placeholder="Apna sawaal poochho..."
+            className="flex-1 bg-transparent py-2 text-sm focus:outline-none text-gray-800 placeholder-gray-400"
+          />
+          <button className="text-gray-400 p-1">
+            <Mic className="w-4 h-4" />
+          </button>
+        </div>
+        <button
+          onClick={sendMessage}
+          disabled={!input.trim() || loading}
+          className={`w-11 h-11 rounded-full flex items-center justify-center shrink-0 transition-colors ${
+            input.trim() && !loading ? 'bg-[#10b981] text-white' : 'bg-gray-100 text-gray-300'
+          }`}
+        >
+          <Send className="w-4 h-4 ml-0.5" />
+        </button>
+      </div>
+    </div>
+  );
+};
 
-  const generateResponse = (query) => {
-    const lowerQuery = query.toLowerCase()
-    
-    if (lowerQuery.includes('math') || lowerQuery.includes('calculate') || lowerQuery.includes('solve')) {
-      return "I'd be happy to help with math! Please share the specific problem or equation you'd like me to solve, and I'll provide step-by-step solutions.\n\n**Example problems I can help with:**\n- Algebraic equations\n- Calculus derivatives\n- Geometry problems\n- Trigonometric functions\n\nWhat specific problem are you working on?"
-    }
-    
-    if (lowerQuery.includes('code') || lowerQuery.includes('program') || lowerQuery.includes('javascript')) {
-      return "I can help with programming! Please share:\n\n1. The programming language\n2. Your current code\n3. The specific issue or error\n\n**Languages I support:**\n- JavaScript, Python, Java\n- C++, C#, Go\n- HTML, CSS, React\n- And more...\n\nWhat would you like to build or fix?"
-    }
-    
-    if (lowerQuery.includes('explain') || lowerQuery.includes('what is') || lowerQuery.includes('how does')) {
-      return "Sure! I'd be happy to explain any topic. Please let me know:\n\n1. **The concept** you want to understand\n2. **Your current level** (beginner/intermediate/advanced)\n3. **Any specific aspects** you want to focus on\n\nI'll break it down in simple terms with examples!"
-    }
+const AITutor = () => {
+  const navigate = useNavigate();
+  const [activeTutor, setActiveTutor] = useState(null);
 
-    return `Thank you for your question: "${query}"\n\nI'm analyzing this and here's what I can help with:\n\n1. **Break down the topic** - Explain concepts step by step\n2. **Provide examples** - Real-world applications\n3. **Solve problems** - Practice exercises\n4. **Answer doubts** - Clarify any confusion\n\nCould you provide more details about what specifically you'd like to learn?`
-  }
-
-  const handleQuickAction = (prompt) => {
-    setInput(prompt)
-  }
-
-  const handleClear = () => {
-    setMessages([
-      {
-        role: 'assistant',
-        content: "Chat cleared! How can I help you today?"
-      }
-    ])
+  if (activeTutor) {
+    return <ChatView tutor={activeTutor} onBack={() => setActiveTutor(null)} />;
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
-        >
-          <div className="bg-gradient-to-r from-purple-500 to-purple-600 p-6 text-white">
-            <div className="flex items-center gap-3">
-              <Sparkles className="h-8 w-8" />
+    <div className="min-h-screen bg-[#F8FAF9] font-sans text-gray-900 pb-24">
+
+      {/* Header */}
+      <header className="bg-white px-4 py-4 sticky top-0 z-50 border-b border-gray-100">
+        <div className="flex items-center gap-3">
+          <button onClick={() => navigate(-1)} className="p-1">
+            <ArrowLeft className="w-5 h-5 text-gray-700" />
+          </button>
+          <div>
+            <h1 className="text-lg font-bold text-gray-900 leading-tight">AI Tutors</h1>
+            <p className="text-[11px] text-gray-400">Powered by Gemini AI</p>
+          </div>
+          <div className="ml-auto">
+            <Sparkles className="w-5 h-5 text-[#10b981]" />
+          </div>
+        </div>
+      </header>
+
+      <main className="px-4 pt-5">
+        {/* Banner */}
+        <div className="bg-gradient-to-r from-[#064E3B] to-[#10b981] rounded-2xl p-4 mb-5 text-white">
+          <div className="flex items-center gap-2 mb-1">
+            <Sparkles className="w-4 h-4" />
+            <span className="text-xs font-bold">AI-Powered Peer Mentors</span>
+          </div>
+          <p className="text-xl font-black leading-tight">Learn in Hinglish,<br/>Anytime, Instantly</p>
+          <p className="text-xs opacity-70 mt-1">Choose your subject expert below</p>
+        </div>
+
+        {/* Tutor Grid */}
+        <div className="grid grid-cols-2 gap-3 pb-4">
+          {tutors.map((tutor) => (
+            <button
+              key={tutor.id}
+              onClick={() => setActiveTutor(tutor)}
+              className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 text-left active:scale-95 transition-transform flex flex-col gap-3"
+            >
+              <div
+                className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl"
+                style={{ backgroundColor: tutor.bg }}
+              >
+                {tutor.emoji}
+              </div>
               <div>
-                <h1 className="text-2xl font-display font-bold">AI Tutor</h1>
-                <p className="text-purple-100">Your personal learning assistant</p>
+                <p className="font-bold text-gray-900 text-sm">{tutor.name}</p>
+                <p className="text-[10px] font-bold mb-1" style={{ color: tutor.color }}>{tutor.subject}</p>
+                <p className="text-[10px] text-gray-400 leading-relaxed">{tutor.desc}</p>
               </div>
-            </div>
-          </div>
-
-          <div className="p-4 border-b border-gray-100">
-            <div className="flex flex-wrap gap-2">
-              {quickActions.map((action, index) => (
-                <button
-                  key={index}
-                  onClick={() => handleQuickAction(action.prompt)}
-                  className="flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm text-gray-700 transition-colors"
-                >
-                  <action.icon className="h-4 w-4" />
-                  {action.label}
-                </button>
-              ))}
-              <button
-                onClick={handleClear}
-                className="flex items-center gap-2 px-3 py-2 bg-red-50 hover:bg-red-100 rounded-lg text-sm text-red-600 transition-colors"
+              <div
+                className="w-full py-2 rounded-xl text-xs font-bold text-center text-white mt-auto"
+                style={{ backgroundColor: tutor.color }}
               >
-                <RotateCcw className="h-4 w-4" />
-                Clear
-              </button>
-            </div>
-          </div>
-
-          <div className="h-[500px] overflow-y-auto p-6 space-y-4">
-            {messages.map((message, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-              >
-                <div
-                  className={`max-w-[80%] p-4 rounded-xl ${
-                    message.role === 'user'
-                      ? 'bg-primary-500 text-white'
-                      : 'bg-gray-100 text-gray-800'
-                  }`}
-                >
-                  <div className="whitespace-pre-line">{message.content}</div>
-                </div>
-              </motion.div>
-            ))}
-            {loading && (
-              <div className="flex justify-start">
-                <div className="bg-gray-100 p-4 rounded-xl">
-                  <div className="flex gap-1">
-                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></span>
-                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></span>
-                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></span>
-                  </div>
-                </div>
+                Start Chat →
               </div>
-            )}
-          </div>
-
-          <div className="p-4 border-t border-gray-100">
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-                placeholder="Ask me anything..."
-                className="flex-1 px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              />
-              <button
-                onClick={handleSend}
-                disabled={loading || !input.trim()}
-                className="px-6 py-3 bg-primary-500 text-white rounded-xl hover:bg-primary-600 transition-colors disabled:opacity-50"
-              >
-                <Send className="h-5 w-5" />
-              </button>
-            </div>
-          </div>
-        </motion.div>
-      </div>
+            </button>
+          ))}
+        </div>
+      </main>
     </div>
-  )
-}
+  );
+};
 
-export default AITutor
+export default AITutor;

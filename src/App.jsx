@@ -33,6 +33,8 @@ import Courses from './pages/features/Courses'
 import Sessions from './pages/features/Sessions'
 import Community from './pages/features/Community'
 import MentorEarnings from './pages/features/MentorEarnings'
+import Payment from './pages/features/Payment'
+import VideoCall from './pages/features/VideoCall'
 
 function App() {
   return (
@@ -127,6 +129,16 @@ function App() {
                 <Route path="/mentor/earnings" element={
                   <ProtectedRoute>
                     <MentorEarnings />
+                  </ProtectedRoute>
+                } />
+                <Route path="/pay/:sessionId" element={
+                  <ProtectedRoute>
+                    <Payment />
+                  </ProtectedRoute>
+                } />
+                <Route path="/video-call/:roomName" element={
+                  <ProtectedRoute>
+                    <VideoCall />
                   </ProtectedRoute>
                 } />
                 <Route path="/admin" element={
