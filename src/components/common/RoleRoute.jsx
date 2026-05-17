@@ -9,21 +9,27 @@ const RoleRoute = ({ children, allowedRoles }) => {
     return <Loader fullScreen />;
   }
 
-  // If we are checking for admin role, also check if the user matches the admin email env var
-  const adminEmail = import.meta.env.VITE_ADMIN_EMAIL;
-  const isAdminRequest = allowedRoles.includes('admin');
-  const isAdminUser = user?.email === adminEmail || userData?.role === 'admin';
-
-  if (!userData || !user) {
+  // Not logged in at all
+  if (!user) {
     return <Navigate to="/login" replace />;
   }
 
-  if (isAdminRequest && isAdminUser) {
+  // Logged in but no Firestore document yet (e.g., Google sign-in new user)
+  // Send them to role selection to complete signup
+  if (!userData) {
+    return <Navigate to="/join" replace />;
+  }
+
+  const adminEmail = import.meta.env.VITE_ADMIN_EMAIL;
+  const isAdminUser = user?.email === adminEmail || userData?.role === 'admin';
+
+  // Admin override — can access everything
+  if (isAdminUser) {
     return children;
   }
 
-  if (!allowedRoles.includes(userData.role) && !isAdminUser) {
-    // Redirect based on actual role if they try to access wrong route
+  // Role mismatch — redirect to their own dashboard
+  if (!allowedRoles.includes(userData.role)) {
     if (userData.role === 'mentor') return <Navigate to="/dashboard/mentor" replace />;
     if (userData.role === 'student') return <Navigate to="/dashboard/student" replace />;
     return <Navigate to="/login" replace />;

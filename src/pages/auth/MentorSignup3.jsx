@@ -6,8 +6,19 @@ const MentorSignup3 = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('record');
 
+  const [college, setCollege] = useState('');
+  const [degree, setDegree] = useState('');
+  const [graduationYear, setGraduationYear] = useState('');
+
   const handleContinue = (e) => {
     e.preventDefault();
+    const existing = JSON.parse(sessionStorage.getItem('senjr_signup') || '{}');
+    sessionStorage.setItem('senjr_signup', JSON.stringify({
+      ...existing,
+      college,
+      degree,
+      graduationYear,
+    }));
     navigate('/signup/mentor/4');
   };
 

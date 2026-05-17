@@ -16,6 +16,13 @@ const MentorSignup2 = () => {
 
   const handleContinue = (e) => {
     e.preventDefault();
+    // Persist UPI ID and doc type to sessionStorage for the final step
+    const existing = JSON.parse(sessionStorage.getItem('senjr_signup') || '{}');
+    sessionStorage.setItem('senjr_signup', JSON.stringify({
+      ...existing,
+      upiId: formData.upiId,
+      idType: formData.idType,
+    }));
     navigate('/signup/mentor/3');
   };
 

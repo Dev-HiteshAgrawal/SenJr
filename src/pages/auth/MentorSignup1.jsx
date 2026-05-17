@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, GraduationCap, Eye, EyeOff, ChevronDown } from 'lucide-react';
+import { ArrowLeft, GraduationCap, Eye, EyeOff, ChevronDown, AlertCircle } from 'lucide-react';
+import { registerWithEmail } from '../../firebase/auth';
 
 const MentorSignup1 = () => {
   const navigate = useNavigate();
@@ -15,6 +16,16 @@ const MentorSignup1 = () => {
     agreedToGuidelines: false
   });
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const getErrorMessage = (code) => {
+    switch (code) {
+      case 'auth/email-already-in-use': return 'This email is already registered. Try logging in.';
+      case 'auth/weak-password': return 'Password must be at least 6 characters.';
+      default: return 'Something went wrong. Please try again.';
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -24,9 +35,34 @@ const MentorSignup1 = () => {
     });
   };
 
-  const handleContinue = (e) => {
+  const handleContinue = async (e) => {
     e.preventDefault();
-    navigate('/signup/mentor/2');
+    setError('');
+    if (!formData.isAdult || !formData.agreedToGuidelines) {
+      setError('Please confirm you are 18+ and agree to the Mentor Guidelines.');
+      return;
+    }
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords don't match.");
+      return;
+    }
+    setLoading(true);
+    try {
+      const result = await registerWithEmail(formData.email, formData.password);
+      sessionStorage.setItem('senjr_signup', JSON.stringify({
+        uid: result.user.uid,
+        email: formData.email,
+        fullName: formData.fullName,
+        phone: formData.phone,
+        source: formData.source,
+        role: 'mentor',
+      }));
+      navigate('/signup/mentor/2');
+    } catch (err) {
+      setError(getErrorMessage(err.code));
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -42,6 +78,12 @@ const MentorSignup1 = () => {
       </header>
 
       <main className="flex-1 px-4 pt-2">
+        {error && (
+          <div className="flex items-center gap-3 mb-4 p-4 bg-red-50 border-2 border-red-200 rounded-xl text-red-700 text-sm font-medium">
+            <AlertCircle className="w-5 h-5 shrink-0" />
+            {error}
+          </div>
+        )}
         {/* Progress Dashes */}
         <div className="flex gap-2 mb-6 px-1">
           <div className="flex-1 h-1.5 rounded-full bg-[#f97316]"></div>
@@ -226,11 +268,17 @@ const MentorSignup1 = () => {
         <div className="p-4 bg-white">
           <button 
             onClick={handleContinue}
+            disabled={loading}
             className="w-full group relative block"
           >
             <div className="absolute inset-0 bg-gray-900 translate-y-1.5 translate-x-1.5 rounded-none transition-transform group-active:translate-x-0 group-active:translate-y-0"></div>
             <div className="relative bg-[#f97316] border-2 border-gray-900 text-gray-900 text-center py-3.5 font-bold text-lg flex items-center justify-center transition-transform group-active:translate-x-1.5 group-active:translate-y-1.5">
-              Continue
+              {loading ? (
+                <span className="flex items-center gap-2">
+                  <span className="w-5 h-5 border-2 border-gray-900 border-t-transparent rounded-full animate-spin" />
+                  Creating account...
+                </span>
+              ) : 'Continue'}
             </div>
           </button>
         </div>

@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, UserCheck, Lightbulb, Zap } from 'lucide-react';
+import { ArrowLeft, UserCheck, Lightbulb, Zap, AlertCircle } from 'lucide-react';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { db } from '../../firebase/config';
+import { awardXP, XP_REWARDS } from '../../utils/gamification';
 
 const MentorSignup4 = () => {
   const navigate = useNavigate();
@@ -21,10 +24,62 @@ const MentorSignup4 = () => {
   });
 
   const [bio, setBio] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleContinue = (e) => {
+  const handleContinue = async (e) => {
     e.preventDefault();
-    navigate('/signup/mentor/success');
+    setError('');
+
+    const signupData = JSON.parse(sessionStorage.getItem('senjr_signup') || '{}');
+    if (!signupData.uid) {
+      setError('Session expired. Please start signup again.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const userDoc = {
+        uid: signupData.uid,
+        email: signupData.email,
+        displayName: signupData.fullName,
+        phone: signupData.phone,
+        role: 'mentor',
+        // Profile
+        college: signupData.college || '',
+        degree: signupData.degree || '',
+        graduationYear: signupData.graduationYear || '',
+        upiId: signupData.upiId || '',
+        // Step 4
+        subjects,
+        languages,
+        experience,
+        teachingStyle,
+        hourlyRate: Number(hourlyRate),
+        bio,
+        availability,
+        // Gamification
+        xp: XP_REWARDS.SIGNUP,
+        level: 1,
+        streak: 1,
+        lastLoginDate: serverTimestamp(),
+        // Status — mentors need admin approval
+        verificationStatus: 'pending',
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      };
+
+      await setDoc(doc(db, 'users', signupData.uid), userDoc);
+      await awardXP(signupData.uid, XP_REWARDS.PROFILE_COMPLETE, 'Mentor profile complete');
+
+      sessionStorage.removeItem('senjr_signup');
+      navigate('/signup/mentor/success');
+    } catch (err) {
+      console.error('Mentor signup error:', err);
+      setError('Failed to save your profile. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const toggleSelection = (item, list, setList) => {
@@ -73,6 +128,12 @@ const MentorSignup4 = () => {
 
       <main className="flex-1 px-4 mt-2">
         
+        {error && (
+          <div className="flex items-center gap-3 mb-4 p-4 bg-red-50 border-2 border-red-200 rounded-xl text-red-700 text-sm font-medium">
+            <AlertCircle className="w-5 h-5 shrink-0" />
+            {error}
+          </div>
+        )}
         {/* Progress Dots */}
         <div className="flex flex-col items-center justify-center mb-8">
           <div className="flex gap-4 mb-2">
@@ -320,11 +381,17 @@ const MentorSignup4 = () => {
       <div className="fixed bottom-0 left-0 right-0 bg-white z-50 pt-2 pb-4 px-4 border-t border-gray-200">
         <button 
           onClick={handleContinue}
+          disabled={loading}
           className="w-full group relative block mb-2"
         >
-          <div className="absolute inset-0 bg-gray-900 translate-y-1.5 translate-x-1.5 transition-transform group-active:translate-x-0 group-active:translate-y-0"></div>
+          <div className="absolute inset-0 bg-gray-900 translate-y-1.5 translate-x-1.5 transition-transform group-active:translate-x-0 group-active:translate-y-0" />
           <div className="relative bg-[#f97316] border-2 border-gray-900 text-gray-900 text-center py-3.5 font-bold text-lg flex items-center justify-center gap-2 transition-transform group-active:translate-x-1.5 group-active:translate-y-1.5">
-            🚀 Go Live as Mentor!
+            {loading ? (
+              <span className="flex items-center gap-2">
+                <span className="w-5 h-5 border-2 border-gray-900 border-t-transparent rounded-full animate-spin" />
+                Submitting profile...
+              </span>
+            ) : '🚀 Go Live as Mentor!'}
           </div>
         </button>
         <p className="text-center text-[10px] font-bold text-gray-500">
