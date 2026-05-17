@@ -95,7 +95,7 @@ export const updateStreak = async (uid) => {
     today.setHours(0, 0, 0, 0);
 
     const lastLogin = data.lastLoginDate?.toDate?.();
-    let streakDays = data.streakDays || 1;
+    let streak = data.streak || 1;
     let streakBonusAwarded = false;
 
     if (lastLogin) {
@@ -106,23 +106,23 @@ export const updateStreak = async (uid) => {
 
       if (diffDays === 0) {
         // Already logged in today — no change
-        return { streakDays, alreadyLoggedIn: true };
+        return { streak, alreadyLoggedIn: true };
       } else if (diffDays === 1) {
         // Consecutive day — increment
-        streakDays = streakDays + 1;
+        streak = streak + 1;
       } else {
         // Missed a day — reset
-        streakDays = 1;
+        streak = 1;
       }
     }
 
     const updates = {
-      streakDays,
+      streak,
       lastLoginDate: serverTimestamp(),
     };
 
     // Award bonus XP on 7-day streak
-    if (streakDays === 7) {
+    if (streak === 7) {
       const currentXp = data.xp || 0;
       const newXp = currentXp + XP_REWARDS.STREAK_7_DAYS;
       updates.xp = newXp;
@@ -131,7 +131,7 @@ export const updateStreak = async (uid) => {
     }
 
     await updateDoc(userRef, updates);
-    return { streakDays, streakBonusAwarded };
+    return { streak, streakBonusAwarded };
   } catch (error) {
     console.error('[Streak] Error updating streak:', error);
   }

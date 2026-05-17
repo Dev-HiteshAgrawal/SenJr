@@ -1,54 +1,23 @@
-import React, { useState } from 'react';
-import { ArrowLeft, Filter, CheckCircle2, User, Medal, GraduationCap, TrendingUp, Lightbulb, Home, BookOpen, Trophy, BookMarked, Landmark } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { ArrowLeft, Filter, CheckCircle2, Medal, GraduationCap, TrendingUp, Trophy, Landmark, Loader2, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useFirestoreQuery } from '../../hooks/useFirestoreQuery';
 
-const packages = [
-  {
-    id: 1,
-    title: 'UP Police Constable 2026',
-    price: 299,
-    originalPrice: 599,
-    icon: <Medal className="w-5 h-5 text-[#10b981]" />,
-    iconBg: 'bg-[#ECFDF5]',
-    iconBorder: 'border-[#D1FAE5]',
-    features: ['4 Live Sessions', 'Mock Tests', 'Rahul Sir'],
-  },
-  {
-    id: 2,
-    title: 'SSC CGL 2026',
-    price: 299,
-    originalPrice: 599,
-    icon: <GraduationCap className="w-5 h-5 text-[#B45309]" />,
-    iconBg: 'bg-[#FFF7ED]',
-    iconBorder: 'border-[#FFEDD5]',
-    features: ['4 Live Sessions', 'Mock Series', 'CGL Officer'],
-  },
-  {
-    id: 3,
-    title: 'CUET Arts 2026',
-    price: 199,
-    originalPrice: 399,
-    icon: <Landmark className="w-5 h-5 text-[#4F46E5]" />,
-    iconBg: 'bg-[#EEF2FF]',
-    iconBorder: 'border-[#E0E7FF]',
-    features: ['4 Live Sessions', 'Domain Subjects', 'DU Alumni'],
-  },
-  {
-    id: 4,
-    title: 'BBA Entrance',
-    price: 199,
-    originalPrice: 399,
-    icon: <TrendingUp className="w-5 h-5 text-[#BE123C]" />,
-    iconBg: 'bg-[#FFF1F2]',
-    iconBorder: 'border-[#FFE4E6]',
-    features: ['4 Live Sessions', 'Aptitude Tests', 'IIM Alumni'],
-  },
-];
+// Map icon strings from DB to actual components
+const IconMap = {
+  Medal: <Medal className="w-5 h-5 text-[#10b981]" />,
+  GraduationCap: <GraduationCap className="w-5 h-5 text-[#B45309]" />,
+  Landmark: <Landmark className="w-5 h-5 text-[#4F46E5]" />,
+  TrendingUp: <TrendingUp className="w-5 h-5 text-[#BE123C]" />,
+};
 
 const WarRoom = () => {
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
   const [selectedPkg, setSelectedPkg] = useState(null);
+
+  const queryOptions = useMemo(() => ({ sort: ['order', 'asc'], limitCount: 10 }), []);
+  const { data: packages, loading, error } = useFirestoreQuery('warRoomPackages', queryOptions);
 
   const handleEnroll = (pkg) => {
     setSelectedPkg(pkg);
@@ -56,9 +25,8 @@ const WarRoom = () => {
   };
 
   const confirmEnrollment = () => {
-    // In a real app, this creates a payment session/checkout
     setShowModal(false);
-    navigate(`/pay/mock-war-room-${selectedPkg.id}`);
+    navigate(`/pay/war-room-${selectedPkg.id}`);
   };
 
   return (
@@ -96,44 +64,70 @@ const WarRoom = () => {
         </div>
 
         {/* 2x2 Grid of Exam Packages */}
-        <div className="grid grid-cols-2 gap-3">
-          {packages.map((pkg) => (
-            <div key={pkg.id} className="bg-white border border-gray-200 rounded-2xl p-3 shadow-sm flex flex-col relative h-full">
-              {pkg.id === 1 && (
-                <div className="absolute top-0 right-0 bg-[#f97316] text-white text-[9px] font-bold px-2 py-0.5 rounded-bl-lg rounded-tr-xl z-10">
-                  Popular
-                </div>
-              )}
-              
-              <div className={`w-10 h-10 ${pkg.iconBg} rounded-xl flex items-center justify-center border ${pkg.iconBorder} mb-3`}>
-                {pkg.icon}
-              </div>
-              
-              <h3 className="font-bold text-gray-900 text-sm leading-snug mb-1">{pkg.title}</h3>
-              
-              <div className="flex items-center gap-1.5 mb-3">
-                <span className="font-black text-gray-900 text-lg">₹{pkg.price}</span>
-                <span className="text-[10px] text-gray-400 line-through font-medium">₹{pkg.originalPrice}</span>
-              </div>
-              
-              <div className="space-y-1.5 mb-4 mt-auto">
-                {pkg.features.map((feat, idx) => (
-                  <div key={idx} className="flex items-start gap-1.5">
-                    <CheckCircle2 className="w-3 h-3 text-[#10b981] mt-0.5 shrink-0" />
-                    <span className="text-[10px] text-gray-600 font-medium leading-tight">{feat}</span>
-                  </div>
-                ))}
-              </div>
-              
-              <button 
-                onClick={() => handleEnroll(pkg)}
-                className="w-full bg-[#10b981] text-white font-bold py-2.5 rounded-xl active:bg-emerald-600 transition-colors text-xs"
-              >
-                Enroll Now
-              </button>
+        {error && (
+          <div className="bg-red-50 border border-red-100 rounded-xl p-4 flex items-center gap-3 text-red-600 text-sm font-bold">
+            <AlertCircle className="w-5 h-5 shrink-0" />
+            <p>Failed to load packages: {error}</p>
+          </div>
+        )}
+
+        {loading && (
+          <div className="flex flex-col items-center justify-center py-16 text-center text-[#10b981]">
+            <Loader2 className="w-8 h-8 animate-spin mb-4" />
+            <p className="font-bold text-sm">Loading War Room packages...</p>
+          </div>
+        )}
+
+        {!loading && !error && packages.length === 0 && (
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+              <Trophy className="w-7 h-7 text-gray-300" />
             </div>
-          ))}
-        </div>
+            <p className="font-bold text-gray-800">No active packages</p>
+            <p className="text-sm text-gray-500 mt-1">Check back later for new intensives.</p>
+          </div>
+        )}
+
+        {!loading && !error && packages.length > 0 && (
+          <div className="grid grid-cols-2 gap-3">
+            {packages.map((pkg) => (
+              <div key={pkg.id} className="bg-white border border-gray-200 rounded-2xl p-3 shadow-sm flex flex-col relative h-full">
+                {pkg.isPopular && (
+                  <div className="absolute top-0 right-0 bg-[#f97316] text-white text-[9px] font-bold px-2 py-0.5 rounded-bl-lg rounded-tr-xl z-10">
+                    Popular
+                  </div>
+                )}
+                
+                <div className={`w-10 h-10 ${pkg.iconBg || 'bg-gray-100'} rounded-xl flex items-center justify-center border ${pkg.iconBorder || 'border-gray-200'} mb-3`}>
+                  {IconMap[pkg.iconName] || <Medal className="w-5 h-5 text-gray-400" />}
+                </div>
+                
+                <h3 className="font-bold text-gray-900 text-sm leading-snug mb-1">{pkg.title}</h3>
+                
+                <div className="flex items-center gap-1.5 mb-3">
+                  <span className="font-black text-gray-900 text-lg">₹{pkg.price}</span>
+                  <span className="text-[10px] text-gray-400 line-through font-medium">₹{pkg.originalPrice}</span>
+                </div>
+                
+                <div className="space-y-1.5 mb-4 mt-auto">
+                  {(pkg.features || []).map((feat, idx) => (
+                    <div key={idx} className="flex items-start gap-1.5">
+                      <CheckCircle2 className="w-3 h-3 text-[#10b981] mt-0.5 shrink-0" />
+                      <span className="text-[10px] text-gray-600 font-medium leading-tight">{feat}</span>
+                    </div>
+                  ))}
+                </div>
+                
+                <button 
+                  onClick={() => handleEnroll(pkg)}
+                  className="w-full bg-[#10b981] text-white font-bold py-2.5 rounded-xl active:bg-emerald-600 transition-colors text-xs"
+                >
+                  Enroll Now
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
 
       </main>
 
@@ -151,7 +145,7 @@ const WarRoom = () => {
               </div>
               <div className="flex justify-between items-center mb-2">
                 <span className="text-sm font-medium text-gray-600">Duration</span>
-                <span className="text-sm font-bold text-gray-900">30 Days</span>
+                <span className="text-sm font-bold text-gray-900">{selectedPkg.durationDays || 30} Days</span>
               </div>
               <div className="h-px bg-gray-200 my-3"></div>
               <div className="flex justify-between items-center">

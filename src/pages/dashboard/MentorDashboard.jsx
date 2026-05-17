@@ -1,9 +1,55 @@
-import React from 'react';
-import { Menu, Bell, Wallet, Calendar, User, Star, BarChart2, ArrowRight, Home, IndianRupee } from 'lucide-react';
+import React, { useMemo } from 'react';
+import { Menu, Bell, Wallet, Calendar, User, Star, BarChart2, ArrowRight, Home, IndianRupee, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useAuthContext } from '../../context/AuthContext';
+import { useFirestoreQuery } from '../../hooks/useFirestoreQuery';
 
 const MentorDashboard = () => {
   const navigate = useNavigate();
+  const { user, userData, loading: authLoading } = useAuthContext();
+
+  // Fetch mentor's sessions
+  const sessionOpts = useMemo(() => ({
+    filters: [['mentorId', '==', user?.uid || '']],
+    sort: ['date', 'asc'], // In reality you'd likely want to filter by date >= today as well
+    enabled: !!user?.uid
+  }), [user?.uid]);
+
+  const { data: sessions, loading: sessionsLoading } = useFirestoreQuery('sessions', sessionOpts);
+
+  const stats = useMemo(() => {
+    if (!sessions) return { totalSessions: 0, uniqueStudents: 0, todaysCount: 0, upcoming: [], completed: [] };
+    const students = new Set();
+    let todaysCount = 0;
+    const todayStr = new Date().toISOString().split('T')[0]; // Simple YYYY-MM-DD match
+    const upcoming = [];
+    const completed = [];
+
+    sessions.forEach(s => {
+      if (s.studentId) students.add(s.studentId);
+      if (s.date === todayStr) todaysCount++;
+      if (s.status === 'upcoming') upcoming.push(s);
+      if (s.status === 'completed') completed.push(s);
+    });
+
+    return {
+      totalSessions: sessions.filter(s => s.status === 'completed').length,
+      uniqueStudents: students.size,
+      todaysCount,
+      upcoming: upcoming.slice(0, 3), // max 3 to display
+      completed: completed.slice(0, 3)
+    };
+  }, [sessions]);
+
+  if (authLoading) {
+    return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-[#10b981]" /></div>;
+  }
+
+  const mentorName = userData?.displayName || 'Mentor';
+  const earningsThisMonth = userData?.earningsThisMonth || 0;
+  const rating = userData?.rating || '5.0';
+  const totalEarnings = userData?.totalEarnings || 0;
+
   return (
     <div className="min-h-screen bg-white font-sans text-gray-900 flex flex-col pb-24">
       
@@ -15,11 +61,11 @@ const MentorDashboard = () => {
         </div>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-1 text-[#10b981] font-bold">
-            <span className="text-sm">₹2,450</span>
+            <span className="text-sm">₹{totalEarnings}</span>
           </div>
           <Bell className="w-5 h-5 text-gray-700" />
           <div className="w-7 h-7 rounded-full bg-gray-200 overflow-hidden border border-gray-300">
-            <img src="https://i.pravatar.cc/100?img=8" alt="Profile" className="w-full h-full object-cover" />
+            <img src={userData?.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(mentorName)}`} alt="Profile" className="w-full h-full object-cover" />
           </div>
         </div>
       </header>
@@ -29,25 +75,27 @@ const MentorDashboard = () => {
         {/* Greeting */}
         <div>
           <h2 className="text-lg font-medium text-gray-800 mb-1">
-            Welcome back, Rahul! 🎓
+            Welcome back, {mentorName.split(' ')[0]}! 🎓
           </h2>
-          <p className="text-gray-600 text-sm">You have 3 sessions today</p>
+          <p className="text-gray-600 text-sm">
+            {sessionsLoading ? 'Loading schedule...' : `You have ${stats.todaysCount} sessions today`}
+          </p>
         </div>
         
         {/* Stats Row */}
         <div className="grid grid-cols-3 gap-3">
           <div className="border border-gray-200 rounded-2xl py-3 flex flex-col items-center justify-center">
             <span className="text-[10px] font-bold text-gray-500 tracking-wider mb-1">SESSIONS</span>
-            <span className="text-xl font-black text-blue-500">12</span>
+            <span className="text-xl font-black text-blue-500">{stats.totalSessions}</span>
           </div>
           <div className="border border-gray-200 rounded-2xl py-3 flex flex-col items-center justify-center">
             <span className="text-[10px] font-bold text-gray-500 tracking-wider mb-1">STUDENTS</span>
-            <span className="text-xl font-black text-[#10b981]">8</span>
+            <span className="text-xl font-black text-[#10b981]">{stats.uniqueStudents}</span>
           </div>
           <div className="border border-gray-200 rounded-2xl py-3 flex flex-col items-center justify-center">
             <span className="text-[10px] font-bold text-gray-500 tracking-wider mb-1">RATING</span>
             <div className="flex items-center gap-1">
-              <span className="text-xl font-black text-gray-900">4.8</span>
+              <span className="text-xl font-black text-gray-900">{rating}</span>
               <span className="text-sm text-yellow-400">★</span>
             </div>
           </div>
@@ -60,12 +108,12 @@ const MentorDashboard = () => {
               <span className="text-lg">💰</span>
               <h3 className="font-bold text-gray-800">Earnings This Month</h3>
             </div>
-            <button className="text-[10px] font-bold text-gray-900 flex items-center gap-1">
+            <button onClick={() => navigate('/mentor/earnings')} className="text-[10px] font-bold text-gray-900 flex items-center gap-1">
               View <ArrowRight className="w-3 h-3" />
             </button>
           </div>
           
-          <div className="text-3xl font-black text-gray-900 mb-6">₹2,450</div>
+          <div className="text-3xl font-black text-gray-900 mb-6">₹{earningsThisMonth}</div>
           
           {/* Simple Bar Chart */}
           <div className="flex items-end gap-2 h-16 mb-6">
@@ -78,7 +126,7 @@ const MentorDashboard = () => {
             <div className="flex-1 bg-[#34d399] rounded-t-sm h-[80%]"></div>
           </div>
           
-          <button className="w-full bg-white border-2 border-[#10b981] text-[#10b981] font-bold py-3 rounded-full active:bg-green-50 transition-colors shadow-sm">
+          <button onClick={() => navigate('/mentor/earnings')} className="w-full bg-white border-2 border-[#10b981] text-[#10b981] font-bold py-3 rounded-full active:bg-green-50 transition-colors shadow-sm">
             Withdraw to UPI
           </button>
         </div>
@@ -90,47 +138,56 @@ const MentorDashboard = () => {
               <span className="text-lg">📅</span>
               <h3 className="font-bold font-display text-gray-900">Today's Schedule</h3>
             </div>
-            <button className="text-[10px] font-bold text-gray-600 flex items-center gap-1">
-              View Calendar <ArrowRight className="w-3 h-3" />
+            <button onClick={() => navigate('/sessions')} className="text-[10px] font-bold text-gray-600 flex items-center gap-1">
+              View All <ArrowRight className="w-3 h-3" />
             </button>
           </div>
           
           <div className="space-y-3">
-            {/* Upcoming Session */}
-            <div className="border border-gray-200 rounded-2xl p-4 flex items-center justify-between border-l-4 border-l-[#10b981] shadow-sm">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-sm font-bold text-gray-700">
-                  HA
-                </div>
-                <div>
-                  <h4 className="font-bold text-sm text-gray-900">Hitesh A.</h4>
-                  <p className="text-xs text-gray-500 font-medium mt-0.5">9:00 AM • BBA Economics</p>
-                </div>
-              </div>
-              <div className="flex flex-col items-end gap-2">
-                <span className="bg-[#FFF7ED] text-orange-600 px-2 py-0.5 rounded-full text-[10px] font-bold">Upcoming</span>
-                <button className="bg-[#f97316] text-white text-xs font-bold px-4 py-1.5 rounded-full active:bg-orange-700 shadow-sm">
-                  Start
-                </button>
-              </div>
-            </div>
+            {sessionsLoading && <div className="text-center text-gray-500 py-4"><Loader2 className="w-5 h-5 animate-spin mx-auto" /></div>}
+            {!sessionsLoading && stats.upcoming.length === 0 && stats.completed.length === 0 && (
+              <div className="text-center text-gray-500 py-4 bg-gray-50 rounded-2xl border border-gray-100">No sessions scheduled for today.</div>
+            )}
 
-            {/* Completed Session */}
-            <div className="border border-gray-200 rounded-2xl p-4 flex items-center justify-between bg-gray-50/50">
-              <div className="flex items-center gap-3 opacity-60">
-                <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-sm font-bold text-gray-700">
-                  MS
+            {/* Upcoming Sessions */}
+            {stats.upcoming.map(session => (
+              <div key={session.id} className="border border-gray-200 rounded-2xl p-4 flex items-center justify-between border-l-4 border-l-[#10b981] shadow-sm">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-sm font-bold text-gray-700">
+                    {(session.studentName || 'U')[0]}
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-sm text-gray-900">{session.studentName}</h4>
+                    <p className="text-xs text-gray-500 font-medium mt-0.5">{session.time} • {session.subject || 'Session'}</p>
+                  </div>
                 </div>
-                <div>
-                  <h4 className="font-bold text-sm text-gray-900">Megha S.</h4>
-                  <p className="text-xs text-gray-500 font-medium mt-0.5">11:30 AM • BCom Maths</p>
+                <div className="flex flex-col items-end gap-2">
+                  <span className="bg-[#FFF7ED] text-orange-600 px-2 py-0.5 rounded-full text-[10px] font-bold">Upcoming</span>
+                  <button onClick={() => navigate(`/video-call/${session.roomName || session.id}`)} className="bg-[#f97316] text-white text-xs font-bold px-4 py-1.5 rounded-full active:bg-orange-700 shadow-sm">
+                    Start
+                  </button>
                 </div>
               </div>
-              <div className="flex flex-col items-end gap-2">
-                <span className="text-gray-400 px-2 py-0.5 text-[10px] font-medium">Completed</span>
-                <span className="text-gray-900 text-xs font-medium px-4 py-1.5">Review</span>
+            ))}
+
+            {/* Completed Sessions */}
+            {stats.completed.map(session => (
+              <div key={session.id} className="border border-gray-200 rounded-2xl p-4 flex items-center justify-between bg-gray-50/50">
+                <div className="flex items-center gap-3 opacity-60">
+                  <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-sm font-bold text-gray-700">
+                    {(session.studentName || 'U')[0]}
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-sm text-gray-900">{session.studentName}</h4>
+                    <p className="text-xs text-gray-500 font-medium mt-0.5">{session.time} • {session.subject || 'Session'}</p>
+                  </div>
+                </div>
+                <div className="flex flex-col items-end gap-2">
+                  <span className="text-gray-400 px-2 py-0.5 text-[10px] font-medium">Completed</span>
+                  <span className="text-gray-900 text-xs font-medium px-4 py-1.5">Done</span>
+                </div>
               </div>
-            </div>
+            ))}
           </div>
         </div>
 
@@ -143,7 +200,7 @@ const MentorDashboard = () => {
             <span className="text-xs font-medium text-gray-700">Set Availability</span>
           </button>
           
-          <button className="bg-white border border-gray-200 rounded-2xl p-4 flex flex-col items-center justify-center gap-3 shadow-sm active:bg-gray-50 transition-colors">
+          <button onClick={() => navigate('/profile/mentor/me')} className="bg-white border border-gray-200 rounded-2xl p-4 flex flex-col items-center justify-center gap-3 shadow-sm active:bg-gray-50 transition-colors">
             <div className="w-10 h-10 rounded-full flex items-center justify-center">
               <User className="w-6 h-6 text-blue-500" />
             </div>
@@ -165,7 +222,7 @@ const MentorDashboard = () => {
           </button>
         </div>
 
-        {/* Recent Reviews */}
+        {/* Recent Reviews (Mocked for layout placeholder as reviews coll is complex) */}
         <div className="pt-4">
           <div className="flex items-center gap-2 mb-4">
             <span className="text-yellow-400 text-lg">⭐</span>
@@ -194,19 +251,19 @@ const MentorDashboard = () => {
           <div className="grid grid-cols-2 gap-y-6 gap-x-4">
             <div>
               <p className="text-[10px] font-bold text-gray-500 mb-1">Avg Response</p>
-              <p className="text-sm font-medium text-gray-900">2 hrs</p>
+              <p className="text-sm font-medium text-gray-900">{userData?.avgResponseTime || '2 hrs'}</p>
             </div>
             <div>
               <p className="text-[10px] font-bold text-gray-500 mb-1">Completion Rate</p>
-              <p className="text-sm font-medium text-gray-900">95%</p>
+              <p className="text-sm font-medium text-gray-900">{userData?.completionRate || '95%'}</p>
             </div>
             <div>
               <p className="text-[10px] font-bold text-gray-500 mb-1">Repeat Students</p>
-              <p className="text-sm font-medium text-gray-900">60%</p>
+              <p className="text-sm font-medium text-gray-900">{userData?.repeatRate || '60%'}</p>
             </div>
             <div>
               <p className="text-[10px] font-bold text-gray-500 mb-1">Total Earnings</p>
-              <p className="text-sm font-medium text-gray-900">₹12,500</p>
+              <p className="text-sm font-medium text-gray-900">₹{totalEarnings}</p>
             </div>
           </div>
         </div>

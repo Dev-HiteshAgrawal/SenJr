@@ -60,61 +60,61 @@ function App() {
                 <Route path="/signup/mentor/success" element={<MentorSuccess />} />
 
                 <Route path="/dashboard/student" element={
-                  <ProtectedRoute>
+                  <RoleRoute allowedRoles={['student']}>
                     <StudentDashboard />
-                  </ProtectedRoute>
+                  </RoleRoute>
                 } />
                 <Route path="/dashboard/mentor" element={
-                  <ProtectedRoute>
+                  <RoleRoute allowedRoles={['mentor']}>
                     <MentorDashboard />
-                  </ProtectedRoute>
+                  </RoleRoute>
                 } />
 
                 <Route path="/profile/student/:id" element={
-                  <ProtectedRoute>
+                  <RoleRoute allowedRoles={['student', 'mentor']}>
                     <StudentProfile />
-                  </ProtectedRoute>
+                  </RoleRoute>
                 } />
                 <Route path="/profile/mentor/:id" element={
-                  <ProtectedRoute>
+                  <RoleRoute allowedRoles={['student', 'mentor']}>
                     <MentorProfile />
-                  </ProtectedRoute>
+                  </RoleRoute>
                 } />
 
                 <Route path="/find-mentor" element={
-                  <ProtectedRoute>
+                  <RoleRoute allowedRoles={['student']}>
                     <FindMentor />
-                  </ProtectedRoute>
+                  </RoleRoute>
                 } />
                 <Route path="/book/:mentorId" element={
-                  <ProtectedRoute>
+                  <RoleRoute allowedRoles={['student']}>
                     <BookSession />
-                  </ProtectedRoute>
+                  </RoleRoute>
                 } />
                 <Route path="/war-room" element={
-                  <ProtectedRoute>
+                  <RoleRoute allowedRoles={['student']}>
                     <WarRoom />
-                  </ProtectedRoute>
+                  </RoleRoute>
                 } />
                 <Route path="/ai-tutor" element={
-                  <ProtectedRoute>
+                  <RoleRoute allowedRoles={['student']}>
                     <AITutor />
-                  </ProtectedRoute>
+                  </RoleRoute>
                 } />
                 <Route path="/chat/ai" element={
-                  <ProtectedRoute>
+                  <RoleRoute allowedRoles={['student']}>
                     <AIChat />
-                  </ProtectedRoute>
+                  </RoleRoute>
                 } />
                 <Route path="/mentor/availability" element={
-                  <ProtectedRoute>
+                  <RoleRoute allowedRoles={['mentor']}>
                     <AvailabilitySettings />
-                  </ProtectedRoute>
+                  </RoleRoute>
                 } />
                 <Route path="/courses" element={
-                  <ProtectedRoute>
+                  <RoleRoute allowedRoles={['student']}>
                     <Courses />
-                  </ProtectedRoute>
+                  </RoleRoute>
                 } />
                 <Route path="/sessions" element={
                   <ProtectedRoute>
@@ -127,14 +127,14 @@ function App() {
                   </ProtectedRoute>
                 } />
                 <Route path="/mentor/earnings" element={
-                  <ProtectedRoute>
+                  <RoleRoute allowedRoles={['mentor']}>
                     <MentorEarnings />
-                  </ProtectedRoute>
+                  </RoleRoute>
                 } />
                 <Route path="/pay/:sessionId" element={
-                  <ProtectedRoute>
+                  <RoleRoute allowedRoles={['student']}>
                     <Payment />
-                  </ProtectedRoute>
+                  </RoleRoute>
                 } />
                 <Route path="/video-call/:roomName" element={
                   <ProtectedRoute>

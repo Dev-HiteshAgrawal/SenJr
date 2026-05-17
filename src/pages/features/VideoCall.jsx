@@ -1,11 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Mic, MicOff, Video, VideoOff, PhoneOff, Users, MessageCircle, MoreVertical } from 'lucide-react';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { db } from '../../firebase/config';
+import { useAuthContext } from '../../context/AuthContext';
+import { awardXP, XP_REWARDS } from '../../utils/gamification';
 
 const VideoCall = () => {
   const navigate = useNavigate();
-  const { roomName } = useParams();
+  const { roomName } = useParams(); // Using roomName as sessionId for this prototype
+  const { user, userData } = useAuthContext();
 
+  const [sessionData, setSessionData] = useState(null);
   const [muted, setMuted] = useState(false);
   const [cameraOff, setCameraOff] = useState(false);
   const [elapsed, setElapsed] = useState(0);
@@ -13,6 +19,21 @@ const VideoCall = () => {
   const [connecting, setConnecting] = useState(true);
   const localVideoRef = useRef(null);
   const timerRef = useRef(null);
+
+  // Fetch session data
+  useEffect(() => {
+    const fetchSession = async () => {
+      try {
+        const snap = await getDoc(doc(db, 'sessions', roomName));
+        if (snap.exists()) {
+          setSessionData(snap.data());
+        }
+      } catch (err) {
+        console.error('Failed to fetch session', err);
+      }
+    };
+    fetchSession();
+  }, [roomName]);
 
   // Simulate connection and get camera preview
   useEffect(() => {
@@ -49,11 +70,39 @@ const VideoCall = () => {
 
   const formatTime = (s) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
 
-  const endCall = () => {
+  const endCall = async () => {
+    // Cleanup media
     if (localVideoRef.current?.srcObject) {
       localVideoRef.current.srcObject.getTracks().forEach(t => t.stop());
     }
+
+    try {
+      if (sessionData && sessionData.status !== 'completed') {
+        // Mark session as completed
+        await updateDoc(doc(db, 'sessions', roomName), {
+          status: 'completed',
+          completedAt: new Date().toISOString(),
+          durationPlayed: elapsed,
+        });
+
+        // Award XP to student if current user is the student
+        if (userData?.role === 'student') {
+          await awardXP(user.uid, XP_REWARDS.SESSION_COMPLETED, 'Completed a mentoring session');
+        }
+        
+        // Note: For mentors, you could track total sessions completed or add earnings to their totalEarnings here
+      }
+    } catch (err) {
+      console.error('Error completing session', err);
+    }
+
     navigate('/sessions');
+  };
+
+  const getOtherParticipantName = () => {
+    if (!sessionData || !userData) return 'Participant';
+    if (userData.role === 'mentor') return sessionData.studentName || 'Student';
+    return sessionData.mentorName || 'Mentor';
   };
 
   return (
@@ -66,9 +115,9 @@ const VideoCall = () => {
             {/* Placeholder for remote video — replace with LiveKit <VideoTrack /> */}
             <div className="text-center">
               <div className="w-24 h-24 rounded-full bg-[#1E3A5F] flex items-center justify-center mb-4 mx-auto">
-                <span className="text-4xl font-black text-white">R</span>
+                <span className="text-4xl font-black text-white">{getOtherParticipantName()[0]?.toUpperCase() || 'U'}</span>
               </div>
-              <p className="text-white font-bold text-lg">Rahul Sharma</p>
+              <p className="text-white font-bold text-lg">{getOtherParticipantName()}</p>
               <p className="text-blue-300 text-sm mt-1">Connected ✓</p>
             </div>
           </div>
@@ -85,7 +134,7 @@ const VideoCall = () => {
       {connected && (
         <div className="relative z-10 flex items-center justify-between px-4 pt-safe pt-10">
           <div className="bg-black/40 backdrop-blur-sm rounded-xl px-3 py-2">
-            <p className="text-white font-bold text-sm">UP Police Prep Session</p>
+            <p className="text-white font-bold text-sm truncate max-w-[200px]">{sessionData?.subject || 'Session'}</p>
             <p className="text-green-400 text-xs font-medium">🔴 Live • {formatTime(elapsed)}</p>
           </div>
           <button className="w-10 h-10 bg-black/40 backdrop-blur-sm rounded-full flex items-center justify-center">
@@ -106,7 +155,7 @@ const VideoCall = () => {
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gray-800">
-            <span className="text-3xl font-black text-white">H</span>
+            <span className="text-3xl font-black text-white">{userData?.displayName?.[0]?.toUpperCase() || 'Y'}</span>
           </div>
         )}
         <div className="absolute bottom-2 left-2">

@@ -1,0 +1,74 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // --- Helper Functions ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+    
+    function getRole() {
+      // Note: Admin email check is safer via custom claims, but for prototype we rely on client-side and open rules for admins if possible.
+      // Assuming role is stored in user document.
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+
+    function isAdmin() {
+      return getRole() == 'admin';
+    }
+
+    // --- Users Collection ---
+    match /users/{userId} {
+      // Anyone can create a user doc during signup
+      allow create: if isSignedIn() && isOwner(userId);
+      // Users can read/update their own docs. Everyone can read for public profiles (mentors). Admins can do anything.
+      allow read: if isSignedIn();
+      allow update: if isSignedIn() && (isOwner(userId) || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    // --- Sessions Collection ---
+    match /sessions/{sessionId} {
+      // Users can only read/write sessions where they are the student or mentor
+      allow read, update: if isSignedIn() && (
+        resource.data.studentId == request.auth.uid || 
+        resource.data.mentorId == request.auth.uid || 
+        isAdmin()
+      );
+      allow create: if isSignedIn() && (
+        request.resource.data.studentId == request.auth.uid ||
+        request.resource.data.mentorId == request.auth.uid
+      );
+      allow delete: if isAdmin();
+    }
+
+    // --- Posts Collection (Community) ---
+    match /posts/{postId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && request.resource.data.authorId == request.auth.uid;
+      // Allow author to update full post, or any user to update likes/saves
+      allow update: if isSignedIn() && (
+        resource.data.authorId == request.auth.uid || 
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'saves']) ||
+        isAdmin()
+      );
+      allow delete: if isSignedIn() && (resource.data.authorId == request.auth.uid || isAdmin());
+    }
+
+    // --- War Room Packages Collection ---
+    match /warRoomPackages/{packageId} {
+      allow read: if true;
+      allow write: if isSignedIn() && isAdmin();
+    }
+
+    // --- System / Config Collections ---
+    match /{document=**} {
+      // Default deny for anything not explicitly matched above
+      allow read, write: if false;
+    }
+  }
+}

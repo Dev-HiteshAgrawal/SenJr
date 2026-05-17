@@ -48,30 +48,32 @@ const ChatView = ({ tutor, onBack }) => {
     setLoading(true);
 
     try {
-      // Build Gemini API conversation
-      const contents = updatedMessages.map((m) => ({
+      // Build messages for API
+      const apiMessages = updatedMessages.map((m) => ({
         role: m.role === 'assistant' ? 'model' : 'user',
-        parts: [{ text: m.content }],
+        content: m.content
       }));
 
-      const res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            system_instruction: { parts: [{ text: buildSystemPrompt(tutor) }] },
-            contents,
-            generationConfig: { temperature: 0.7, maxOutputTokens: 800 },
-          }),
-        }
-      );
+      const res = await fetch('/api/gemini-chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          systemInstruction: buildSystemPrompt(tutor),
+          messages: apiMessages
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error('API returned an error');
+      }
 
       const data = await res.json();
-      const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text || 'Kuch error aa gaya, dobara try karo!';
+      const reply = data?.content || 'Kuch error aa gaya, dobara try karo!';
       setMessages((prev) => [...prev, { role: 'assistant', content: reply }]);
-    } catch {
-      setMessages((prev) => [...prev, { role: 'assistant', content: 'Network error. Please try again!' }]);
+    } catch (err) {
+      console.error('Chat error:', err);
+      // Optional: Add local client fallback here if desired
+      setMessages((prev) => [...prev, { role: 'assistant', content: 'Network error or function not available locally. Please try again!' }]);
     } finally {
       setLoading(false);
     }

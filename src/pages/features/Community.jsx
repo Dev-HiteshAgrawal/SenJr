@@ -1,73 +1,39 @@
-import React, { useState } from 'react';
-import { ArrowLeft, Users, Heart, MessageCircle, Share2, BookmarkPlus, Plus, TrendingUp, Flame } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { ArrowLeft, Heart, MessageCircle, Share2, BookmarkPlus, Plus, Flame, Loader2, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-
-const posts = [
-  {
-    id: 1,
-    author: 'Rahul Sharma',
-    authorAvatar: 'https://i.pravatar.cc/100?img=11',
-    role: 'Mentor',
-    roleColor: '#f97316',
-    time: '2 min ago',
-    content: 'Just cleared my 45th session this week! 🎉 If you\'re preparing for UP Police, the key is consistency. Practice 20 GK questions daily. Drop your doubts below 👇',
-    likes: 48,
-    comments: 12,
-    shares: 6,
-    tags: ['UP Police', 'GK', 'Motivation'],
-    liked: false,
-    saved: false,
-  },
-  {
-    id: 2,
-    author: 'Hitesh Agrawal',
-    authorAvatar: 'https://i.pravatar.cc/100?img=11',
-    role: 'Student',
-    roleColor: '#10b981',
-    time: '1 hr ago',
-    content: 'Got my first session with Rahul Sir today ✅ He explained Calculus in such a simple way. Highly recommend for anyone stuck with Maths! 🔥\n\n#Senjr #PeerLearning',
-    likes: 34,
-    comments: 8,
-    shares: 3,
-    tags: ['Review', 'Maths'],
-    liked: true,
-    saved: false,
-  },
-  {
-    id: 3,
-    author: 'Priya Verma',
-    authorAvatar: 'https://i.pravatar.cc/100?img=47',
-    role: 'Mentor',
-    roleColor: '#f97316',
-    time: '3 hrs ago',
-    content: '📌 FREE RESOURCE: My complete SSC CGL vocabulary sheet (1000 words) is now available. Comment "SSC" below and I\'ll DM it to you!',
-    likes: 127,
-    comments: 89,
-    shares: 45,
-    tags: ['SSC CGL', 'Free Resource', 'English'],
-    liked: false,
-    saved: true,
-  },
-];
+import { useFirestoreQuery } from '../../hooks/useFirestoreQuery';
+import { useAuthContext } from '../../context/AuthContext';
+import { doc, updateDoc, increment } from 'firebase/firestore';
+import { db } from '../../firebase/config';
 
 const trending = ['#UPPolice2025', '#SSCPrep', '#CAT25', '#BankingExam', '#Motivation'];
 
 const Community = () => {
   const navigate = useNavigate();
-  const [postsState, setPostsState] = useState(posts);
+  const { user } = useAuthContext();
+  
+  // Realtime listener for posts
+  const queryOptions = useMemo(() => ({ sort: ['createdAt', 'desc'], realtime: true, limitCount: 50 }), []);
+  const { data: posts, loading, error } = useFirestoreQuery('posts', queryOptions);
 
-  const toggleLike = (id) => {
-    setPostsState(prev => prev.map(p =>
-      p.id === id
-        ? { ...p, liked: !p.liked, likes: p.liked ? p.likes - 1 : p.likes + 1 }
-        : p
-    ));
+  const toggleLike = async (postId, currentLikes, userLiked) => {
+    if (!user) return alert('Please login to like posts');
+    try {
+      const postRef = doc(db, 'posts', postId);
+      // In a real prod app, we'd also maintain a 'likes' subcollection to track WHO liked it
+      // For now, atomic increment/decrement
+      await updateDoc(postRef, {
+        likes: increment(userLiked ? -1 : 1)
+      });
+    } catch (err) {
+      console.error('Error toggling like:', err);
+    }
   };
 
-  const toggleSave = (id) => {
-    setPostsState(prev => prev.map(p =>
-      p.id === id ? { ...p, saved: !p.saved } : p
-    ));
+  const toggleSave = async (postId) => {
+    if (!user) return alert('Please login to save posts');
+    // Implement bookmarking logic (usually saving postId to user's savedPosts array)
+    console.log('Save toggled for', postId);
   };
 
   return (
@@ -109,7 +75,9 @@ const Community = () => {
         {/* Create Post */}
         <div className="px-4 py-3">
           <div className="bg-white border border-gray-200 rounded-2xl px-4 py-3 flex items-center gap-3 shadow-sm">
-            <div className="w-9 h-9 rounded-full bg-[#ECFDF5] flex items-center justify-center text-sm font-bold text-[#10b981]">H</div>
+            <div className="w-9 h-9 rounded-full bg-[#ECFDF5] flex items-center justify-center text-sm font-bold text-[#10b981]">
+              {user?.displayName ? user.displayName[0].toUpperCase() : 'U'}
+            </div>
             <button className="flex-1 text-left text-sm text-gray-400 font-medium">
               Share something with the community...
             </button>
@@ -121,25 +89,43 @@ const Community = () => {
 
         {/* Posts */}
         <div className="px-4 space-y-3">
-          {postsState.map((post) => (
+          {error && (
+            <div className="bg-red-50 border border-red-100 rounded-xl p-4 flex items-center gap-3 text-red-600 text-sm font-bold">
+              <AlertCircle className="w-5 h-5 shrink-0" />
+              <p>Failed to load posts: {error}</p>
+            </div>
+          )}
+
+          {loading && (
+            <div className="flex flex-col items-center justify-center py-16 text-center text-[#10b981]">
+              <Loader2 className="w-8 h-8 animate-spin mb-4" />
+              <p className="font-bold text-sm">Loading community posts...</p>
+            </div>
+          )}
+
+          {!loading && !error && posts.map((post) => (
             <div key={post.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
               
               {/* Post Header */}
               <div className="px-4 pt-4 pb-3 flex items-start gap-3">
-                <div className="w-10 h-10 rounded-full overflow-hidden shrink-0">
-                  <img src={post.authorAvatar} alt={post.author} className="w-full h-full object-cover" />
+                <div className="w-10 h-10 rounded-full overflow-hidden shrink-0 bg-gray-200">
+                  <img src={post.authorAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(post.author || 'U')}&background=random`} alt={post.author} className="w-full h-full object-cover" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-0.5">
-                    <span className="font-bold text-sm text-gray-900">{post.author}</span>
-                    <span
-                      className="text-[9px] font-bold px-2 py-0.5 rounded-full text-white"
-                      style={{ backgroundColor: post.roleColor }}
-                    >
-                      {post.role}
-                    </span>
+                    <span className="font-bold text-sm text-gray-900">{post.author || 'Anonymous'}</span>
+                    {post.role && (
+                      <span
+                        className="text-[9px] font-bold px-2 py-0.5 rounded-full text-white"
+                        style={{ backgroundColor: post.role === 'mentor' ? '#f97316' : '#10b981' }}
+                      >
+                        {post.role}
+                      </span>
+                    )}
                   </div>
-                  <span className="text-[10px] text-gray-400">{post.time}</span>
+                  <span className="text-[10px] text-gray-400">
+                    {post.createdAt ? new Date(post.createdAt?.toDate?.() || post.createdAt).toLocaleString() : 'Just now'}
+                  </span>
                 </div>
                 <button className="text-gray-400 p-1">•••</button>
               </div>
@@ -150,7 +136,7 @@ const Community = () => {
               </div>
 
               {/* Tags */}
-              {post.tags.length > 0 && (
+              {post.tags && post.tags.length > 0 && (
                 <div className="px-4 pb-3 flex flex-wrap gap-1.5">
                   {post.tags.map((tag) => (
                     <span key={tag} className="text-[10px] font-bold text-[#10b981] bg-[#ECFDF5] px-2 py-0.5 rounded-full">
@@ -166,27 +152,27 @@ const Community = () => {
               {/* Actions */}
               <div className="px-4 py-3 flex items-center gap-5">
                 <button
-                  onClick={() => toggleLike(post.id)}
+                  onClick={() => toggleLike(post.id, post.likes || 0, false)} // false for now until we track user likes
                   className="flex items-center gap-1.5 active:scale-95 transition-transform"
                 >
                   <Heart
                     className="w-4 h-4"
-                    fill={post.liked ? '#ef4444' : 'none'}
-                    stroke={post.liked ? '#ef4444' : '#9CA3AF'}
+                    fill={'none'} // Update this when like tracking is built
+                    stroke={'#9CA3AF'}
                   />
-                  <span className={`text-xs font-bold ${post.liked ? 'text-red-500' : 'text-gray-500'}`}>
-                    {post.likes}
+                  <span className={`text-xs font-bold text-gray-500`}>
+                    {post.likes || 0}
                   </span>
                 </button>
 
                 <button className="flex items-center gap-1.5">
                   <MessageCircle className="w-4 h-4 text-gray-400" />
-                  <span className="text-xs font-bold text-gray-500">{post.comments}</span>
+                  <span className="text-xs font-bold text-gray-500">{post.comments || 0}</span>
                 </button>
 
                 <button className="flex items-center gap-1.5">
                   <Share2 className="w-4 h-4 text-gray-400" />
-                  <span className="text-xs font-bold text-gray-500">{post.shares}</span>
+                  <span className="text-xs font-bold text-gray-500">{post.shares || 0}</span>
                 </button>
 
                 <button
@@ -195,13 +181,24 @@ const Community = () => {
                 >
                   <BookmarkPlus
                     className="w-4 h-4"
-                    fill={post.saved ? '#10b981' : 'none'}
-                    stroke={post.saved ? '#10b981' : '#9CA3AF'}
+                    fill={'none'}
+                    stroke={'#9CA3AF'}
                   />
                 </button>
               </div>
             </div>
           ))}
+
+          {!loading && !error && posts.length === 0 && (
+            <div className="flex flex-col items-center py-20 text-center">
+              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                <MessageCircle className="w-7 h-7 text-gray-300" />
+              </div>
+              <p className="font-bold text-gray-800">No posts yet</p>
+              <p className="text-sm text-gray-500 mt-1">Be the first to share something!</p>
+            </div>
+          )}
+
         </div>
       </main>
     </div>

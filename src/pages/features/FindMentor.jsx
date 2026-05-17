@@ -1,95 +1,52 @@
-import React, { useState } from 'react';
-import { ArrowLeft, Search, SlidersHorizontal, Star, CheckCircle, MapPin, ChevronRight, Mic } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { ArrowLeft, Search, SlidersHorizontal, Star, CheckCircle, MapPin, ChevronRight, Mic, Loader2, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useFirestoreQuery } from '../../hooks/useFirestoreQuery';
+import { useAuthContext } from '../../context/AuthContext';
 
-const mentorData = [
-  {
-    id: 'rahul-s',
-    name: 'Rahul Sharma',
-    title: 'UP Police Cleared | BBA Grad',
-    location: 'Aligarh, UP',
-    rating: 4.9,
-    reviews: 120,
-    price: 200,
-    sessions: 45,
-    verified: true,
-    doubleVerified: true,
-    expertise: ['UP Police', 'BBA', 'Reasoning'],
-    avatar: 'https://i.pravatar.cc/150?img=11',
-    badge: 'Top Rated',
-    badgeColor: '#f97316',
-  },
-  {
-    id: 'priya-v',
-    name: 'Priya Verma',
-    title: 'SSC CGL | DU Graduate',
-    location: 'Delhi',
-    rating: 4.8,
-    reviews: 98,
-    price: 250,
-    sessions: 62,
-    verified: true,
-    doubleVerified: false,
-    expertise: ['SSC CGL', 'English', 'GK'],
-    avatar: 'https://i.pravatar.cc/150?img=47',
-    badge: 'Rising Star',
-    badgeColor: '#10b981',
-  },
-  {
-    id: 'amit-k',
-    name: 'Amit Kumar',
-    title: 'CAT 98 Percentile | IIM Prep',
-    location: 'Mumbai',
-    rating: 4.7,
-    reviews: 76,
-    price: 400,
-    sessions: 38,
-    verified: true,
-    doubleVerified: true,
-    expertise: ['CAT', 'MBA', 'Quant'],
-    avatar: 'https://i.pravatar.cc/150?img=12',
-    badge: null,
-    badgeColor: null,
-  },
-  {
-    id: 'sneha-p',
-    name: 'Sneha Patel',
-    title: 'Banking Expert | IBPS PO Cleared',
-    location: 'Ahmedabad',
-    rating: 4.6,
-    reviews: 54,
-    price: 180,
-    sessions: 29,
-    verified: true,
-    doubleVerified: false,
-    expertise: ['Banking', 'Maths', 'Reasoning'],
-    avatar: 'https://i.pravatar.cc/150?img=45',
-    badge: null,
-    badgeColor: null,
-  },
-];
-
-const subjects = ['All', 'UP Police', 'SSC CGL', 'Banking', 'CAT', 'BBA', 'UPSC', 'JEE', 'NEET'];
+const subjectsList = ['All', 'UP Police', 'SSC CGL', 'Banking', 'CAT', 'BBA', 'UPSC', 'JEE', 'NEET'];
 
 const FindMentor = () => {
   const navigate = useNavigate();
+  const { user } = useAuthContext();
   const [search, setSearch] = useState('');
   const [activeSubject, setActiveSubject] = useState('All');
   const [sortBy, setSortBy] = useState('rating');
 
-  const filtered = mentorData.filter(m => {
-    const matchSearch = !search ||
-      m.name.toLowerCase().includes(search.toLowerCase()) ||
-      m.title.toLowerCase().includes(search.toLowerCase()) ||
-      m.expertise.some(e => e.toLowerCase().includes(search.toLowerCase()));
-    const matchSubject = activeSubject === 'All' || m.expertise.includes(activeSubject);
-    return matchSearch && matchSubject;
-  }).sort((a, b) => {
-    if (sortBy === 'rating') return b.rating - a.rating;
-    if (sortBy === 'price') return a.price - b.price;
-    if (sortBy === 'sessions') return b.sessions - a.sessions;
-    return 0;
-  });
+  // Fetch only verified mentors, excluding the current user if they are a mentor
+  const queryOptions = useMemo(() => {
+    const filters = [
+      ['role', '==', 'mentor'],
+      ['verificationStatus', '==', 'verified']
+    ];
+    return { filters, limitCount: 100 };
+  }, []);
+
+  const { data: mentors, loading, error } = useFirestoreQuery('users', queryOptions);
+
+  // Filter out current user and apply local search/sort
+  const filtered = useMemo(() => {
+    if (!mentors) return [];
+    
+    return mentors.filter(m => {
+      // Exclude self
+      if (user && m.id === user.uid) return false;
+
+      const matchSearch = !search ||
+        (m.displayName || '').toLowerCase().includes(search.toLowerCase()) ||
+        (m.bio || '').toLowerCase().includes(search.toLowerCase()) ||
+        (m.subjects || []).some(e => e.toLowerCase().includes(search.toLowerCase()));
+        
+      const matchSubject = activeSubject === 'All' || (m.subjects || []).includes(activeSubject);
+      
+      return matchSearch && matchSubject;
+    }).sort((a, b) => {
+      if (sortBy === 'rating') return (b.rating || 0) - (a.rating || 0);
+      if (sortBy === 'price') return (a.hourlyRate || 0) - (b.hourlyRate || 0);
+      if (sortBy === 'sessions') return (b.sessionsCompleted || 0) - (a.sessionsCompleted || 0);
+      return 0;
+    });
+  }, [mentors, search, activeSubject, sortBy, user]);
 
   return (
     <div className="min-h-screen bg-[#F8FAF9] font-sans text-gray-900 flex flex-col pb-20">
@@ -126,7 +83,7 @@ const FindMentor = () => {
 
         {/* Subject Filter Chips */}
         <div className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 no-scrollbar">
-          {subjects.map((s) => (
+          {subjectsList.map((s) => (
             <button
               key={s}
               onClick={() => setActiveSubject(s)}
@@ -143,7 +100,9 @@ const FindMentor = () => {
 
         {/* Sort & Count Row */}
         <div className="flex items-center justify-between">
-          <span className="text-xs font-medium text-gray-500">{filtered.length} mentors found</span>
+          <span className="text-xs font-medium text-gray-500">
+            {loading ? 'Searching...' : `${filtered.length} mentors found`}
+          </span>
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
@@ -155,87 +114,104 @@ const FindMentor = () => {
           </select>
         </div>
 
-        {/* Mentor Cards */}
-        <div className="space-y-3">
-          {filtered.map((mentor) => (
-            <button
-              key={mentor.id}
-              onClick={() => navigate(`/profile/mentor/${mentor.id}`)}
-              className="w-full bg-white border border-gray-100 rounded-2xl p-4 shadow-sm text-left active:bg-gray-50 transition-colors"
-            >
-              <div className="flex items-start gap-3">
-                {/* Avatar */}
-                <div className="relative shrink-0">
-                  <div className="w-14 h-14 rounded-xl overflow-hidden">
-                    <img src={mentor.avatar} alt={mentor.name} className="w-full h-full object-cover" />
-                  </div>
-                  {mentor.doubleVerified && (
-                    <div className="absolute -bottom-1 -right-1 bg-[#10b981] rounded-full p-0.5 border-2 border-white">
-                      <CheckCircle className="w-3 h-3 text-white" />
-                    </div>
-                  )}
-                </div>
+        {/* Status Indicators */}
+        {error && (
+          <div className="bg-red-50 border border-red-100 rounded-xl p-4 flex items-center gap-3 text-red-600 text-sm font-bold">
+            <AlertCircle className="w-5 h-5 shrink-0" />
+            <p>Failed to load mentors: {error}</p>
+          </div>
+        )}
 
-                {/* Info */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between mb-0.5">
-                    <h3 className="font-bold text-gray-900 text-sm">{mentor.name}</h3>
-                    {mentor.badge && (
-                      <span
-                        className="text-[9px] font-bold px-2 py-0.5 rounded-full text-white shrink-0 ml-2"
-                        style={{ backgroundColor: mentor.badgeColor }}
-                      >
-                        {mentor.badge}
-                      </span>
+        {loading && !error && (
+          <div className="flex flex-col items-center justify-center py-16 text-center text-[#10b981]">
+            <Loader2 className="w-8 h-8 animate-spin mb-4" />
+            <p className="font-bold text-sm">Loading verified mentors...</p>
+          </div>
+        )}
+
+        {/* Mentor Cards */}
+        {!loading && !error && (
+          <div className="space-y-3">
+            {filtered.map((mentor) => (
+              <button
+                key={mentor.id}
+                onClick={() => navigate(`/profile/mentor/${mentor.id}`)}
+                className="w-full bg-white border border-gray-100 rounded-2xl p-4 shadow-sm text-left active:bg-gray-50 transition-colors"
+              >
+                <div className="flex items-start gap-3">
+                  {/* Avatar */}
+                  <div className="relative shrink-0">
+                    <div className="w-14 h-14 rounded-xl overflow-hidden bg-gray-200">
+                      <img src={mentor.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(mentor.displayName || 'M')}&background=ECFDF5&color=10b981`} alt={mentor.displayName} className="w-full h-full object-cover" />
+                    </div>
+                    {mentor.verificationStatus === 'verified' && (
+                      <div className="absolute -bottom-1 -right-1 bg-[#10b981] rounded-full p-0.5 border-2 border-white">
+                        <CheckCircle className="w-3 h-3 text-white" />
+                      </div>
                     )}
                   </div>
-                  <p className="text-xs text-gray-500 font-medium mb-1 truncate">{mentor.title}</p>
-                  <div className="flex items-center gap-1 mb-2">
-                    <MapPin className="w-3 h-3 text-gray-400" />
-                    <span className="text-[10px] text-gray-400">{mentor.location}</span>
-                  </div>
 
-                  {/* Expertise Pills */}
-                  <div className="flex flex-wrap gap-1 mb-3">
-                    {mentor.expertise.slice(0, 3).map((tag) => (
-                      <span key={tag} className="bg-[#ECFDF5] text-[#10b981] text-[9px] font-bold px-2 py-0.5 rounded-full">
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
+                  {/* Info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between mb-0.5">
+                      <h3 className="font-bold text-gray-900 text-sm">{mentor.displayName || 'Anonymous Mentor'}</h3>
+                      {mentor.badge && (
+                        <span
+                          className="text-[9px] font-bold px-2 py-0.5 rounded-full text-white shrink-0 ml-2"
+                          style={{ backgroundColor: mentor.badgeColor || '#f97316' }}
+                        >
+                          {mentor.badge}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-500 font-medium mb-1 truncate">{mentor.bio || mentor.college || 'Mentor'}</p>
+                    <div className="flex items-center gap-1 mb-2">
+                      <MapPin className="w-3 h-3 text-gray-400" />
+                      <span className="text-[10px] text-gray-400">{mentor.city ? `${mentor.city}, ${mentor.state}` : 'India'}</span>
+                    </div>
 
-                  {/* Stats Row */}
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center gap-1">
-                        <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
-                        <span className="text-xs font-bold text-gray-800">{mentor.rating}</span>
-                        <span className="text-[10px] text-gray-400">({mentor.reviews})</span>
+                    {/* Expertise Pills */}
+                    <div className="flex flex-wrap gap-1 mb-3">
+                      {(mentor.subjects || []).slice(0, 3).map((tag) => (
+                        <span key={tag} className="bg-[#ECFDF5] text-[#10b981] text-[9px] font-bold px-2 py-0.5 rounded-full">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+
+                    {/* Stats Row */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-1">
+                          <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
+                          <span className="text-xs font-bold text-gray-800">{mentor.rating || '5.0'}</span>
+                          <span className="text-[10px] text-gray-400">({mentor.reviewsCount || 0})</span>
+                        </div>
+                        <span className="text-[10px] text-gray-400">{mentor.sessionsCompleted || 0} sessions</span>
                       </div>
-                      <span className="text-[10px] text-gray-400">{mentor.sessions} sessions</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <span className="text-sm font-black text-[#10b981]">₹{mentor.price}</span>
-                      <span className="text-[10px] text-gray-400">/hr</span>
+                      <div className="flex items-center gap-1">
+                        <span className="text-sm font-black text-[#10b981]">₹{mentor.hourlyRate || 0}</span>
+                        <span className="text-[10px] text-gray-400">/hr</span>
+                      </div>
                     </div>
                   </div>
+
+                  <ChevronRight className="w-4 h-4 text-gray-300 mt-1 shrink-0" />
                 </div>
 
-                <ChevronRight className="w-4 h-4 text-gray-300 mt-1 shrink-0" />
-              </div>
-
-              {/* Book Button */}
-              <button
-                onClick={(e) => { e.stopPropagation(); navigate(`/book/${mentor.id}`); }}
-                className="mt-3 w-full bg-[#10b981] text-white py-2.5 rounded-xl text-xs font-bold active:bg-emerald-600 transition-colors"
-              >
-                Book Session • ₹{mentor.price}/hr
+                {/* Book Button */}
+                <button
+                  onClick={(e) => { e.stopPropagation(); navigate(`/book/${mentor.id}`); }}
+                  className="mt-3 w-full bg-[#10b981] text-white py-2.5 rounded-xl text-xs font-bold active:bg-emerald-600 transition-colors shadow-sm"
+                >
+                  Book Session • ₹{mentor.hourlyRate || 0}/hr
+                </button>
               </button>
-            </button>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
 
-        {filtered.length === 0 && (
+        {!loading && !error && filtered.length === 0 && (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
               <Search className="w-7 h-7 text-gray-300" />

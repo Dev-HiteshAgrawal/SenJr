@@ -1,9 +1,105 @@
-import React from 'react';
-import { ArrowLeft, MoreVertical, Mic, Send, GraduationCap } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { ArrowLeft, MoreVertical, Mic, Send, GraduationCap, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { GoogleGenerativeAI } from '@google/generative-ai'; // Fallback for local dev
 
 const AIChat = () => {
   const navigate = useNavigate();
+  const [messages, setMessages] = useState([
+    {
+      id: 1,
+      role: 'model',
+      content: 'Namaste! Aaj kya seekhna hai? 📐 I can help you with Maths, Reasoning, and Exam Prep.',
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    }
+  ]);
+  const [input, setInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const messagesEndRef = useRef(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, isLoading]);
+
+  const handleSend = async () => {
+    if (!input.trim()) return;
+
+    const userMessage = {
+      id: Date.now(),
+      role: 'user',
+      content: input.trim(),
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    setInput('');
+    setIsLoading(true);
+
+    try {
+      // 1. Try hitting the Vercel Serverless Function
+      const apiMessages = [...messages, userMessage].map(m => ({ role: m.role, content: m.content }));
+      
+      let aiResponseText = '';
+
+      try {
+        const response = await fetch('/api/gemini-chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ messages: apiMessages })
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          aiResponseText = data.content;
+        } else {
+          throw new Error('Serverless function failed or not running (local dev)');
+        }
+      } catch (fetchErr) {
+        // 2. Fallback: Local client-side execution (if Vercel dev isn't running)
+        console.warn('Falling back to client-side Gemini call:', fetchErr);
+        const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+        if (!apiKey) throw new Error('No API Key');
+        
+        const genAI = new GoogleGenerativeAI(apiKey);
+        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+        
+        const history = messages.map(m => ({
+          role: m.role === 'user' ? 'user' : 'model',
+          parts: [{ text: m.content }],
+        }));
+        
+        const chat = model.startChat({
+          history,
+          systemInstruction: 'You are EduPulse AI Tutor, a highly intelligent and encouraging academic assistant designed to help students with their studies, exam prep, and career guidance. Provide clear, concise, and accurate explanations. Use emojis occasionally.',
+        });
+        
+        const result = await chat.sendMessage(userMessage.content);
+        aiResponseText = await result.response.text();
+      }
+
+      setMessages(prev => [...prev, {
+        id: Date.now() + 1,
+        role: 'model',
+        content: aiResponseText,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      }]);
+
+    } catch (error) {
+      console.error('Chat error:', error);
+      setMessages(prev => [...prev, {
+        id: Date.now() + 1,
+        role: 'model',
+        content: 'Sorry, I am having trouble connecting to my brain right now. 🧠❌',
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      }]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] font-sans flex flex-col">
@@ -23,8 +119,8 @@ const AIChat = () => {
           </div>
           
           <div>
-            <h1 className="font-bold text-gray-900 leading-tight">Arya</h1>
-            <p className="text-[10px] font-bold text-gray-500">Maths Expert</p>
+            <h1 className="font-bold text-gray-900 leading-tight">Arya (AI)</h1>
+            <p className="text-[10px] font-bold text-gray-500">24/7 EduPulse Tutor</p>
           </div>
         </div>
         
@@ -36,71 +132,35 @@ const AIChat = () => {
       {/* Chat Area */}
       <main className="flex-1 overflow-y-auto p-4 pb-24 space-y-4">
         
-        {/* Received Message */}
-        <div className="flex flex-col items-start max-w-[85%]">
-          <div className="bg-[#EEF2FF] border border-blue-100 text-gray-800 rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm text-sm">
-            Namaste Hitesh! Aaj kya seekhna hai? 📐
-          </div>
-          <span className="text-[10px] text-gray-400 font-medium mt-1 ml-1">10:02 AM</span>
-        </div>
-
-        {/* Sent Message */}
-        <div className="flex flex-col items-end w-full">
-          <div className="bg-[#10b981] text-white rounded-2xl rounded-tr-sm px-4 py-3 shadow-sm text-sm max-w-[85%]">
-            Sir, calculus samajh nahi aa raha
-          </div>
-          <span className="text-[10px] text-gray-400 font-medium mt-1 mr-1">10:03 AM</span>
-        </div>
-
-        {/* Received Message */}
-        <div className="flex flex-col items-start max-w-[85%]">
-          <div className="bg-[#EEF2FF] border border-blue-100 text-gray-800 rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm text-sm">
-            Arre tension mat lo! Calculus = rate of change...
-          </div>
-        </div>
-
-        {/* Received Message */}
-        <div className="flex flex-col items-start max-w-[85%]">
-          <div className="bg-[#EEF2FF] border border-blue-100 text-gray-800 rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm text-sm">
-            Example: Agar car 60km/hr se chal rahi hai, toh woh constant rate hai. Calculus humein batata hai ki speed har second kaise badal rahi hai.
-          </div>
-        </div>
-
-        {/* Rich Card (Practice Question) */}
-        <div className="flex flex-col items-start max-w-[90%]">
-          <div className="bg-[#F4F9F8] border border-dashed border-[#10b981] rounded-2xl p-4 shadow-sm w-full">
-            <div className="flex items-center gap-1.5 mb-3 text-[#10b981]">
-              <GraduationCap className="w-4 h-4" />
-              <span className="text-[10px] font-bold tracking-wider uppercase">Practice Question</span>
+        {messages.map((msg) => (
+          <div key={msg.id} className={`flex flex-col w-full ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
+            <div 
+              className={`max-w-[85%] rounded-2xl px-4 py-3 shadow-sm text-sm whitespace-pre-wrap ${
+                msg.role === 'user' 
+                  ? 'bg-[#10b981] text-white rounded-tr-sm' 
+                  : 'bg-[#EEF2FF] border border-blue-100 text-gray-800 rounded-tl-sm'
+              }`}
+            >
+              {msg.content}
             </div>
-            
-            <p className="font-bold text-gray-900 mb-4 text-sm leading-relaxed">
-              Find the derivative of f(x) = x² + 3x
-            </p>
-            
-            <div className="space-y-2">
-              <button className="w-full text-left px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm text-gray-800 active:bg-gray-50 transition-colors">
-                A) 2x + 3
-              </button>
-              <button className="w-full text-left px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm text-gray-800 active:bg-gray-50 transition-colors">
-                B) x + 3
-              </button>
-              <button className="w-full text-left px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm text-gray-800 active:bg-gray-50 transition-colors">
-                C) 2x
-              </button>
-            </div>
+            <span className={`text-[10px] text-gray-400 font-medium mt-1 ${msg.role === 'user' ? 'mr-1' : 'ml-1'}`}>
+              {msg.time}
+            </span>
           </div>
-        </div>
+        ))}
 
         {/* Typing Indicator */}
-        <div className="flex flex-col items-start max-w-[85%] mt-2">
-          <div className="bg-[#EEF2FF] border border-blue-100 text-gray-500 rounded-full px-4 py-2 shadow-sm text-lg flex gap-1">
-            <span className="animate-bounce">.</span>
-            <span className="animate-bounce" style={{ animationDelay: '0.2s' }}>.</span>
-            <span className="animate-bounce" style={{ animationDelay: '0.4s' }}>.</span>
+        {isLoading && (
+          <div className="flex flex-col items-start max-w-[85%] mt-2">
+            <div className="bg-[#EEF2FF] border border-blue-100 text-gray-500 rounded-full px-4 py-2 shadow-sm text-lg flex gap-1">
+              <span className="animate-bounce">.</span>
+              <span className="animate-bounce" style={{ animationDelay: '0.2s' }}>.</span>
+              <span className="animate-bounce" style={{ animationDelay: '0.4s' }}>.</span>
+            </div>
           </div>
-        </div>
-
+        )}
+        
+        <div ref={messagesEndRef} />
       </main>
 
       {/* Bottom Input Area */}
@@ -108,6 +168,9 @@ const AIChat = () => {
         <div className="flex-1 bg-[#F1F5F9] rounded-full flex items-center px-4 py-1.5 border border-gray-200">
           <input 
             type="text" 
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSend()}
             placeholder="Type your doubt..." 
             className="flex-1 bg-transparent py-2 focus:outline-none text-sm text-gray-800 placeholder-gray-500"
           />
@@ -115,8 +178,12 @@ const AIChat = () => {
             <Mic className="w-5 h-5" />
           </button>
         </div>
-        <button className="w-12 h-12 bg-[#10b981] rounded-full flex items-center justify-center text-white shrink-0 shadow-md active:bg-emerald-600 transition-colors">
-          <Send className="w-5 h-5 ml-1" />
+        <button 
+          onClick={handleSend}
+          disabled={isLoading || !input.trim()}
+          className="w-12 h-12 bg-[#10b981] rounded-full flex items-center justify-center text-white shrink-0 shadow-md active:bg-emerald-600 transition-colors disabled:opacity-50"
+        >
+          {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5 ml-1" />}
         </button>
       </div>
 

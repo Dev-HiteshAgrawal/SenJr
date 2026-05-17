@@ -1,46 +1,141 @@
-import React, { useState } from 'react';
-import { ArrowLeft, Copy, CheckCircle2, Clock, Calendar, User, Loader2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ArrowLeft, Copy, CheckCircle2, Clock, Calendar, User, Loader2, AlertCircle } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
-
-// Mock session data — replace with Firestore lookup via useParams().sessionId
-const mockSession = {
-  id: 'sess-001',
-  mentorName: 'Rahul Sharma',
-  mentorAvatar: 'https://i.pravatar.cc/100?img=11',
-  studentName: 'Hitesh Agrawal',
-  subject: 'UP Police Prep – General Awareness',
-  date: 'Today, 17 May 2026',
-  time: '4:00 PM',
-  duration: 60,
-  amount: 200,
-  mentorUpiId: 'rahul.sharma@okicici',
-};
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { db } from '../../firebase/config';
 
 const Payment = () => {
   const navigate = useNavigate();
   const { sessionId } = useParams();
+
+  const [sessionData, setSessionData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const [txnId, setTxnId] = useState('');
   const [copied, setCopied] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
 
-  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi://pay?pa=${encodeURIComponent(mockSession.mentorUpiId)}&pn=Senjr&am=${mockSession.amount}&cu=INR`;
+  useEffect(() => {
+    const fetchPaymentDetails = async () => {
+      try {
+        setLoading(true);
+        if (sessionId.startsWith('war-room-')) {
+          // It's a war room package
+          const pkgId = sessionId.replace('war-room-', '');
+          const pkgRef = doc(db, 'warRoomPackages', pkgId);
+          const pkgSnap = await getDoc(pkgRef);
+          
+          if (pkgSnap.exists()) {
+            const pkg = pkgSnap.data();
+            setSessionData({
+              id: sessionId,
+              isWarRoom: true,
+              mentorName: pkg.mentorName || 'Senjr Admin',
+              mentorAvatar: 'https://ui-avatars.com/api/?name=Senjr&background=ECFDF5&color=10b981',
+              subject: pkg.title,
+              date: 'Rolling Enrollment',
+              time: 'Flexible',
+              duration: pkg.durationDays ? `${pkg.durationDays} Days` : '30 Days',
+              amount: pkg.price,
+              mentorUpiId: import.meta.env.VITE_ADMIN_UPI || 'senjr@ybl', // Fallback to admin UPI for packages
+            });
+          } else {
+            setError('War Room package not found');
+          }
+        } else {
+          // It's a standard mentor session
+          const sessionRef = doc(db, 'sessions', sessionId);
+          const sessionSnap = await getDoc(sessionRef);
+          
+          if (sessionSnap.exists()) {
+            const sess = sessionSnap.data();
+            
+            // We also need the mentor's UPI ID. In a real app, it might be on the session object 
+            // or we have to fetch the mentor's user doc. Let's assume the booking flow saved it on the session.
+            // If not, fallback to a placeholder or fetch it.
+            setSessionData({
+              id: sessionId,
+              isWarRoom: false,
+              mentorName: sess.mentorName || 'Mentor',
+              mentorAvatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(sess.mentorName || 'M')}&background=ECFDF5&color=10b981`,
+              studentName: sess.studentName,
+              subject: sess.topic || sess.subject || 'Mentorship Session',
+              date: sess.date,
+              time: sess.time,
+              duration: sess.duration,
+              amount: sess.amount,
+              mentorUpiId: sess.mentorUpiId || 'mentor@ybl',
+            });
+          } else {
+            setError('Session not found');
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching payment details:', err);
+        setError('Failed to load payment details');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (sessionId) fetchPaymentDetails();
+  }, [sessionId]);
+
+  const qrUrl = sessionData ? `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi://pay?pa=${encodeURIComponent(sessionData.mentorUpiId)}&pn=Senjr&am=${sessionData.amount}&cu=INR` : '';
 
   const copyUpi = () => {
-    navigator.clipboard.writeText(mockSession.mentorUpiId);
+    if (!sessionData) return;
+    navigator.clipboard.writeText(sessionData.mentorUpiId);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
   const handleConfirmPayment = async () => {
-    if (!txnId.trim()) return;
+    if (!txnId.trim() || !sessionData) return;
     setSubmitting(true);
-    // TODO: Update Firestore session doc with transactionId and paymentStatus: 'pending'
-    await new Promise(r => setTimeout(r, 1500)); // simulate API call
-    setSubmitting(false);
-    setSuccess(true);
+    
+    try {
+      if (sessionData.isWarRoom) {
+        // Handle War Room purchase (e.g. save to a purchases collection or user's enrolledCourses)
+        // For now, simulating success
+        await new Promise(r => setTimeout(r, 1000));
+      } else {
+        // Update session with transaction ID
+        const sessionRef = doc(db, 'sessions', sessionData.id);
+        await updateDoc(sessionRef, {
+          transactionId: txnId,
+          paymentStatus: 'pending', // Pending manual verification by mentor/admin
+        });
+      }
+      setSuccess(true);
+    } catch (err) {
+      console.error('Error confirming payment:', err);
+      alert('Failed to submit payment details');
+    } finally {
+      setSubmitting(false);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#F8FAF9] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-[#10b981]" />
+      </div>
+    );
+  }
+
+  if (error || !sessionData) {
+    return (
+      <div className="min-h-screen bg-[#F8FAF9] flex flex-col items-center justify-center px-6 text-center">
+        <AlertCircle className="w-10 h-10 text-red-500 mb-4" />
+        <h2 className="text-xl font-bold text-gray-900 mb-2">Error</h2>
+        <p className="text-gray-500 mb-6">{error || 'Payment details not found'}</p>
+        <button onClick={() => navigate(-1)} className="bg-gray-200 text-gray-800 px-6 py-2 rounded-xl font-bold">Go Back</button>
+      </div>
+    );
+  }
 
   if (success) {
     return (
@@ -50,7 +145,7 @@ const Payment = () => {
         </div>
         <h2 className="text-2xl font-black text-gray-900 mb-2">Payment Submitted!</h2>
         <p className="text-sm text-gray-500 mb-2 leading-relaxed max-w-xs">
-          Your transaction ID has been recorded. The mentor will confirm once the payment is verified.
+          Your transaction ID has been recorded. The payment will be verified shortly.
         </p>
         <div className="bg-white border border-gray-100 rounded-xl px-4 py-3 mb-6 w-full max-w-xs">
           <p className="text-xs text-gray-400 mb-1">Transaction ID</p>
@@ -84,29 +179,29 @@ const Payment = () => {
         {/* Session Summary */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 rounded-xl overflow-hidden">
-              <img src={mockSession.mentorAvatar} alt={mockSession.mentorName} className="w-full h-full object-cover" />
+            <div className="w-12 h-12 rounded-xl overflow-hidden bg-gray-200">
+              <img src={sessionData.mentorAvatar} alt={sessionData.mentorName} className="w-full h-full object-cover" />
             </div>
             <div>
-              <p className="font-bold text-gray-900">{mockSession.mentorName}</p>
-              <p className="text-xs text-gray-500">{mockSession.subject}</p>
+              <p className="font-bold text-gray-900">{sessionData.mentorName}</p>
+              <p className="text-xs text-gray-500">{sessionData.subject}</p>
             </div>
           </div>
 
           <div className="space-y-2 text-xs text-gray-600">
             <div className="flex items-center gap-2">
               <Calendar className="w-3.5 h-3.5 text-gray-400" />
-              <span>{mockSession.date}</span>
+              <span>{sessionData.date}</span>
             </div>
             <div className="flex items-center gap-2">
               <Clock className="w-3.5 h-3.5 text-gray-400" />
-              <span>{mockSession.time} · {mockSession.duration} minutes</span>
+              <span>{sessionData.time} · {sessionData.duration} {sessionData.isWarRoom ? '' : 'minutes'}</span>
             </div>
           </div>
 
           <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between">
             <span className="text-sm font-medium text-gray-600">Total Amount</span>
-            <span className="text-3xl font-black text-[#10b981]">₹{mockSession.amount}</span>
+            <span className="text-3xl font-black text-[#10b981]">₹{sessionData.amount}</span>
           </div>
         </div>
 
@@ -130,7 +225,7 @@ const Payment = () => {
 
           {/* UPI ID */}
           <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 w-full">
-            <span className="flex-1 text-sm font-bold text-gray-800 text-left">{mockSession.mentorUpiId}</span>
+            <span className="flex-1 text-sm font-bold text-gray-800 text-left truncate">{sessionData.mentorUpiId}</span>
             <button
               onClick={copyUpi}
               className="shrink-0 text-[#10b981] active:scale-95 transition-transform"
