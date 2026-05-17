@@ -25,9 +25,14 @@ service cloud.firestore {
     match /users/{userId} {
       // Anyone can create a user doc during signup
       allow create: if isSignedIn() && isOwner(userId);
-      // Users can read/update their own docs. Everyone can read for public profiles (mentors). Admins can do anything.
-      allow read: if isSignedIn();
-      allow update: if isSignedIn() && (isOwner(userId) || isAdmin());
+      // Only owners or admins can read full user data.
+      // Public profiles should ideally be a separate collection or filtered.
+      allow read: if isSignedIn() && (isOwner(userId) || isAdmin());
+      // Prevent users from escalating their own role or manipulating XP/Level
+      allow update: if isSignedIn() && (
+        isAdmin() ||
+        (isOwner(userId) && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'xp', 'level']))
+      );
       allow delete: if isAdmin();
     }
 
@@ -49,10 +54,13 @@ service cloud.firestore {
     // --- Posts Collection (Community) ---
     match /posts/{postId} {
       allow read: if isSignedIn();
-      allow create: if isSignedIn() && request.resource.data.authorId == request.auth.uid;
+      allow create: if isSignedIn() &&
+        request.resource.data.authorId == request.auth.uid &&
+        request.resource.data.content.size() < 2000; // Basic length limit for sanitization/DDoS protection
+
       // Allow author to update full post, or any user to update likes/saves
       allow update: if isSignedIn() && (
-        resource.data.authorId == request.auth.uid || 
+        (resource.data.authorId == request.auth.uid && request.resource.data.content.size() < 2000) ||
         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'saves']) ||
         isAdmin()
       );

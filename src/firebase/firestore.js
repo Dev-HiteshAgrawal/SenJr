@@ -10,9 +10,14 @@ import {
   where,
   orderBy,
   limit,
-  onSnapshot
+  onSnapshot,
+  runTransaction
 } from 'firebase/firestore'
 import { db } from './config'
+
+export const runFirestoreTransaction = async (transactionFn) => {
+  return await runTransaction(db, transactionFn);
+};
 
 export const createDocument = async (collectionName, data) => {
   return await addDoc(collection(db, collectionName), data)
