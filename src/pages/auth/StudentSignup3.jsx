@@ -1,141 +1,186 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
-import toast from 'react-hot-toast'
-import { GraduationCap, Loader, Target, BookOpen, Clock } from 'lucide-react'
-import { useAuth } from '../../hooks/useAuth'
-import { updateDocument } from '../../firebase/firestore'
-import StepProgress from '../../components/auth/StepProgress'
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ArrowLeft, ChevronDown, CheckCircle2, Search, ArrowRight } from 'lucide-react';
 
 const StudentSignup3 = () => {
-  const navigate = useNavigate()
-  const { user } = useAuth()
-
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    learningGoal: '',
-    weeklyHours: '',
-    preferredSessionLength: '60',
-    currentSkillLevel: 'beginner'
-  })
-  const [loading, setLoading] = useState(false)
+    educationLevel: '',
+    collegeName: 'ITM College Aligarh',
+    university: 'AKTU',
+    city: '',
+    state: 'Uttar Pradesh',
+    yearOfStudy: '1st',
+    graduationYear: '2026'
+  });
 
   const handleChange = (e) => {
-    const { name, value } = e.target
-    setFormData(prev => ({ ...prev, [name]: value }))
-  }
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    if (!user) {
-      toast.error('Please sign in first')
-      return navigate('/signup')
-    }
-
-    setLoading(true)
-    try {
-      await updateDocument('users', user.uid, {
-        learningGoal: formData.learningGoal,
-        weeklyHours: formData.weeklyHours,
-        preferredSessionLength: formData.preferredSessionLength,
-        currentSkillLevel: formData.currentSkillLevel
-      })
-      toast.success('Learning preferences saved!')
-      navigate('/student/signup/step4')
-    } catch (error) {
-      toast.error(error.message)
-    } finally {
-      setLoading(false)
-    }
-  }
+  const handleContinue = (e) => {
+    e.preventDefault();
+    navigate('/signup/student/4');
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-50 flex items-center justify-center p-4">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md"
-      >
-        <div className="bg-white rounded-2xl shadow-xl p-8">
-          <div className="text-center mb-6">
-            <GraduationCap className="h-10 w-10 text-primary-500 mx-auto" />
-            <h2 className="text-2xl font-semibold text-gray-800 mt-4">Student Registration</h2>
-            <p className="text-gray-500 mt-2">Step 3: Learning Goals</p>
-          </div>
+    <div className="min-h-screen bg-white font-sans text-gray-900 flex flex-col pb-24">
+      {/* Header */}
+      <header className="flex items-center px-4 py-4 relative bg-white border-b-2 border-gray-900">
+        <button onClick={() => navigate(-1)} className="w-10 h-10 rounded-xl border-2 border-gray-900 flex items-center justify-center z-10 bg-white shadow-[2px_2px_0px_0px_rgba(17,24,39,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all">
+          <ArrowLeft className="w-5 h-5" />
+        </button>
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <h1 className="text-lg font-bold tracking-wide">Education Details</h1>
+        </div>
+      </header>
 
-          <StepProgress currentStep={3} totalSteps={4} labels={['Basic', 'Education', 'Goals', 'Complete']} />
+      <main className="flex-1 px-5 pt-6">
+        {/* Progress Dots */}
+        <div className="flex justify-center gap-2 mb-8">
+          <div className="w-6 h-1.5 rounded-full border border-gray-900 bg-gray-200"></div>
+          <div className="w-6 h-1.5 rounded-full border border-gray-900 bg-gray-200"></div>
+          <div className="w-8 h-1.5 rounded-full border border-gray-900 bg-primary-500"></div>
+          <div className="w-6 h-1.5 rounded-full border border-gray-900 bg-gray-200"></div>
+        </div>
 
-          <form onSubmit={handleSubmit}>
-            <div className="mb-4">
-              <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
-                <Target className="w-4 h-4 mr-2 text-primary-500" />
-                Primary Learning Goal *
-              </label>
-              <textarea
-                name="learningGoal"
-                value={formData.learningGoal}
-                onChange={handleChange}
-                placeholder="What do you want to achieve?"
-                rows={3}
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                required
-              />
-            </div>
-
-            <div className="mb-4">
-              <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
-                <Clock className="w-4 h-4 mr-2 text-primary-500" />
-                Weekly Study Hours *
-              </label>
+        <form className="space-y-5" onSubmit={handleContinue}>
+          
+          {/* Education Level */}
+          <div className="space-y-1.5">
+            <label className="block text-sm font-bold text-gray-900">Education Level</label>
+            <div className="relative">
               <select
-                name="weeklyHours"
-                value={formData.weeklyHours}
+                name="educationLevel"
+                value={formData.educationLevel}
                 onChange={handleChange}
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                required
+                className="w-full appearance-none pl-4 pr-10 py-3 border-2 border-gray-900 focus:outline-none focus:border-primary-500 rounded-none bg-white font-medium"
               >
-                <option value="">Select hours</option>
-                <option value="1-3">1-3 hours</option>
-                <option value="4-7">4-7 hours</option>
-                <option value="8-12">8-12 hours</option>
-                <option value="13+">13+ hours</option>
+                <option value="" disabled>Select Level</option>
+                <option value="UG">Undergraduate (UG)</option>
+                <option value="PG">Postgraduate (PG)</option>
+                <option value="Diploma">Diploma</option>
               </select>
-            </div>
-
-            <div className="mb-4">
-              <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
-                <BookOpen className="w-4 h-4 mr-2 text-primary-500" />
-                Current Skill Level
-              </label>
-              <div className="grid grid-cols-3 gap-3">
-                {['beginner', 'intermediate', 'advanced'].map(level => (
-                  <button
-                    key={level}
-                    type="button"
-                    onClick={() => setFormData(prev => ({ ...prev, currentSkillLevel: level }))}
-                    className={`py-2 px-3 rounded-lg border text-sm capitalize transition-colors ${
-                      formData.currentSkillLevel === level
-                        ? 'bg-primary-500 text-white border-primary-500'
-                        : 'border-gray-300 text-gray-600 hover:border-primary-500'
-                    }`}
-                  >
-                    {level}
-                  </button>
-                ))}
+              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                <ChevronDown className="w-5 h-5 text-gray-900" />
               </div>
             </div>
+          </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-primary-500 text-white py-3 rounded-xl font-medium hover:bg-primary-600 transition-colors disabled:opacity-50 flex items-center justify-center mt-4"
-            >
-              {loading ? <Loader className="animate-spin h-5 w-5" /> : 'Continue'}
-            </button>
-          </form>
-        </div>
-      </motion.div>
+          {/* College Name */}
+          <div className="space-y-1.5">
+            <label className="block text-sm font-bold text-gray-900">College Name</label>
+            <div className="relative">
+              <input
+                type="text"
+                name="collegeName"
+                value={formData.collegeName}
+                onChange={handleChange}
+                placeholder="Enter college name"
+                className="w-full pl-4 pr-10 py-3 border-2 border-gray-900 bg-green-50 focus:outline-none focus:border-primary-500 rounded-none font-medium"
+              />
+              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                <CheckCircle2 className="w-5 h-5 text-primary-600" />
+              </div>
+            </div>
+          </div>
+
+          {/* University (Auto-filled style) */}
+          <div className="space-y-1.5">
+            <label className="block text-sm font-bold text-gray-900">University</label>
+            <input
+              type="text"
+              name="university"
+              value={formData.university}
+              readOnly
+              className="w-full pl-4 pr-4 py-3 border-2 border-dashed border-gray-400 bg-[#E8F5EE] text-gray-600 rounded-none font-medium cursor-not-allowed"
+            />
+          </div>
+
+          {/* City */}
+          <div className="space-y-1.5">
+            <label className="block text-sm font-bold text-gray-900">City</label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Search className="w-5 h-5 text-gray-500" />
+              </div>
+              <input
+                type="text"
+                name="city"
+                value={formData.city}
+                onChange={handleChange}
+                placeholder="Search city..."
+                className="w-full pl-10 pr-10 py-3 border-2 border-gray-900 focus:outline-none focus:border-primary-500 rounded-none font-medium"
+              />
+              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                <ChevronDown className="w-5 h-5 text-gray-900" />
+              </div>
+            </div>
+          </div>
+
+          {/* State (Auto-filled style) */}
+          <div className="space-y-1.5">
+            <label className="block text-sm font-bold text-gray-900">State</label>
+            <input
+              type="text"
+              name="state"
+              value={formData.state}
+              readOnly
+              className="w-full pl-4 pr-4 py-3 border-2 border-dashed border-gray-400 bg-[#E8F5EE] text-gray-600 rounded-none font-medium cursor-not-allowed"
+            />
+          </div>
+
+          {/* Year of Study */}
+          <div className="space-y-1.5">
+            <label className="block text-sm font-bold text-gray-900">Year of Study</label>
+            <div className="flex flex-wrap gap-3">
+              {['1st', '2nd', '3rd', 'Final'].map(year => (
+                <button
+                  type="button"
+                  key={year}
+                  onClick={() => setFormData({...formData, yearOfStudy: year})}
+                  className={`px-5 py-2 rounded-2xl border-2 border-gray-900 font-bold text-sm transition-all ${
+                    formData.yearOfStudy === year
+                      ? 'bg-primary-500 shadow-[2px_2px_0px_0px_rgba(17,24,39,1)] text-gray-900' 
+                      : 'bg-white shadow-[2px_2px_0px_0px_rgba(17,24,39,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px]'
+                  }`}
+                >
+                  {year}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Graduation Year */}
+          <div className="space-y-1.5">
+            <label className="block text-sm font-bold text-gray-900">Graduation Year</label>
+            <input
+              type="number"
+              name="graduationYear"
+              value={formData.graduationYear}
+              onChange={handleChange}
+              placeholder="e.g. 2026"
+              className="w-full pl-4 pr-4 py-3 border-2 border-gray-900 focus:outline-none focus:border-primary-500 rounded-none font-medium"
+            />
+          </div>
+
+        </form>
+      </main>
+
+      {/* Sticky Bottom Bar */}
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t-2 border-gray-900 z-50">
+        <button 
+          onClick={handleContinue}
+          className="w-full group relative block"
+        >
+          <div className="absolute inset-0 bg-gray-900 translate-y-1.5 translate-x-1.5 rounded-none transition-transform group-active:translate-x-0 group-active:translate-y-0"></div>
+          <div className="relative bg-primary-500 border-2 border-gray-900 text-gray-900 text-center py-3.5 font-bold text-lg flex items-center justify-center gap-2 transition-transform group-active:translate-x-1.5 group-active:translate-y-1.5">
+            Continue <ArrowRight className="w-5 h-5" />
+          </div>
+        </button>
+      </div>
     </div>
-  )
-}
+  );
+};
 
-export default StudentSignup3
+export default StudentSignup3;

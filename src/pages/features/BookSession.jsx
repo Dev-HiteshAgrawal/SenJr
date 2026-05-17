@@ -1,215 +1,202 @@
-import { useState, useEffect } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
-import { motion } from 'framer-motion'
-import toast from 'react-hot-toast'
-import { Calendar, Clock, Video, DollarSign, Loader, ArrowLeft } from 'lucide-react'
-import { useAuth } from '../../hooks/useAuth'
-import { getDocument, createDocument } from '../../firebase/firestore'
-import CalendarComponent from '../../components/booking/Calendar'
-import TimeSlotPicker from '../../components/booking/TimeSlotPicker'
-import { SESSION_DURATIONS } from '../../utils/constants'
+import React, { useState } from 'react';
+import { ArrowLeft, X, CheckCircle2, Sun, Sunset, Moon, ArrowRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const BookSession = () => {
-  const navigate = useNavigate()
-  const { mentorId } = useParams()
-  const { user } = useAuth()
-
-  const [mentor, setMentor] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [booking, setBooking] = useState({
-    date: null,
-    time: '',
-    duration: 60,
-    subject: '',
-    notes: ''
-  })
-  const [processing, setProcessing] = useState(false)
-
-  useEffect(() => {
-    if (mentorId) {
-      loadMentor()
-    } else {
-      setLoading(false)
-    }
-  }, [mentorId])
-
-  const loadMentor = async () => {
-    try {
-      const data = await getDocument('users', mentorId)
-      setMentor(data)
-    } catch (error) {
-      toast.error('Failed to load mentor')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleBookSession = async () => {
-    if (!booking.date || !booking.time || !booking.subject) {
-      toast.error('Please fill all required fields')
-      return
-    }
-
-    if (!user) {
-      toast.error('Please login first')
-      navigate('/login')
-      return
-    }
-
-    setProcessing(true)
-    try {
-      const sessionDate = new Date(booking.date)
-      const [time, period] = booking.time.split(' ')
-      const [hours, minutes] = time.split(':')
-      let hour = parseInt(hours)
-      if (period === 'PM' && hour !== 12) hour += 12
-      if (period === 'AM' && hour === 12) hour = 0
-      sessionDate.setHours(hour, parseInt(minutes), 0, 0)
-
-      await createDocument('sessions', {
-        studentId: user.uid,
-        mentorId: mentor?.uid,
-        mentorName: mentor?.name,
-        studentName: user.displayName || user.email,
-        subject: booking.subject,
-        dateTime: sessionDate,
-        duration: booking.duration,
-        status: 'pending',
-        amount: mentor?.hourlyRate * (booking.duration / 60),
-        notes: booking.notes,
-        createdAt: new Date()
-      })
-
-      toast.success('Session booked successfully!')
-      navigate('/student/dashboard')
-    } catch (error) {
-      toast.error('Failed to book session')
-    } finally {
-      setProcessing(false)
-    }
-  }
-
-  if (loading) return <div className="min-h-screen flex items-center justify-center"><Loader /></div>
+  const navigate = useNavigate();
+  
+  const [activeDate, setActiveDate] = useState('Today');
+  const [duration, setDuration] = useState('60 min');
+  const [activeTime, setActiveTime] = useState('2:00 PM');
+  
+  const dates = [
+    { label: 'Today', date: '13' },
+    { label: 'Tomorrow', date: '14' },
+    { label: 'Thu', date: '15' },
+    { label: 'Fri', date: '16' },
+  ];
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <button
-          onClick={() => navigate(-1)}
-          className="flex items-center text-gray-600 hover:text-gray-900 mb-6"
-        >
-          <ArrowLeft className="h-5 w-5 mr-2" />
-          Back
+    <div className="min-h-screen bg-[#F3F9F6] font-sans text-gray-900 flex flex-col pb-24">
+      
+      {/* Header */}
+      <header className="px-4 py-4 flex items-center justify-between sticky top-0 z-50 bg-[#F3F9F6]">
+        <button onClick={() => navigate(-1)} className="w-10 h-10 rounded-full border border-gray-400 flex items-center justify-center bg-white active:bg-gray-50">
+          <ArrowLeft className="w-5 h-5 text-gray-700" />
         </button>
+        <h1 className="text-xl font-bold font-display text-[#064E3B]">Book Session</h1>
+        <button className="w-10 h-10 rounded-full border border-gray-400 flex items-center justify-center bg-white active:bg-gray-50">
+          <X className="w-5 h-5 text-gray-700" />
+        </button>
+      </header>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-xl shadow-sm border border-gray-100 p-6"
-        >
-          <h1 className="text-2xl font-display font-bold text-gray-900">Book a Session</h1>
-          
-          {mentor && (
-            <div className="mt-4 p-4 bg-gray-50 rounded-lg flex items-center gap-4">
-              <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center">
-                <span className="text-primary-600 font-medium">{mentor.name?.[0]}</span>
+      <main className="flex-1 px-4 space-y-6">
+        
+        {/* Mentor Card */}
+        <div className="relative group mt-2">
+          <div className="absolute inset-0 bg-black translate-y-1.5 translate-x-1.5 rounded-xl"></div>
+          <div className="relative bg-white border border-gray-900 rounded-xl p-4 flex gap-4 overflow-hidden">
+            {/* Orange gradient blur background */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-orange-100 rounded-full blur-3xl opacity-60 -mr-10 -mt-10 pointer-events-none"></div>
+            
+            <div className="relative">
+              <div className="w-16 h-16 rounded-xl overflow-hidden">
+                <img src="https://i.pravatar.cc/150?img=11" alt="Rahul S." className="w-full h-full object-cover" />
               </div>
-              <div>
-                <h3 className="font-medium text-gray-800">{mentor.name}</h3>
-                <p className="text-sm text-gray-500">{mentor.title}</p>
-                <p className="text-sm text-primary-600">₹{mentor.hourlyRate}/hr</p>
+              <div className="absolute -bottom-2 -right-2 bg-[#10b981] rounded-full p-0.5 border-2 border-white">
+                <CheckCircle2 className="w-4 h-4 text-white" />
               </div>
             </div>
-          )}
-
-          <div className="mt-8 grid md:grid-cols-2 gap-8">
-            <div>
-              <CalendarComponent
-                selectedDate={booking.date}
-                onSelectDate={(date) => setBooking(prev => ({ ...prev, date }))}
-              />
-            </div>
-
-            <div className="space-y-6">
-              <TimeSlotPicker
-                selectedTime={booking.time}
-                onSelectTime={(time) => setBooking(prev => ({ ...prev, time }))}
-              />
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Duration</label>
-                <div className="grid grid-cols-3 gap-2">
-                  {SESSION_DURATIONS.map(duration => (
-                    <button
-                      key={duration.value}
-                      onClick={() => setBooking(prev => ({ ...prev, duration: duration.value }))}
-                      className={`py-2 px-3 rounded-lg border text-sm transition-colors ${
-                        booking.duration === duration.value
-                          ? 'bg-primary-500 text-white border-primary-500'
-                          : 'border-gray-200 text-gray-600 hover:border-primary-500'
-                      }`}
-                    >
-                      {duration.label}
-                    </button>
-                  ))}
-                </div>
+            
+            <div className="flex flex-col justify-center relative z-10">
+              <h2 className="text-xl font-bold text-gray-900 leading-tight">Rahul S.</h2>
+              <div className="flex items-center gap-1 text-sm text-gray-600 mb-2">
+                <span className="font-bold">4.8</span>
+                <span className="text-yellow-400 text-xs">⭐</span>
+                <span>(120 reviews)</span>
               </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Subject *</label>
-                <select
-                  value={booking.subject}
-                  onChange={(e) => setBooking(prev => ({ ...prev, subject: e.target.value }))}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-primary-500"
-                >
-                  <option value="">Select subject</option>
-                  {mentor?.expertise?.map(subject => (
-                    <option key={subject} value={subject}>{subject}</option>
-                  ))}
-                </select>
+              <div className="bg-gray-100 border border-gray-300 rounded-full px-3 py-1 text-xs font-bold w-max">
+                ₹200/hr
               </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Notes (optional)</label>
-                <textarea
-                  value={booking.notes}
-                  onChange={(e) => setBooking(prev => ({ ...prev, notes: e.target.value }))}
-                  rows={3}
-                  placeholder="Any specific topics to cover?"
-                  className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-primary-500"
-                />
-              </div>
-
-              {booking.date && booking.time && (
-                <div className="p-4 bg-primary-50 rounded-lg">
-                  <div className="flex items-center gap-2 text-primary-600 mb-2">
-                    <DollarSign className="h-5 w-5" />
-                    <span className="font-medium">Session Fee</span>
-                  </div>
-                  <p className="text-2xl font-bold text-primary-600">
-                    ₹{Math.round(mentor?.hourlyRate * (booking.duration / 60))}
-                  </p>
-                </div>
-              )}
-
-              <button
-                onClick={handleBookSession}
-                disabled={processing || !booking.date || !booking.time || !booking.subject}
-                className="w-full bg-primary-500 text-white py-3 rounded-xl font-medium hover:bg-primary-600 transition-colors disabled:opacity-50 flex items-center justify-center"
-              >
-                {processing ? <Loader className="animate-spin h-5 w-5" /> : (
-                  <>
-                    <Video className="h-5 w-5 mr-2" />
-                    Book Session
-                  </>
-                )}
-              </button>
             </div>
           </div>
-        </motion.div>
-      </div>
-    </div>
-  )
-}
+        </div>
 
-export default BookSession
+        {/* Date Selection */}
+        <div>
+          <span className="text-xs font-bold text-gray-500 tracking-wider mb-3 block uppercase">Select Date</span>
+          <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 no-scrollbar">
+            {dates.map((d) => (
+              <button 
+                key={d.label}
+                onClick={() => setActiveDate(d.label)}
+                className={`relative min-w-[70px] shrink-0 group`}
+              >
+                {activeDate === d.label && (
+                  <div className="absolute inset-0 bg-black translate-y-1 translate-x-1 rounded-lg"></div>
+                )}
+                <div className={`relative w-full py-2.5 rounded-lg border border-gray-900 flex flex-col items-center transition-transform ${
+                  activeDate === d.label 
+                    ? 'bg-[#10b981] text-gray-900 font-bold' 
+                    : 'bg-white text-gray-700'
+                }`}>
+                  <span className="text-[10px] font-bold">{d.label}</span>
+                  <span className="text-2xl font-black">{d.date}</span>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Duration Selection */}
+        <div>
+          <span className="text-xs font-bold text-gray-500 tracking-wider mb-3 block uppercase">Duration</span>
+          <div className="flex flex-wrap gap-3">
+            {['30 min', '45 min', '60 min', '90 min'].map((dur) => (
+              <button 
+                key={dur}
+                onClick={() => setDuration(dur)}
+                className="relative group"
+              >
+                {duration === dur && (
+                  <div className="absolute inset-0 bg-black translate-y-1 translate-x-1 rounded-full"></div>
+                )}
+                <div className={`relative px-5 py-2 rounded-full border border-gray-900 text-sm font-bold transition-transform ${
+                  duration === dur 
+                    ? 'bg-[#10b981] text-gray-900' 
+                    : 'bg-white text-gray-700'
+                }`}>
+                  {dur}
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Time Slots */}
+        <div className="space-y-5">
+          {/* Morning */}
+          <div>
+            <div className="flex items-center gap-1.5 mb-3 text-amber-700">
+              <Sun className="w-4 h-4" />
+              <span className="text-xs font-bold tracking-wider uppercase">Morning</span>
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              <button className="border border-gray-900 rounded-lg py-2 text-sm font-bold text-[#064E3B] bg-white">9:00 AM</button>
+              <button className="border border-gray-200 rounded-lg py-2 text-sm font-bold text-gray-300 bg-gray-50/50 cursor-not-allowed" disabled>10:00 AM</button>
+              <button className="border border-gray-900 rounded-lg py-2 text-sm font-bold text-[#064E3B] bg-white">11:00 AM</button>
+            </div>
+          </div>
+          
+          {/* Afternoon */}
+          <div>
+            <div className="flex items-center gap-1.5 mb-3 text-orange-700">
+              <Sunset className="w-4 h-4" />
+              <span className="text-xs font-bold tracking-wider uppercase">Afternoon</span>
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              <button className="relative group">
+                <div className="absolute inset-0 bg-black translate-y-1 translate-x-1 rounded-lg"></div>
+                <div className="relative border border-gray-900 rounded-lg py-2 text-sm font-bold text-gray-900 bg-[#10b981]">2:00 PM</div>
+              </button>
+              <button className="border border-gray-900 rounded-lg py-2 text-sm font-bold text-[#064E3B] bg-white">3:30 PM</button>
+              <button className="border border-gray-900 rounded-lg py-2 text-sm font-bold text-[#064E3B] bg-white">4:30 PM</button>
+            </div>
+          </div>
+          
+          {/* Evening */}
+          <div>
+            <div className="flex items-center gap-1.5 mb-3 text-indigo-800">
+              <Moon className="w-4 h-4" />
+              <span className="text-xs font-bold tracking-wider uppercase">Evening</span>
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              <button className="border border-gray-900 rounded-lg py-2 text-sm font-bold text-[#064E3B] bg-white">6:00 PM</button>
+              <button className="border border-gray-900 rounded-lg py-2 text-sm font-bold text-[#064E3B] bg-white">7:00 PM</button>
+              <button className="border border-gray-900 rounded-lg py-2 text-sm font-bold text-[#064E3B] bg-white">8:30 PM</button>
+            </div>
+          </div>
+        </div>
+
+        {/* What do you want to learn? */}
+        <div>
+          <span className="text-xs font-bold text-gray-500 tracking-wider mb-3 block uppercase">What do you want to learn?</span>
+          <textarea 
+            rows="3"
+            placeholder="E.g. I need help with my Data Structures assignment or want to discuss internship prep..."
+            className="w-full bg-white border border-gray-900 rounded-xl p-4 text-sm resize-none focus:outline-none"
+          ></textarea>
+        </div>
+
+        {/* Price Calculation */}
+        <div className="relative group">
+          <div className="absolute inset-0 bg-black translate-y-1.5 translate-x-1.5 rounded-xl"></div>
+          <div className="relative bg-[#D1FAE5] border border-gray-900 rounded-xl p-4 flex justify-between items-center">
+            <div>
+              <p className="text-xs font-bold text-gray-600 mb-0.5">Price Calculation</p>
+              <p className="text-sm font-bold text-gray-800">₹200 × 1 hour</p>
+            </div>
+            <div className="text-right">
+              <p className="text-xs font-bold text-gray-600 mb-0.5">Total Amount</p>
+              <p className="text-3xl font-black text-[#064E3B]">₹200</p>
+            </div>
+          </div>
+        </div>
+
+      </main>
+
+      {/* Bottom Save Button */}
+      <div className="fixed bottom-0 left-0 right-0 bg-[#F3F9F6] p-4 pb-6 z-50">
+        <button className="w-full relative group block">
+          <div className="absolute inset-0 bg-black translate-y-1.5 translate-x-1.5 rounded-xl transition-transform group-active:translate-x-0 group-active:translate-y-0"></div>
+          <div className="relative bg-[#10b981] border border-gray-900 text-gray-900 py-4 rounded-xl font-bold text-base flex items-center justify-center gap-2 transition-transform group-active:translate-x-1.5 group-active:translate-y-1.5">
+            Confirm Booking <ArrowRight className="w-5 h-5" />
+          </div>
+        </button>
+      </div>
+
+    </div>
+  );
+};
+
+export default BookSession;

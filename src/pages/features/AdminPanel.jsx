@@ -1,252 +1,193 @@
-import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
-import toast from 'react-hot-toast'
-import { Users, BookOpen, DollarSign, TrendingUp, Shield, AlertTriangle, CheckCircle, XCircle } from 'lucide-react'
-import { getDocuments, updateDocument } from '../../firebase/firestore'
-import Loader from '../../components/common/Loader'
+import React from 'react';
+import { Menu, AlertTriangle, Wallet, Megaphone, ChevronRight, Users, ClipboardList, CreditCard, Settings } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const AdminPanel = () => {
-  const [users, setUsers] = useState([])
-  const [sessions, setSessions] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState('overview')
-
-  useEffect(() => {
-    loadData()
-  }, [])
-
-  const loadData = async () => {
-    try {
-      const usersData = await getDocuments('users')
-      const sessionsData = await getDocuments('sessions')
-      setUsers(usersData)
-      setSessions(sessionsData)
-    } catch (error) {
-      console.error('Error loading data:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const verifyMentor = async (userId) => {
-    try {
-      await updateDocument('users', userId, { isVerified: true })
-      toast.success('Mentor verified!')
-      loadData()
-    } catch (error) {
-      toast.error('Failed to verify mentor')
-    }
-  }
-
-  const stats = {
-    totalUsers: users.length,
-    totalMentors: users.filter(u => u.role === 'mentor').length,
-    totalStudents: users.filter(u => u.role === 'student').length,
-    totalSessions: sessions.length,
-    totalRevenue: sessions.filter(s => s.status === 'completed').reduce((sum, s) => sum + (s.amount || 0), 0)
-  }
-
-  const pendingMentors = users.filter(u => u.role === 'mentor' && !u.isVerified)
-
-  if (loading) return <Loader fullScreen />
+  const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
-          <div className="flex items-center gap-3 mb-8">
-            <Shield className="h-8 w-8 text-primary-500" />
-            <h1 className="text-3xl font-display font-bold text-gray-900">Admin Panel</h1>
-          </div>
+    <div className="min-h-screen bg-white font-sans text-gray-900 flex flex-col pb-24">
+      
+      {/* Header */}
+      <header className="px-4 py-4 flex items-center justify-between sticky top-0 z-50 bg-white">
+        <button className="p-1">
+          <Menu className="w-6 h-6 text-gray-800" />
+        </button>
+        <h1 className="text-xl font-bold font-display text-gray-900">Admin Panel</h1>
+        <button className="text-sm font-bold text-[#10b981] active:text-emerald-700">
+          Logout
+        </button>
+      </header>
 
-          <div className="grid md:grid-cols-4 gap-4 mb-8">
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-500">Total Users</p>
-                  <p className="text-2xl font-bold text-gray-800">{stats.totalUsers}</p>
-                </div>
-                <Users className="h-8 w-8 text-primary-500" />
-              </div>
-            </div>
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-500">Total Mentors</p>
-                  <p className="text-2xl font-bold text-gray-800">{stats.totalMentors}</p>
-                </div>
-                <BookOpen className="h-8 w-8 text-secondary-500" />
-              </div>
-            </div>
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-500">Total Sessions</p>
-                  <p className="text-2xl font-bold text-gray-800">{stats.totalSessions}</p>
-                </div>
-                <TrendingUp className="h-8 w-8 text-accent-500" />
-              </div>
-            </div>
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-500">Revenue</p>
-                  <p className="text-2xl font-bold text-gray-800">₹{stats.totalRevenue}</p>
-                </div>
-                <DollarSign className="h-8 w-8 text-green-500" />
-              </div>
+      <main className="flex-1 px-4 space-y-8 pt-4">
+        
+        {/* Top Stats Grid */}
+        <div className="grid grid-cols-2 gap-y-8 gap-x-4">
+          <div>
+            <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block mb-1">Total Users</span>
+            <div className="flex items-center gap-2">
+              <span className="text-4xl font-black text-gray-900">156</span>
+              <span className="bg-[#ECFDF5] text-[#10b981] text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center">
+                ↑12%
+              </span>
             </div>
           </div>
-
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100">
-            <div className="border-b border-gray-100">
-              <nav className="flex gap-8 px-6">
-                <button
-                  onClick={() => setActiveTab('overview')}
-                  className={`py-4 text-sm font-medium border-b-2 transition-colors ${
-                    activeTab === 'overview'
-                      ? 'border-primary-500 text-primary-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700'
-                  }`}
-                >
-                  Overview
-                </button>
-                <button
-                  onClick={() => setActiveTab('mentors')}
-                  className={`py-4 text-sm font-medium border-b-2 transition-colors ${
-                    activeTab === 'mentors'
-                      ? 'border-primary-500 text-primary-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700'
-                  }`}
-                >
-                  Mentors
-                </button>
-                <button
-                  onClick={() => setActiveTab('sessions')}
-                  className={`py-4 text-sm font-medium border-b-2 transition-colors ${
-                    activeTab === 'sessions'
-                      ? 'border-primary-500 text-primary-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700'
-                  }`}
-                >
-                  Sessions
-                </button>
-              </nav>
-            </div>
-
-            <div className="p-6">
-              {activeTab === 'overview' && (
-                <div className="space-y-6">
-                  {pendingMentors.length > 0 && (
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                        <AlertTriangle className="h-5 w-5 text-yellow-500" />
-                        Pending Mentor Verifications
-                      </h3>
-                      <div className="space-y-3">
-                        {pendingMentors.map(mentor => (
-                          <div key={mentor.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                            <div>
-                              <p className="font-medium text-gray-800">{mentor.name}</p>
-                              <p className="text-sm text-gray-500">{mentor.email}</p>
-                              <p className="text-sm text-gray-500">{mentor.expertise?.join(', ')}</p>
-                            </div>
-                            <button
-                              onClick={() => verifyMentor(mentor.id)}
-                              className="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600"
-                            >
-                              Verify
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-800 mb-4">Recent Sessions</h3>
-                    <div className="space-y-3">
-                      {sessions.slice(0, 5).map(session => (
-                        <div key={session.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                          <div>
-                            <p className="font-medium text-gray-800">{session.subject}</p>
-                            <p className="text-sm text-gray-500">{session.mentorName} → {session.studentName}</p>
-                          </div>
-                          <span className={`px-2 py-1 rounded-full text-xs ${
-                            session.status === 'completed' ? 'bg-green-100 text-green-700' :
-                            session.status === 'confirmed' ? 'bg-blue-100 text-blue-700' :
-                            'bg-yellow-100 text-yellow-700'
-                          }`}>
-                            {session.status}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {activeTab === 'mentors' && (
-                <div className="space-y-3">
-                  {users.filter(u => u.role === 'mentor').map(mentor => (
-                    <div key={mentor.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                      <div>
-                        <p className="font-medium text-gray-800 flex items-center gap-2">
-                          {mentor.name}
-                          {mentor.isVerified && <CheckCircle className="h-4 w-4 text-green-500" />}
-                        </p>
-                        <p className="text-sm text-gray-500">{mentor.email}</p>
-                        <p className="text-sm text-gray-500">{mentor.expertise?.join(', ')}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm text-gray-600">Rating: {mentor.rating?.toFixed(1) || 'New'}</p>
-                        <p className="text-sm text-gray-600">Sessions: {mentor.sessionsCompleted || 0}</p>
-                        {!mentor.isVerified && (
-                          <button
-                            onClick={() => verifyMentor(mentor.id)}
-                            className="text-sm text-primary-500 hover:underline"
-                          >
-                            Verify
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {activeTab === 'sessions' && (
-                <div className="space-y-3">
-                  {sessions.map(session => (
-                    <div key={session.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                      <div>
-                        <p className="font-medium text-gray-800">{session.subject}</p>
-                        <p className="text-sm text-gray-500">{session.mentorName} → {session.studentName}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm text-gray-600">₹{session.amount || 0}</p>
-                        <span className={`px-2 py-1 rounded-full text-xs ${
-                          session.status === 'completed' ? 'bg-green-100 text-green-700' :
-                          session.status === 'confirmed' ? 'bg-blue-100 text-blue-700' :
-                          session.status === 'cancelled' ? 'bg-red-100 text-red-700' :
-                          'bg-yellow-100 text-yellow-700'
-                        }`}>
-                          {session.status}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+          
+          <div>
+            <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block mb-1">Active Mentors</span>
+            <span className="text-4xl font-black text-gray-900 block">23</span>
           </div>
-        </motion.div>
-      </div>
+          
+          <div>
+            <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block mb-1">Today's Sessions</span>
+            <span className="text-4xl font-black text-gray-900 block">8</span>
+          </div>
+          
+          <div>
+            <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block mb-1">Revenue</span>
+            <span className="text-4xl font-black text-gray-900 block">₹4,200</span>
+          </div>
+        </div>
+
+        {/* Pending Actions */}
+        <div>
+          <h2 className="text-xl font-bold text-gray-900 mb-4">Pending Actions</h2>
+          <div className="space-y-3">
+            
+            <button className="w-full flex items-center justify-between bg-[#FEF2F2] p-4 rounded-xl active:bg-red-100 transition-colors border border-red-50">
+              <div className="flex items-center gap-3">
+                <AlertTriangle className="w-5 h-5 text-red-600" />
+                <span className="font-bold text-red-800 text-sm">5 Mentor Verifications Pending</span>
+              </div>
+              <ChevronRight className="w-5 h-5 text-red-600" />
+            </button>
+            
+            <button className="w-full flex items-center justify-between bg-[#FFF7ED] p-4 rounded-xl active:bg-orange-100 transition-colors border border-orange-50">
+              <div className="flex items-center gap-3">
+                <Wallet className="w-5 h-5 text-[#9A3412]" />
+                <span className="font-bold text-[#9A3412] text-sm">3 Payments to Verify</span>
+              </div>
+              <ChevronRight className="w-5 h-5 text-[#9A3412]" />
+            </button>
+            
+            <button className="w-full flex items-center justify-between bg-[#FEF2F2] p-4 rounded-xl active:bg-red-100 transition-colors border border-red-50">
+              <div className="flex items-center gap-3">
+                <Megaphone className="w-5 h-5 text-red-600" />
+                <span className="font-bold text-red-800 text-sm">2 Student Complaints</span>
+              </div>
+              <ChevronRight className="w-5 h-5 text-red-600" />
+            </button>
+
+          </div>
+        </div>
+
+        {/* Recent Signups */}
+        <div>
+          <h2 className="text-xl font-bold text-gray-900 mb-4">Recent Signups</h2>
+          <div className="space-y-4 mb-4">
+            
+            {/* User 1 */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-xl overflow-hidden bg-gray-200">
+                  <img src="https://i.pravatar.cc/100?img=11" alt="Rahul K." className="w-full h-full object-cover" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900 text-sm">Rahul K.</h3>
+                  <p className="text-xs text-gray-500">rahul@univ.edu</p>
+                </div>
+              </div>
+              <div className="flex flex-col items-end gap-1">
+                <span className="text-[10px] text-gray-400 font-medium">2m ago</span>
+                <span className="bg-[#E0E7FF] text-[#4F46E5] text-[10px] font-bold px-2 py-0.5 rounded shadow-[1px_1px_0px_0px_rgba(0,0,0,0.1)]">Student</span>
+              </div>
+            </div>
+            <div className="h-px bg-gray-100 w-full ml-14"></div>
+            
+            {/* User 2 */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-xl overflow-hidden bg-gray-200">
+                  <img src="https://i.pravatar.cc/100?img=5" alt="Dr. Sharma" className="w-full h-full object-cover" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900 text-sm">Dr. Sharma</h3>
+                  <p className="text-xs text-gray-500">sharma@mentors.org</p>
+                </div>
+              </div>
+              <div className="flex flex-col items-end gap-1">
+                <span className="text-[10px] text-gray-400 font-medium">1h ago</span>
+                <span className="bg-[#ECFDF5] text-[#10b981] text-[10px] font-bold px-2 py-0.5 rounded shadow-[1px_1px_0px_0px_rgba(0,0,0,0.1)]">Mentor</span>
+              </div>
+            </div>
+            <div className="h-px bg-gray-100 w-full ml-14"></div>
+            
+            {/* User 3 */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-xl bg-[#EEF2FF] flex items-center justify-center border border-indigo-100">
+                  <span className="font-bold text-[#4F46E5]">AP</span>
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900 text-sm">Anita P.</h3>
+                  <p className="text-xs text-gray-500">anita.p@mail.com</p>
+                </div>
+              </div>
+              <div className="flex flex-col items-end gap-1">
+                <span className="text-[10px] text-gray-400 font-medium">3h ago</span>
+                <span className="bg-[#E0E7FF] text-[#4F46E5] text-[10px] font-bold px-2 py-0.5 rounded shadow-[1px_1px_0px_0px_rgba(0,0,0,0.1)]">Student</span>
+              </div>
+            </div>
+            <div className="h-px bg-gray-100 w-full ml-14"></div>
+            
+            {/* User 4 */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-xl overflow-hidden bg-gray-200">
+                  <img src="https://i.pravatar.cc/100?img=12" alt="Vikram S." className="w-full h-full object-cover" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900 text-sm">Vikram S.</h3>
+                  <p className="text-xs text-gray-500">vikram.s@univ.edu</p>
+                </div>
+              </div>
+              <div className="flex flex-col items-end gap-1">
+                <span className="text-[10px] text-gray-400 font-medium">5h ago</span>
+                <span className="bg-[#E0E7FF] text-[#4F46E5] text-[10px] font-bold px-2 py-0.5 rounded shadow-[1px_1px_0px_0px_rgba(0,0,0,0.1)]">Student</span>
+              </div>
+            </div>
+            
+          </div>
+          
+          <button className="w-full bg-[#F8FAFC] text-gray-900 font-bold py-3.5 rounded-xl border border-gray-200 text-sm active:bg-gray-100 transition-colors shadow-sm">
+            View All Users
+          </button>
+        </div>
+
+      </main>
+
+      {/* Bottom Navigation */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-6 py-2 flex justify-between items-center z-50">
+        <button className="flex flex-col items-center gap-1 border-t-2 border-[#10b981] pt-1 -mt-[9px]">
+          <Users className="w-6 h-6 text-[#10b981]" />
+          <span className="text-[10px] font-bold text-[#10b981]">USERS</span>
+        </button>
+        <button className="flex flex-col items-center gap-1 opacity-50">
+          <ClipboardList className="w-6 h-6 text-gray-600" />
+          <span className="text-[10px] font-medium text-gray-600 uppercase">Sessions</span>
+        </button>
+        <button className="flex flex-col items-center gap-1 opacity-50">
+          <CreditCard className="w-6 h-6 text-gray-600" />
+          <span className="text-[10px] font-medium text-gray-600 uppercase">Payments</span>
+        </button>
+        <button className="flex flex-col items-center gap-1 opacity-50">
+          <Settings className="w-6 h-6 text-gray-600" />
+          <span className="text-[10px] font-medium text-gray-600 uppercase">Settings</span>
+        </button>
+      </nav>
+
     </div>
-  )
-}
+  );
+};
 
-export default AdminPanel
+export default AdminPanel;

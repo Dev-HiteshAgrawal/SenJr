@@ -17,6 +17,7 @@ import MentorSignup1 from './pages/auth/MentorSignup1'
 import MentorSignup2 from './pages/auth/MentorSignup2'
 import MentorSignup3 from './pages/auth/MentorSignup3'
 import MentorSignup4 from './pages/auth/MentorSignup4'
+import MentorSuccess from './pages/auth/MentorSuccess'
 import StudentDashboard from './pages/dashboard/StudentDashboard'
 import MentorDashboard from './pages/dashboard/MentorDashboard'
 import StudentProfile from './pages/profile/StudentProfile'
@@ -26,6 +27,8 @@ import BookSession from './pages/features/BookSession'
 import WarRoom from './pages/features/WarRoom'
 import AITutor from './pages/features/AITutor'
 import AdminPanel from './pages/features/AdminPanel'
+import AIChat from './pages/features/AIChat'
+import AvailabilitySettings from './pages/features/AvailabilitySettings'
 
 function App() {
   return (
@@ -39,35 +42,45 @@ function App() {
                 <Route path="/" element={<Landing />} />
                 <Route path="/login" element={<Login />} />
                 
-                <Route path="/signup" element={<StudentSignup1 />} />
-                <Route path="/student/signup/step2" element={<StudentSignup2 />} />
-                <Route path="/student/signup/step3" element={<StudentSignup3 />} />
-                <Route path="/student/signup/step4" element={<StudentSignup4 />} />
+                <Route path="/signup/student/1" element={<StudentSignup1 />} />
+                <Route path="/signup/student/2" element={<StudentSignup2 />} />
+                <Route path="/signup/student/3" element={<StudentSignup3 />} />
+                <Route path="/signup/student/4" element={<StudentSignup4 />} />
                 
-                <Route path="/mentor/signup" element={<MentorSignup1 />} />
-                <Route path="/mentor/signup/step2" element={<MentorSignup2 />} />
-                <Route path="/mentor/signup/step3" element={<MentorSignup3 />} />
-                <Route path="/mentor/signup/step4" element={<MentorSignup4 />} />
+                <Route path="/signup/mentor/1" element={<MentorSignup1 />} />
+                <Route path="/signup/mentor/2" element={<MentorSignup2 />} />
+                <Route path="/signup/mentor/3" element={<MentorSignup3 />} />
+                <Route path="/signup/mentor/4" element={<MentorSignup4 />} />
+                <Route path="/signup/mentor/success" element={<MentorSuccess />} />
 
-                <Route path="/student/dashboard" element={
+                <Route path="/dashboard/student" element={
                   <ProtectedRoute>
                     <StudentDashboard />
                   </ProtectedRoute>
                 } />
-                <Route path="/mentor/dashboard" element={
+                <Route path="/dashboard/mentor" element={
                   <ProtectedRoute>
                     <MentorDashboard />
                   </ProtectedRoute>
                 } />
 
-                <Route path="/profile" element={
+                <Route path="/profile/student/:id" element={
                   <ProtectedRoute>
                     <StudentProfile />
                   </ProtectedRoute>
                 } />
+                <Route path="/profile/mentor/:id" element={
+                  <ProtectedRoute>
+                    <MentorProfile />
+                  </ProtectedRoute>
+                } />
 
-                <Route path="/find-mentor" element={<FindMentor />} />
-                <Route path="/book-session/:mentorId?" element={
+                <Route path="/find-mentor" element={
+                  <ProtectedRoute>
+                    <FindMentor />
+                  </ProtectedRoute>
+                } />
+                <Route path="/book/:mentorId" element={
                   <ProtectedRoute>
                     <BookSession />
                   </ProtectedRoute>
@@ -80,6 +93,16 @@ function App() {
                 <Route path="/ai-tutor" element={
                   <ProtectedRoute>
                     <AITutor />
+                  </ProtectedRoute>
+                } />
+                <Route path="/chat/ai" element={
+                  <ProtectedRoute>
+                    <AIChat />
+                  </ProtectedRoute>
+                } />
+                <Route path="/mentor/availability" element={
+                  <ProtectedRoute>
+                    <AvailabilitySettings />
                   </ProtectedRoute>
                 } />
                 <Route path="/admin" element={

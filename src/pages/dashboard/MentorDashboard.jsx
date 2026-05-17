@@ -1,192 +1,250 @@
-import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
-import { useAuth } from '../../hooks/useAuth'
-import { getDocuments, whereClause, orderByClause, limitClause } from '../../firebase/firestore'
-import { DollarSign, Users, Star, Calendar, Settings, TrendingUp, Clock } from 'lucide-react'
-import XPBar from '../../components/dashboard/XPBar'
-import StreakCard from '../../components/dashboard/StreakCard'
-import SessionCard from '../../components/dashboard/SessionCard'
-import StatsCard from '../../components/dashboard/StatsCard'
-import Loader from '../../components/common/Loader'
+import React from 'react';
+import { Menu, Bell, Wallet, Calendar, User, Star, BarChart2, ArrowRight, Home, IndianRupee } from 'lucide-react';
 
 const MentorDashboard = () => {
-  const { user, userData } = useAuth()
-  const [sessions, setSessions] = useState([])
-  const [earnings, setEarnings] = useState(0)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    if (user) {
-      loadData()
-    }
-  }, [user])
-
-  const loadData = async () => {
-    try {
-      const sessionData = await getDocuments('sessions', [
-        whereClause('mentorId', '==', user.uid),
-        orderByClause('dateTime', 'desc'),
-        limitClause(5)
-      ])
-      setSessions(sessionData)
-      
-      const totalEarnings = sessionData
-        .filter(s => s.status === 'completed')
-        .reduce((sum, s) => sum + (s.amount || 0), 0)
-      setEarnings(totalEarnings)
-    } catch (error) {
-      console.error('Error loading data:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  if (!userData) {
-    return <Loader fullScreen />
-  }
-
-  const stats = [
-    { title: 'Total Earnings', value: `₹${earnings}`, icon: DollarSign, color: 'primary' },
-    { title: 'Students Taught', value: userData.sessionsCompleted || 0, icon: Users, color: 'secondary' },
-    { title: 'Rating', value: userData.rating?.toFixed(1) || 'New', icon: Star, color: 'accent' },
-    { title: 'Upcoming', value: sessions.filter(s => s.status === 'confirmed').length, icon: Calendar, color: 'primary' }
-  ]
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="bg-gradient-to-r from-secondary-500 to-secondary-600 text-white py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col md:flex-row md:items-center md:justify-between"
-          >
+    <div className="min-h-screen bg-white font-sans text-gray-900 flex flex-col pb-24">
+      
+      {/* Top App Bar */}
+      <header className="bg-white px-4 py-3 flex items-center justify-between sticky top-0 z-50 border-b border-gray-200">
+        <div className="flex items-center gap-3">
+          <Menu className="w-6 h-6 text-gray-900" />
+          <h1 className="text-xl font-bold font-display text-gray-900">Mentor Hub</h1>
+        </div>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-1 text-[#10b981] font-bold">
+            <span className="text-sm">₹2,450</span>
+          </div>
+          <Bell className="w-5 h-5 text-gray-700" />
+          <div className="w-7 h-7 rounded-full bg-gray-200 overflow-hidden border border-gray-300">
+            <img src="https://i.pravatar.cc/100?img=8" alt="Profile" className="w-full h-full object-cover" />
+          </div>
+        </div>
+      </header>
+
+      <main className="flex-1 px-4 pt-6 space-y-6">
+        
+        {/* Greeting */}
+        <div>
+          <h2 className="text-lg font-medium text-gray-800 mb-1">
+            Welcome back, Rahul! 🎓
+          </h2>
+          <p className="text-gray-600 text-sm">You have 3 sessions today</p>
+        </div>
+        
+        {/* Stats Row */}
+        <div className="grid grid-cols-3 gap-3">
+          <div className="border border-gray-200 rounded-2xl py-3 flex flex-col items-center justify-center">
+            <span className="text-[10px] font-bold text-gray-500 tracking-wider mb-1">SESSIONS</span>
+            <span className="text-xl font-black text-blue-500">12</span>
+          </div>
+          <div className="border border-gray-200 rounded-2xl py-3 flex flex-col items-center justify-center">
+            <span className="text-[10px] font-bold text-gray-500 tracking-wider mb-1">STUDENTS</span>
+            <span className="text-xl font-black text-[#10b981]">8</span>
+          </div>
+          <div className="border border-gray-200 rounded-2xl py-3 flex flex-col items-center justify-center">
+            <span className="text-[10px] font-bold text-gray-500 tracking-wider mb-1">RATING</span>
+            <div className="flex items-center gap-1">
+              <span className="text-xl font-black text-gray-900">4.8</span>
+              <span className="text-sm text-yellow-400">★</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Earnings Section */}
+        <div className="bg-[#F0FDF4] border border-[#D1FAE5] rounded-3xl p-5 relative overflow-hidden">
+          <div className="flex justify-between items-start mb-2">
+            <div className="flex items-center gap-2">
+              <span className="text-lg">💰</span>
+              <h3 className="font-bold text-gray-800">Earnings This Month</h3>
+            </div>
+            <button className="text-[10px] font-bold text-gray-900 flex items-center gap-1">
+              View <ArrowRight className="w-3 h-3" />
+            </button>
+          </div>
+          
+          <div className="text-3xl font-black text-gray-900 mb-6">₹2,450</div>
+          
+          {/* Simple Bar Chart */}
+          <div className="flex items-end gap-2 h-16 mb-6">
+            <div className="flex-1 bg-[#34d399] rounded-t-sm h-[30%]"></div>
+            <div className="flex-1 bg-[#34d399] rounded-t-sm h-[50%]"></div>
+            <div className="flex-1 bg-[#34d399] rounded-t-sm h-[40%]"></div>
+            <div className="flex-1 bg-[#34d399] rounded-t-sm h-[70%]"></div>
+            <div className="flex-1 bg-[#10b981] rounded-t-sm h-[90%]"></div>
+            <div className="flex-1 bg-[#34d399] rounded-t-sm h-[50%]"></div>
+            <div className="flex-1 bg-[#34d399] rounded-t-sm h-[80%]"></div>
+          </div>
+          
+          <button className="w-full bg-white border border-[#10b981] text-[#10b981] font-bold py-3 rounded-full active:bg-green-50 transition-colors">
+            Withdraw to UPI
+          </button>
+        </div>
+
+        {/* Schedule */}
+        <div>
+          <div className="flex justify-between items-center mb-4">
+            <div className="flex items-center gap-2">
+              <span className="text-lg">📅</span>
+              <h3 className="font-bold font-display text-gray-900">Today's Schedule</h3>
+            </div>
+            <button className="text-[10px] font-bold text-gray-600 flex items-center gap-1">
+              View Calendar <ArrowRight className="w-3 h-3" />
+            </button>
+          </div>
+          
+          <div className="space-y-3">
+            {/* Upcoming Session */}
+            <div className="border border-gray-200 rounded-2xl p-4 flex items-center justify-between border-l-4 border-l-[#10b981] shadow-sm">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-sm font-bold text-gray-700">
+                  HA
+                </div>
+                <div>
+                  <h4 className="font-bold text-sm text-gray-900">Hitesh A.</h4>
+                  <p className="text-xs text-gray-500 font-medium mt-0.5">9:00 AM • BBA Economics</p>
+                </div>
+              </div>
+              <div className="flex flex-col items-end gap-2">
+                <span className="bg-[#EFF6FF] text-blue-600 px-2 py-0.5 rounded-full text-[10px] font-bold">Upcoming</span>
+                <button className="bg-[#10b981] text-white text-xs font-bold px-4 py-1.5 rounded-full active:bg-emerald-600">
+                  Start
+                </button>
+              </div>
+            </div>
+
+            {/* Completed Session */}
+            <div className="border border-gray-200 rounded-2xl p-4 flex items-center justify-between bg-gray-50/50">
+              <div className="flex items-center gap-3 opacity-60">
+                <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-sm font-bold text-gray-700">
+                  MS
+                </div>
+                <div>
+                  <h4 className="font-bold text-sm text-gray-900">Megha S.</h4>
+                  <p className="text-xs text-gray-500 font-medium mt-0.5">11:30 AM • BCom Maths</p>
+                </div>
+              </div>
+              <div className="flex flex-col items-end gap-2">
+                <span className="text-gray-400 px-2 py-0.5 text-[10px] font-medium">Completed</span>
+                <span className="text-gray-900 text-xs font-medium px-4 py-1.5">Review</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Action Grid */}
+        <div className="grid grid-cols-2 gap-3">
+          <button className="bg-white border border-gray-200 rounded-2xl p-4 flex flex-col items-center justify-center gap-3 shadow-sm active:bg-gray-50 transition-colors">
+            <div className="w-10 h-10 rounded-full flex items-center justify-center">
+              <Calendar className="w-6 h-6 text-blue-500" />
+            </div>
+            <span className="text-xs font-medium text-gray-700">Set Availability</span>
+          </button>
+          
+          <button className="bg-white border border-gray-200 rounded-2xl p-4 flex flex-col items-center justify-center gap-3 shadow-sm active:bg-gray-50 transition-colors">
+            <div className="w-10 h-10 rounded-full flex items-center justify-center">
+              <User className="w-6 h-6 text-blue-500" />
+            </div>
+            <span className="text-xs font-medium text-gray-700">My Profile</span>
+          </button>
+          
+          <button className="bg-white border border-gray-200 rounded-2xl p-4 flex flex-col items-center justify-center gap-3 shadow-sm active:bg-gray-50 transition-colors">
+            <div className="w-10 h-10 rounded-full flex items-center justify-center">
+              <Star className="w-6 h-6 text-blue-500" />
+            </div>
+            <span className="text-xs font-medium text-gray-700">View Reviews</span>
+          </button>
+          
+          <button className="bg-white border border-gray-200 rounded-2xl p-4 flex flex-col items-center justify-center gap-3 shadow-sm active:bg-gray-50 transition-colors">
+            <div className="w-10 h-10 rounded-full flex items-center justify-center">
+              <BarChart2 className="w-6 h-6 text-blue-500" />
+            </div>
+            <span className="text-xs font-medium text-gray-700">Analytics</span>
+          </button>
+        </div>
+
+        {/* Recent Reviews */}
+        <div className="pt-4">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="text-yellow-400 text-lg">⭐</span>
+            <h3 className="font-bold text-gray-900">Recent Reviews</h3>
+          </div>
+          
+          <div className="mb-4">
+            <div className="flex gap-1 mb-2">
+              {[1,2,3,4,5].map(i => <Star key={i} className="w-4 h-4 text-gray-800 fill-gray-800" />)}
+            </div>
+            <p className="text-sm font-medium text-gray-700 italic mb-2">
+              "Best mentor ever! Explains complex concepts with ease."
+            </p>
+            <p className="text-xs text-gray-500 text-right">— Hitesh, BBA 2nd Year</p>
+          </div>
+          
+          <button className="w-full text-center text-xs font-bold text-gray-600 flex items-center justify-center gap-1 py-2">
+            View All Reviews <ArrowRight className="w-3 h-3" />
+          </button>
+        </div>
+
+        {/* Performance Insights */}
+        <div className="border border-gray-200 rounded-2xl p-5 shadow-sm">
+          <h3 className="text-sm font-bold text-gray-600 mb-4">Performance Insights</h3>
+          
+          <div className="grid grid-cols-2 gap-y-6 gap-x-4">
             <div>
-              <h1 className="text-3xl font-display font-bold">
-                Welcome, {userData.name?.split(' ')[0]}! 🎓
-              </h1>
-              <p className="mt-2 text-secondary-100">
-                {userData.isVerified ? 'Verified Mentor' : 'Pending Verification'}
-              </p>
+              <p className="text-[10px] font-bold text-gray-500 mb-1">Avg Response</p>
+              <p className="text-sm font-medium text-gray-900">2 hrs</p>
             </div>
-            <div className="mt-4 md:mt-0 flex gap-3">
-              <Link
-                to="/settings"
-                className="px-4 py-2 bg-white/20 rounded-lg hover:bg-white/30 transition-colors flex items-center gap-2"
-              >
-                <Settings className="h-4 w-4" />
-                Settings
-              </Link>
+            <div>
+              <p className="text-[10px] font-bold text-gray-500 mb-1">Completion Rate</p>
+              <p className="text-sm font-medium text-gray-900">95%</p>
             </div>
-          </motion.div>
-        </div>
-      </div>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6">
-        <div className="grid md:grid-cols-4 gap-4 mb-8">
-          {stats.map((stat, index) => (
-            <motion.div
-              key={stat.title}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-            >
-              <StatsCard {...stat} />
-            </motion.div>
-          ))}
-        </div>
-
-        <div className="grid lg:grid-cols-3 gap-8 mb-8">
-          <div className="lg:col-span-2 space-y-6">
-            <XPBar xp={userData.xp || 0} />
-            
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-              <h2 className="text-lg font-semibold text-gray-800 mb-4">Your Expertise</h2>
-              <div className="flex flex-wrap gap-2">
-                {userData.expertise?.map(subject => (
-                  <span
-                    key={subject}
-                    className="px-3 py-1 bg-secondary-100 text-secondary-600 text-sm rounded-full"
-                  >
-                    {subject}
-                  </span>
-                )) || (
-                  <p className="text-gray-500 text-sm">Add your expertise in profile settings</p>
-                )}
-              </div>
-              {userData.hourlyRate && (
-                <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-                  <span className="text-gray-600">Hourly Rate: </span>
-                  <span className="font-semibold text-gray-800">₹{userData.hourlyRate}/hr</span>
-                </div>
-              )}
+            <div>
+              <p className="text-[10px] font-bold text-gray-500 mb-1">Repeat Students</p>
+              <p className="text-sm font-medium text-gray-900">60%</p>
             </div>
-
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-gray-800">Upcoming Sessions</h2>
-                <Link to="/sessions" className="text-secondary-500 text-sm hover:underline">View All</Link>
-              </div>
-              {loading ? (
-                <Loader />
-              ) : sessions.length > 0 ? (
-                <div className="space-y-4">
-                  {sessions.slice(0, 3).map(session => (
-                    <SessionCard key={session.id} session={session} />
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8 text-gray-500">
-                  <Calendar className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-                  <p>No upcoming sessions</p>
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="space-y-6">
-            <StreakCard streak={userData.streak || 0} lastActive={userData.lastActive} />
-
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-              <h3 className="font-semibold text-gray-800 mb-4">Mentor Stats</h3>
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-500">Total Students</span>
-                  <span className="font-medium text-gray-800">{userData.sessionsCompleted || 0}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-500">Avg. Rating</span>
-                  <span className="font-medium text-gray-800">{userData.rating?.toFixed(1) || 'New'}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-500">Profile Views</span>
-                  <span className="font-medium text-gray-800">{userData.profileViews || 0}</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-gradient-to-br from-secondary-500 to-secondary-600 rounded-xl p-6 text-white">
-              <h3 className="font-semibold mb-2">Verification Status</h3>
-              <p className="text-secondary-100 text-sm mb-4">
-                {userData.isVerified 
-                  ? 'Your profile is verified and visible in search results.'
-                  : 'Complete your profile to get verified.'}
-              </p>
-              {!userData.isVerified && (
-                <Link
-                  to="/profile"
-                  className="inline-block px-4 py-2 bg-white text-secondary-600 rounded-lg text-sm font-medium hover:bg-secondary-50"
-                >
-                  Complete Profile
-                </Link>
-              )}
+            <div>
+              <p className="text-[10px] font-bold text-gray-500 mb-1">Total Earnings</p>
+              <p className="text-sm font-medium text-gray-900">₹12,500</p>
             </div>
           </div>
         </div>
+
+      </main>
+
+      {/* Bottom Navigation */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-6 py-2 flex justify-between items-center z-50">
+        <button className="flex flex-col items-center gap-1">
+          <Home className="w-6 h-6 text-gray-600" />
+          <span className="text-[10px] font-medium text-gray-600">Home</span>
+        </button>
+        <button className="flex flex-col items-center gap-1">
+          <Calendar className="w-6 h-6 text-gray-600" />
+          <span className="text-[10px] font-medium text-gray-600">Schedule</span>
+        </button>
+        
+        {/* Empty space for FAB */}
+        <div className="w-12"></div>
+        
+        <button className="flex flex-col items-center gap-1">
+          <IndianRupee className="w-6 h-6 text-gray-600" />
+          <span className="text-[10px] font-medium text-gray-600">Earnings</span>
+        </button>
+        <button className="flex flex-col items-center gap-1">
+          <User className="w-6 h-6 text-gray-600" />
+          <span className="text-[10px] font-medium text-gray-600">Profile</span>
+        </button>
+      </nav>
+
+      {/* FAB */}
+      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 flex justify-center">
+        <button className="w-14 h-14 bg-white border border-gray-200 rounded-full flex items-center justify-center shadow-lg active:scale-95 transition-transform">
+          {/* Typically a + or mic icon, leaving it blank/circle as per mockup, wait, the mockup has an empty circle wireframe? No, it looks like a large empty circle or maybe a scan button. I will put a simple plus or just a white circle with a drop shadow. Let's make it a prominent empty button. */}
+          <div className="w-8 h-8 rounded-full border-2 border-gray-200"></div>
+        </button>
       </div>
+
     </div>
-  )
-}
+  );
+};
 
-export default MentorDashboard
+export default MentorDashboard;
