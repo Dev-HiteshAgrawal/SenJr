@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Building, Briefcase, GraduationCap, Wrench, TrendingDown, TrendingUp, ArrowRight } from 'lucide-react';
+import { ArrowLeft, Building2, Briefcase, GraduationCap, Wrench, TrendingDown, TrendingUp, ArrowRight } from 'lucide-react';
 
 const StudentSignup2 = () => {
   const navigate = useNavigate();
@@ -21,7 +21,6 @@ const StudentSignup2 = () => {
 
   const handleContinue = (e) => {
     e.preventDefault();
-    // Merge step 2 data into sessionStorage
     const existing = JSON.parse(sessionStorage.getItem('senjr_signup') || '{}');
     sessionStorage.setItem('senjr_signup', JSON.stringify({
       ...existing,
@@ -36,68 +35,77 @@ const StudentSignup2 = () => {
   };
 
   const GOALS = [
-    { id: 'Govt Job', icon: Building, label: 'Govt Job' },
+    { id: 'Govt Job', icon: Building2, label: 'Govt Job' },
     { id: 'Private Job', icon: Briefcase, label: 'Private Job' },
     { id: 'Higher Studies', icon: GraduationCap, label: 'Higher Studies' },
     { id: 'Skill Learning', icon: Wrench, label: 'Skill Learning' },
   ];
 
   return (
-    <div className="min-h-screen bg-[#F8FAF9] font-sans text-gray-900 flex flex-col pb-24">
-      <header className="flex items-center px-4 py-4 relative bg-white border-b-2 border-gray-900">
-        <button onClick={() => navigate(-1)} className="w-10 h-10 rounded-xl border-2 border-gray-900 flex items-center justify-center z-10 bg-white shadow-[2px_2px_0px_0px_rgba(17,24,39,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all">
+    <div className="min-h-screen bg-[#f5f9f7] font-sans text-gray-900 flex flex-col pb-28">
+      {/* Header */}
+      <header className="flex items-center px-5 py-4 relative bg-[#f5f9f7]">
+        <button
+          onClick={() => navigate(-1)}
+          className="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center z-10 bg-white hover:bg-gray-50 transition-colors"
+        >
           <ArrowLeft className="w-5 h-5" />
         </button>
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <h1 className="text-lg font-bold tracking-wide">Your Goals</h1>
+          <h1 className="text-base font-bold tracking-wide">Your Goals</h1>
         </div>
       </header>
 
-      <main className="flex-1 px-5 pt-6">
-        {/* Progress */}
-        <div className="flex justify-center gap-2 mb-8">
-          <div className="w-6 h-1.5 rounded-full border border-gray-900 bg-gray-200" />
-          <div className="w-8 h-1.5 rounded-full border border-gray-900 bg-primary-500" />
-          <div className="w-6 h-1.5 rounded-full border border-gray-900 bg-gray-200" />
-          <div className="w-6 h-1.5 rounded-full border border-gray-900 bg-gray-200" />
-        </div>
+      {/* Progress Bar */}
+      <div className="flex justify-center gap-1.5 mt-1 mb-6 px-5">
+        <div className="w-6 h-1.5 rounded-full bg-gray-300" />
+        <div className="w-10 h-1.5 rounded-full bg-primary-500" />
+        <div className="w-6 h-1.5 rounded-full bg-gray-300" />
+        <div className="w-6 h-1.5 rounded-full bg-gray-300" />
+      </div>
 
+      <main className="flex-1 px-5">
         {/* Primary Goal */}
         <section className="mb-8">
-          <h2 className="text-xl font-bold mb-4 font-display text-gray-900">What is your primary goal?</h2>
+          <h2 className="text-lg font-bold mb-4">What is your primary goal?</h2>
           <div className="grid grid-cols-2 gap-3">
             {GOALS.map(({ id, icon: Icon, label }) => (
               <button
                 key={id}
                 onClick={() => setPrimaryGoal(id)}
-                className={`relative p-4 rounded-xl border-2 border-gray-900 flex flex-col items-center justify-center gap-2 transition-all shadow-[3px_3px_0px_0px_rgba(17,24,39,1)] ${
-                  primaryGoal === id ? 'bg-[#E8F5EE]' : 'bg-white active:shadow-none active:translate-x-[3px] active:translate-y-[3px]'
+                className={`relative p-5 rounded-2xl border flex flex-col items-center justify-center gap-2.5 transition-all ${
+                  primaryGoal === id
+                    ? 'border-primary-500 bg-primary-50 shadow-sm'
+                    : 'border-gray-200 bg-white hover:border-gray-300'
                 }`}
               >
-                <Icon className={`w-6 h-6 ${primaryGoal === id ? 'text-primary-600' : 'text-gray-700'}`} />
-                <span className="font-bold text-sm text-center">{label}</span>
+                {primaryGoal === id && (
+                  <div className="absolute top-2 right-2 w-2 h-2 bg-mentor-300 rounded-full" />
+                )}
+                <Icon className={`w-6 h-6 ${primaryGoal === id ? 'text-primary-600' : 'text-gray-500'}`} />
+                <span className="font-semibold text-sm">{label}</span>
               </button>
             ))}
           </div>
         </section>
 
-        <hr className="border-t-2 border-gray-200 mb-8" />
+        <hr className="border-gray-200 mb-8" />
 
         {/* Target Exams */}
         <section className="mb-8">
           <div className="flex items-baseline gap-2 mb-4">
-            <h2 className="text-xl font-bold font-display text-gray-900">Target Exams</h2>
-            <span className="text-xs text-gray-500 font-medium">(Select multiple)</span>
+            <h2 className="text-lg font-bold">Target Exams</h2>
+            <span className="text-xs text-gray-400 font-medium">(Select multiple)</span>
           </div>
-          <div className="flex flex-wrap gap-3">
-            {['UP Police', 'SSC CGL', 'Banking', 'CAT', 'MAT', 'CUET', 'UPSC', 'JEE'].map(exam => (
+          <div className="flex flex-wrap gap-2">
+            {['UP Police', 'SSC CGL', 'Banking', 'CAT', 'MAT', 'CUET'].map(exam => (
               <button
                 key={exam}
                 onClick={() => toggleArrayItem(exam, targetExams, setTargetExams)}
-                className={`px-4 py-2 rounded-full border-2 border-gray-900 font-bold text-sm transition-all ${
+                className={`px-4 py-2 rounded-full text-sm font-semibold transition-all ${
                   targetExams.includes(exam)
-                    ? 'bg-primary-500 shadow-[2px_2px_0px_0px_rgba(17,24,39,1)] text-gray-900'
-                    : 'bg-white shadow-[2px_2px_0px_0px_rgba(17,24,39,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px]'
+                    ? 'bg-primary-500 text-white'
+                    : 'bg-white border border-gray-200 text-gray-700 hover:border-gray-300'
                 }`}
               >
                 {exam}
@@ -106,23 +114,23 @@ const StudentSignup2 = () => {
           </div>
         </section>
 
-        <hr className="border-t-2 border-gray-200 mb-8" />
+        <hr className="border-gray-200 mb-8" />
 
         {/* Weak Subjects */}
         <section className="mb-8">
           <div className="flex items-center gap-2 mb-4">
-            <TrendingDown className="w-5 h-5 text-red-500" />
-            <h2 className="text-xl font-bold font-display text-gray-900">Weak Subjects</h2>
+            <TrendingDown className="w-5 h-5 text-red-400" />
+            <h2 className="text-lg font-bold">Weak Subjects</h2>
           </div>
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-2">
             {['Maths', 'English', 'GK', 'Reasoning', 'Science', 'Hindi'].map(subject => (
               <button
                 key={subject}
                 onClick={() => toggleArrayItem(subject, weakSubjects, setWeakSubjects)}
-                className={`px-5 py-2 rounded-full border-2 border-gray-900 font-bold text-sm transition-all ${
+                className={`px-4 py-2 rounded-full text-sm font-semibold transition-all ${
                   weakSubjects.includes(subject)
-                    ? 'bg-orange-300 shadow-[2px_2px_0px_0px_rgba(17,24,39,1)]'
-                    : 'bg-white shadow-[2px_2px_0px_0px_rgba(17,24,39,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px]'
+                    ? 'bg-mentor-400 text-white'
+                    : 'bg-white border border-gray-200 text-gray-700 hover:border-gray-300'
                 }`}
               >
                 {subject}
@@ -131,23 +139,23 @@ const StudentSignup2 = () => {
           </div>
         </section>
 
-        <hr className="border-t-2 border-gray-200 mb-8" />
+        <hr className="border-gray-200 mb-8" />
 
         {/* Strong Subjects */}
         <section className="mb-8">
           <div className="flex items-center gap-2 mb-4">
-            <TrendingUp className="w-5 h-5 text-primary-600" />
-            <h2 className="text-xl font-bold font-display text-gray-900">Strong Subjects</h2>
+            <TrendingUp className="w-5 h-5 text-primary-500" />
+            <h2 className="text-lg font-bold">Strong Subjects</h2>
           </div>
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-2">
             {['Maths', 'English', 'GK', 'Reasoning', 'Science', 'Hindi'].map(subject => (
               <button
                 key={subject}
                 onClick={() => toggleArrayItem(subject, strongSubjects, setStrongSubjects)}
-                className={`px-5 py-2 rounded-full border-2 border-gray-900 font-bold text-sm transition-all ${
+                className={`px-4 py-2 rounded-full text-sm font-semibold transition-all ${
                   strongSubjects.includes(subject)
-                    ? 'bg-primary-500 shadow-[2px_2px_0px_0px_rgba(17,24,39,1)]'
-                    : 'bg-white shadow-[2px_2px_0px_0px_rgba(17,24,39,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px]'
+                    ? 'bg-primary-500 text-white'
+                    : 'bg-white border border-gray-200 text-gray-700 hover:border-gray-300'
                 }`}
               >
                 {subject}
@@ -156,18 +164,20 @@ const StudentSignup2 = () => {
           </div>
         </section>
 
-        <hr className="border-t-2 border-gray-200 mb-8" />
+        <hr className="border-gray-200 mb-8" />
 
-        {/* Language */}
+        {/* Preferred Language */}
         <section className="mb-8">
-          <h2 className="text-xl font-bold mb-4 font-display text-gray-900">Preferred Language</h2>
-          <div className="flex border-2 border-gray-900 rounded-lg shadow-[3px_3px_0px_0px_rgba(17,24,39,1)] overflow-hidden bg-white">
-            {['Hindi', 'English', 'Hinglish'].map((lang, index) => (
+          <h2 className="text-lg font-bold mb-4">Preferred Language</h2>
+          <div className="flex rounded-xl border border-gray-200 overflow-hidden bg-white">
+            {['Hindi', 'English', 'Hinglish'].map((lang) => (
               <button
                 key={lang}
                 onClick={() => setPreferredLanguage(lang)}
-                className={`flex-1 py-3 font-bold text-sm border-gray-900 ${index !== 2 ? 'border-r-2' : ''} ${
-                  preferredLanguage === lang ? 'bg-primary-500 text-gray-900' : 'hover:bg-gray-50'
+                className={`flex-1 py-3 font-semibold text-sm transition-all ${
+                  preferredLanguage === lang
+                    ? 'bg-primary-500 text-white'
+                    : 'text-gray-600 hover:bg-gray-50'
                 }`}
               >
                 {lang}
@@ -178,16 +188,16 @@ const StudentSignup2 = () => {
 
         {/* Study Hours */}
         <section className="mb-6">
-          <h2 className="text-xl font-bold mb-4 font-display text-gray-900">Study Hours / Day</h2>
-          <div className="flex flex-wrap gap-3">
+          <h2 className="text-lg font-bold mb-4">Study Hours / Day</h2>
+          <div className="flex flex-wrap gap-2">
             {['1-2h', '3-4h', '5-6h', '6h+'].map(hours => (
               <button
                 key={hours}
                 onClick={() => setStudyHours(hours)}
-                className={`px-5 py-2.5 rounded-full border-2 border-gray-900 font-bold text-sm transition-all ${
+                className={`px-5 py-2.5 rounded-full text-sm font-semibold transition-all ${
                   studyHours === hours
-                    ? 'bg-orange-500 shadow-[2px_2px_0px_0px_rgba(17,24,39,1)] text-white'
-                    : 'bg-white shadow-[2px_2px_0px_0px_rgba(17,24,39,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px]'
+                    ? 'bg-mentor-500 text-white'
+                    : 'bg-white border border-gray-200 text-gray-700 hover:border-gray-300'
                 }`}
               >
                 {hours}
@@ -198,12 +208,12 @@ const StudentSignup2 = () => {
       </main>
 
       {/* Sticky CTA */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t-2 border-gray-900 z-50">
-        <button onClick={handleContinue} className="w-full group relative block">
-          <div className="absolute inset-0 bg-gray-900 translate-y-1.5 translate-x-1.5 rounded-none transition-transform group-active:translate-x-0 group-active:translate-y-0" />
-          <div className="relative bg-primary-500 border-2 border-gray-900 text-gray-900 text-center py-3.5 font-bold text-lg flex items-center justify-center gap-2 transition-transform group-active:translate-x-1.5 group-active:translate-y-1.5">
-            Continue <ArrowRight className="w-5 h-5" />
-          </div>
+      <div className="fixed bottom-0 left-0 right-0 p-5 bg-white/95 backdrop-blur-sm border-t border-gray-100 z-50">
+        <button
+          onClick={handleContinue}
+          className="w-full py-4 rounded-2xl bg-primary-500 text-white text-center font-bold text-base hover:bg-primary-600 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+        >
+          Continue <ArrowRight className="w-5 h-5" />
         </button>
       </div>
     </div>

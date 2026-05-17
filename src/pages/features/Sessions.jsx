@@ -4,12 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { useFirestoreQuery } from '../../hooks/useFirestoreQuery';
 import { useAuthContext } from '../../context/AuthContext';
 
-const statusConfig = {
-  upcoming: { label: 'Upcoming', color: 'text-blue-700', bg: 'bg-blue-50', icon: <AlertCircle className="w-3.5 h-3.5" /> },
-  completed: { label: 'Completed', color: 'text-green-700', bg: 'bg-green-50', icon: <CheckCircle2 className="w-3.5 h-3.5" /> },
-  cancelled: { label: 'Cancelled', color: 'text-red-600', bg: 'bg-red-50', icon: <XCircle className="w-3.5 h-3.5" /> },
-};
-
 const tabs = ['All', 'Upcoming', 'Completed', 'Cancelled'];
 
 const Sessions = () => {
@@ -19,6 +13,16 @@ const Sessions = () => {
 
   const role = userData?.role || 'student';
   const roleIdField = role === 'mentor' ? 'mentorId' : 'studentId';
+  
+  // Choose color based on role
+  const themeColor = role === 'mentor' ? 'mentor' : 'primary';
+  const themeHex = role === 'mentor' ? '#f97316' : '#10b981'; // orange vs emerald
+
+  const statusConfig = {
+    upcoming: { label: 'Upcoming', color: `text-blue-600`, bg: 'bg-blue-50', icon: <AlertCircle className="w-4 h-4" /> },
+    completed: { label: 'Completed', color: `text-${themeColor}-600`, bg: `bg-${themeColor}-50`, icon: <CheckCircle2 className="w-4 h-4" /> },
+    cancelled: { label: 'Cancelled', color: 'text-red-600', bg: 'bg-red-50', icon: <XCircle className="w-4 h-4" /> },
+  };
 
   const queryOptions = useMemo(() => {
     return {
@@ -51,27 +55,27 @@ const Sessions = () => {
   }, [sessions]);
 
   return (
-    <div className="min-h-screen bg-[#F8FAF9] font-sans text-gray-900 pb-24">
+    <div className="min-h-screen bg-gray-50 font-sans text-gray-900 pb-24">
 
       {/* Header */}
-      <header className="bg-white px-4 py-4 sticky top-0 z-50 border-b border-gray-100">
-        <div className="flex items-center gap-3 mb-4">
-          <button onClick={() => navigate(-1)} className="p-1">
+      <header className="bg-white px-5 py-4 sticky top-0 z-50 border-b border-gray-100 shadow-sm rounded-b-3xl">
+        <div className="flex items-center gap-3 mb-5">
+          <button onClick={() => navigate(-1)} className="p-2 rounded-full hover:bg-gray-100 transition-colors">
             <ArrowLeft className="w-5 h-5 text-gray-700" />
           </button>
-          <h1 className="text-lg font-bold text-gray-900 flex-1">My Sessions</h1>
+          <h1 className="text-xl font-extrabold text-gray-900 flex-1">My Sessions</h1>
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-2 overflow-x-auto pb-0.5 no-scrollbar">
+        <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar px-1">
           {tabs.map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`shrink-0 px-4 py-1.5 rounded-full text-xs font-bold border transition-colors ${
+              className={`shrink-0 px-5 py-2 rounded-xl text-sm font-bold border transition-colors ${
                 activeTab === tab
-                  ? 'bg-[#10b981] text-white border-[#10b981]'
-                  : 'bg-white text-gray-600 border-gray-200'
+                  ? `bg-${themeColor}-500 text-white border-${themeColor}-500 shadow-sm`
+                  : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'
               }`}
             >
               {tab}
@@ -81,39 +85,39 @@ const Sessions = () => {
       </header>
 
       {/* Stats Row */}
-      <div className="flex gap-3 px-4 pt-4 pb-2 overflow-x-auto no-scrollbar">
-        <div className="shrink-0 bg-white rounded-xl px-4 py-3 border border-gray-100 shadow-sm text-center min-w-[80px]">
-          <p className="text-2xl font-black text-[#10b981]">{stats.done}</p>
-          <p className="text-[10px] text-gray-500 font-medium">Done</p>
+      <div className="flex gap-3 px-5 pt-6 pb-2 overflow-x-auto no-scrollbar">
+        <div className="shrink-0 bg-white rounded-2xl px-5 py-4 border border-gray-100 shadow-sm text-center min-w-[90px]">
+          <p className={`text-3xl font-black text-${themeColor}-500 mb-1`}>{stats.done}</p>
+          <p className="text-[11px] text-gray-500 font-bold uppercase tracking-wider">Done</p>
         </div>
-        <div className="shrink-0 bg-white rounded-xl px-4 py-3 border border-gray-100 shadow-sm text-center min-w-[80px]">
-          <p className="text-2xl font-black text-blue-600">{stats.upcoming}</p>
-          <p className="text-[10px] text-gray-500 font-medium">Upcoming</p>
+        <div className="shrink-0 bg-white rounded-2xl px-5 py-4 border border-gray-100 shadow-sm text-center min-w-[90px]">
+          <p className="text-3xl font-black text-blue-500 mb-1">{stats.upcoming}</p>
+          <p className="text-[11px] text-gray-500 font-bold uppercase tracking-wider">Upcoming</p>
         </div>
-        <div className="shrink-0 bg-white rounded-xl px-4 py-3 border border-gray-100 shadow-sm text-center min-w-[80px]">
-          <p className="text-2xl font-black text-gray-800">
+        <div className="shrink-0 bg-white rounded-2xl px-5 py-4 border border-gray-100 shadow-sm text-center min-w-[90px]">
+          <p className="text-3xl font-black text-gray-800 mb-1">
             ₹{stats.spent}
           </p>
-          <p className="text-[10px] text-gray-500 font-medium">{role === 'mentor' ? 'Earned' : 'Spent'}</p>
+          <p className="text-[11px] text-gray-500 font-bold uppercase tracking-wider">{role === 'mentor' ? 'Earned' : 'Spent'}</p>
         </div>
-        <div className="shrink-0 bg-white rounded-xl px-4 py-3 border border-gray-100 shadow-sm text-center min-w-[80px]">
-          <p className="text-2xl font-black text-[#f97316]">
+        <div className="shrink-0 bg-white rounded-2xl px-5 py-4 border border-gray-100 shadow-sm text-center min-w-[90px]">
+          <p className="text-3xl font-black text-purple-500 mb-1">
             {stats.hours}m
           </p>
-          <p className="text-[10px] text-gray-500 font-medium">Hours</p>
+          <p className="text-[11px] text-gray-500 font-bold uppercase tracking-wider">Hours</p>
         </div>
       </div>
 
-      <main className="px-4 pt-2 space-y-3">
+      <main className="px-5 pt-4 space-y-4">
         {error && (
-          <div className="bg-red-50 border border-red-100 rounded-xl p-4 flex items-center gap-3 text-red-600 text-sm font-bold">
+          <div className="bg-red-50 border border-red-100 rounded-2xl p-4 flex items-center gap-3 text-red-600 text-sm font-bold shadow-sm">
             <AlertCircle className="w-5 h-5 shrink-0" />
             <p>Failed to load sessions: {error}</p>
           </div>
         )}
 
         {loading && (
-          <div className="flex flex-col items-center justify-center py-16 text-center text-[#10b981]">
+          <div className={`flex flex-col items-center justify-center py-20 text-center text-${themeColor}-500`}>
             <Loader2 className="w-8 h-8 animate-spin mb-4" />
             <p className="font-bold text-sm">Loading sessions...</p>
           </div>
@@ -121,72 +125,71 @@ const Sessions = () => {
 
         {!loading && displayed.map((session) => {
           const sc = statusConfig[session.status] || statusConfig.upcoming;
-          // Simple logic to determine if within 15 mins of start time
-          const isJoinable = session.status === 'upcoming' && session.roomName; // Fallback naive check for now
+          const isJoinable = session.status === 'upcoming' && session.roomName;
           
           return (
-            <div key={session.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div key={session.id} className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
               
               {/* Status Accent */}
-              <div className={`flex items-center gap-1.5 px-4 pt-3 pb-2 ${sc.bg}`}>
+              <div className={`flex items-center gap-2 px-5 pt-4 pb-3 ${sc.bg}`}>
                 <span className={sc.color}>{sc.icon}</span>
-                <span className={`text-[10px] font-bold ${sc.color} uppercase tracking-wider`}>{sc.label}</span>
+                <span className={`text-xs font-bold ${sc.color} uppercase tracking-wider`}>{sc.label}</span>
                 {isJoinable && (
-                  <span className="ml-auto bg-orange-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-full animate-pulse">
-                    READY
+                  <span className={`ml-auto bg-${themeColor}-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg animate-pulse shadow-sm`}>
+                    READY TO JOIN
                   </span>
                 )}
               </div>
 
-              <div className="px-4 pb-4 pt-2">
-                <h3 className="font-bold text-gray-900 text-sm mb-3 leading-snug">{session.topic || session.subject || 'Mentorship Session'}</h3>
+              <div className="px-5 pb-5 pt-4">
+                <h3 className="font-bold text-gray-900 text-lg mb-4 leading-snug">{session.topic || session.subject || 'Mentorship Session'}</h3>
 
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-8 h-8 rounded-full bg-gray-200 overflow-hidden flex items-center justify-center text-[#10b981] font-bold">
+                <div className="flex items-center gap-4 mb-5">
+                  <div className={`w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center text-${themeColor}-600 font-bold text-lg`}>
                     {(role === 'mentor' ? session.studentName : session.mentorName)?.[0] || 'U'}
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-gray-800">
+                    <p className="text-base font-bold text-gray-900">
                       {role === 'mentor' ? session.studentName : session.mentorName}
                     </p>
-                    <p className="text-[10px] text-gray-400">{role === 'mentor' ? 'Student' : 'Mentor'}</p>
+                    <p className="text-xs font-medium text-gray-500 mt-0.5">{role === 'mentor' ? 'Student' : 'Mentor'}</p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-4 text-xs text-gray-500 mb-4">
-                  <div className="flex items-center gap-1.5">
-                    <Calendar className="w-3.5 h-3.5 text-gray-400" />
+                <div className="flex items-center justify-between text-sm text-gray-600 mb-5 bg-gray-50 p-3 rounded-2xl border border-gray-100">
+                  <div className="flex items-center gap-2 font-semibold">
+                    <Calendar className="w-4 h-4 text-gray-400" />
                     <span>{session.date}</span>
                   </div>
-                  <div className="flex items-center gap-1.5">
-                    <Clock className="w-3.5 h-3.5 text-gray-400" />
-                    <span>{session.time} • {session.duration}min</span>
+                  <div className="flex items-center gap-2 font-semibold">
+                    <Clock className="w-4 h-4 text-gray-400" />
+                    <span>{session.time}</span>
                   </div>
-                  <div className="ml-auto font-bold text-gray-800 text-sm">₹{session.amount}</div>
+                  <div className="font-black text-gray-900">₹{session.amount}</div>
                 </div>
 
                 {session.status === 'upcoming' && (
-                  <div className="flex gap-2">
+                  <div className="flex gap-3">
                     <button
                       disabled={!isJoinable}
                       onClick={() => isJoinable && navigate(`/video-call/${session.roomName}`)}
-                      className={`flex-1 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-colors ${
+                      className={`flex-1 py-3.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all ${
                         isJoinable
-                          ? 'bg-[#10b981] text-white active:bg-emerald-600 shadow-sm'
+                          ? `bg-${themeColor}-500 text-white active:scale-[0.98] shadow-md`
                           : 'bg-gray-100 text-gray-400 cursor-not-allowed'
                       }`}
                     >
-                      <Video className="w-3.5 h-3.5" />
-                      {isJoinable ? 'Join Now' : 'Join at time'}
+                      <Video className="w-4 h-4" />
+                      {isJoinable ? 'Join Video Call' : 'Join at time'}
                     </button>
-                    <button className="px-4 py-2.5 border border-gray-200 rounded-xl text-xs font-bold text-gray-600 active:bg-gray-50">
+                    <button className="px-5 py-3.5 border border-gray-200 rounded-xl text-sm font-bold text-gray-600 active:bg-gray-50 hover:bg-gray-50 transition-colors">
                       Reschedule
                     </button>
                   </div>
                 )}
 
                 {session.status === 'completed' && role === 'student' && (
-                  <button className="w-full py-2.5 border border-[#10b981] text-[#10b981] rounded-xl text-xs font-bold active:bg-green-50 transition-colors">
+                  <button className={`w-full py-3.5 border-2 border-${themeColor}-500 text-${themeColor}-600 rounded-xl text-sm font-bold hover:bg-${themeColor}-50 transition-colors`}>
                     Leave a Review ⭐
                   </button>
                 )}
@@ -196,18 +199,18 @@ const Sessions = () => {
         })}
 
         {!loading && !error && displayed.length === 0 && (
-          <div className="flex flex-col items-center py-20 text-center">
-            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-              <Calendar className="w-7 h-7 text-gray-300" />
+          <div className="flex flex-col items-center justify-center py-24 text-center bg-white rounded-3xl border border-gray-100 shadow-sm px-6">
+            <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-5">
+              <Calendar className="w-10 h-10 text-gray-300" />
             </div>
-            <p className="font-bold text-gray-800">No sessions yet</p>
-            <p className="text-sm text-gray-500 mt-1">
-              {role === 'mentor' ? 'No students have booked you yet' : 'Book a mentor session to get started'}
+            <p className="text-xl font-bold text-gray-900 mb-2">No sessions found</p>
+            <p className="text-sm font-medium text-gray-500 mb-6">
+              {role === 'mentor' ? "You don't have any sessions in this category yet." : "Book a mentor session to get started on your journey."}
             </p>
             {role === 'student' && (
               <button
                 onClick={() => navigate('/find-mentor')}
-                className="mt-4 bg-[#10b981] text-white px-6 py-2.5 rounded-xl text-sm font-bold shadow-sm"
+                className={`bg-${themeColor}-500 text-white px-8 py-3.5 rounded-2xl text-base font-bold shadow-md hover:bg-${themeColor}-600 transition-colors active:scale-[0.98]`}
               >
                 Find a Mentor
               </button>

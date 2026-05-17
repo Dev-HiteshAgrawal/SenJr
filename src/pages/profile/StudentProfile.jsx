@@ -1,109 +1,125 @@
 import React from 'react';
-import { ArrowLeft, Share2, MapPin, CheckCircle2, ChevronDown, BarChart2, Award, Calendar, Clock, Home, GraduationCap, Medal, User } from 'lucide-react';
+import { ArrowLeft, Share2, MapPin, CheckCircle2, BarChart2, Award, Calendar, Clock, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useAuthContext } from '../../context/AuthContext';
+import { calculateLevel, getXPForNextLevel } from '../../utils/gamification';
+import BottomNav from '../../components/common/BottomNav';
 
 const StudentProfile = () => {
   const navigate = useNavigate();
+  const { userData } = useAuthContext();
+
+  const displayName = userData?.displayName || 'Student';
+  const xp = userData?.xp || 0;
+  const currentLevel = calculateLevel(xp);
+  const xpForNextLevel = getXPForNextLevel(currentLevel);
+  const prevLevelXP = currentLevel > 1 ? getXPForNextLevel(currentLevel - 1) : 0;
+  const progressPercent = Math.max(0, Math.min(100, ((xp - prevLevelXP) / (xpForNextLevel - prevLevelXP)) * 100));
+
+  const getLevelTitle = (level) => {
+    if (level < 3) return 'Novice';
+    if (level < 5) return 'Scholar';
+    if (level < 10) return 'Achiever';
+    return 'Master';
+  };
 
   return (
-    <div className="min-h-screen bg-[#F8FAF9] font-sans text-gray-900 flex flex-col pb-24 relative">
+    <div className="min-h-screen bg-gray-50 font-sans text-gray-900 flex flex-col pb-24">
       
       {/* Header */}
-      <header className="px-4 py-4 flex items-center justify-between sticky top-0 z-50 bg-white">
-        <button onClick={() => navigate(-1)} className="p-1">
-          <ArrowLeft className="w-5 h-5 text-[#064E3B]" />
+      <header className="bg-white px-5 py-4 flex items-center justify-between sticky top-0 z-50 border-b border-gray-100 shadow-sm rounded-b-3xl">
+        <button onClick={() => navigate(-1)} className="p-2 -ml-2 rounded-full hover:bg-gray-100 transition-colors">
+          <ArrowLeft className="w-5 h-5 text-gray-700" />
         </button>
-        <h1 className="text-lg font-bold font-display text-[#064E3B]">Hitesh's Profile</h1>
-        <button className="p-1">
-          <Share2 className="w-5 h-5 text-[#064E3B]" />
+        <h1 className="text-lg font-extrabold text-gray-900">My Profile</h1>
+        <button className="p-2 -mr-2 rounded-full hover:bg-gray-100 transition-colors">
+          <Share2 className="w-5 h-5 text-gray-500" />
         </button>
       </header>
 
-      {/* Split Background */}
-      <div className="h-40 bg-[#1e293b] w-full absolute top-[60px] left-0 z-0"></div>
+      {/* Cover Banner */}
+      <div className="h-36 bg-gradient-to-br from-primary-600 via-primary-500 to-emerald-400 relative">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml,...')] opacity-10"></div>
+      </div>
 
-      <main className="flex-1 px-4 relative z-10 pt-20">
+      <main className="flex-1 px-5 -mt-16 relative z-10">
         
         {/* Avatar */}
-        <div className="w-28 h-28 rounded-full border-4 border-white overflow-hidden bg-gray-200 shadow-sm mb-4">
-          <img src="https://i.pravatar.cc/300?img=11" alt="Hitesh Agrawal" className="w-full h-full object-cover" />
+        <div className="w-28 h-28 rounded-3xl border-4 border-white overflow-hidden bg-gray-200 shadow-lg mb-4">
+          <img src={userData?.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=10b981&color=fff&size=300`} alt={displayName} className="w-full h-full object-cover" />
         </div>
 
         {/* Profile Info */}
         <div className="mb-6">
           <div className="flex items-center gap-2 mb-1">
-            <h2 className="text-2xl font-black font-display text-gray-900">Hitesh Agrawal</h2>
-            <CheckCircle2 className="w-5 h-5 text-[#10b981]" />
+            <h2 className="text-2xl font-black text-gray-900">{displayName}</h2>
+            <CheckCircle2 className="w-5 h-5 text-primary-500" />
           </div>
-          <p className="text-sm font-medium text-gray-500 mb-3">@hitesh_agrawal</p>
           
           <p className="text-sm font-bold text-gray-800 mb-1">
-            BBA 2nd Year <span className="text-gray-300 mx-1">|</span> ITM College Aligarh
+            {userData?.course || 'Student'} <span className="text-gray-300 mx-1">|</span> {userData?.college || 'Senjr Platform'}
           </p>
-          <div className="flex items-center gap-1 text-sm font-medium text-gray-600 mb-4">
-            <MapPin className="w-4 h-4" />
-            <span>Aligarh, UP 🇮🇳</span>
-          </div>
+          {userData?.city && (
+            <div className="flex items-center gap-1 text-sm font-medium text-gray-500 mb-4">
+              <MapPin className="w-4 h-4" />
+              <span>{userData.city} 🇮🇳</span>
+            </div>
+          )}
           
-          <p className="text-sm text-gray-700 italic font-medium leading-relaxed">
-            "Aspiring UP Police officer. Learning from the best mentors. 🔥"
-          </p>
+          {userData?.bio && (
+            <p className="text-sm text-gray-600 font-medium leading-relaxed bg-gray-50 p-3 rounded-2xl border border-gray-100">
+              "{userData.bio}"
+            </p>
+          )}
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-2 mb-8">
-          <button className="flex-1 bg-[#EEF2FF] text-[#4F46E5] font-bold py-2.5 rounded-xl text-sm active:bg-indigo-100 transition-colors">
-            Message
+        <div className="flex gap-3 mb-8">
+          <button className="flex-1 bg-gray-100 text-gray-700 font-bold py-3 rounded-2xl text-sm hover:bg-gray-200 transition-colors">
+            Edit Profile
           </button>
-          <button className="flex-[1.5] bg-[#10b981] text-white font-bold py-2.5 rounded-xl text-sm active:bg-emerald-600 transition-colors shadow-sm">
-            Follow
-          </button>
-          <button className="w-12 bg-[#EEF2FF] text-[#4F46E5] rounded-xl flex items-center justify-center active:bg-indigo-100 transition-colors">
-            <ChevronDown className="w-5 h-5" />
+          <button className="flex-[1.5] bg-primary-500 text-white font-bold py-3 rounded-2xl text-sm hover:bg-primary-600 transition-colors shadow-md shadow-primary-500/20 active:scale-[0.98]">
+            Share Profile
           </button>
         </div>
 
         {/* My Journey Card */}
-        <div className="bg-white border border-gray-100 rounded-3xl p-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative overflow-hidden">
-          {/* Subtle green glow in background */}
-          <div className="absolute top-0 right-0 w-32 h-32 bg-green-50 rounded-full blur-3xl opacity-60 -mr-10 -mt-10 pointer-events-none"></div>
+        <div className="bg-white border border-gray-100 rounded-3xl p-5 shadow-sm relative overflow-hidden mb-6">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-primary-50 rounded-full blur-3xl opacity-60 -mr-10 -mt-10 pointer-events-none"></div>
           
-          <div className="flex justify-between items-center mb-6 relative z-10">
+          <div className="flex justify-between items-center mb-5 relative z-10">
             <div className="flex items-center gap-2">
               <BarChart2 className="w-5 h-5 text-gray-400" />
-              <h3 className="text-lg font-bold font-display text-gray-900">My Journey</h3>
+              <h3 className="text-lg font-extrabold text-gray-900">My Journey</h3>
             </div>
-            <button className="p-1">
-              <Share2 className="w-4 h-4 text-gray-400" />
-            </button>
           </div>
 
           <div className="grid grid-cols-3 gap-3 mb-6 relative z-10">
             
             {/* Level */}
-            <div className="border border-gray-100 rounded-2xl p-3 flex flex-col items-center justify-center bg-gray-50/50">
-              <div className="w-8 h-8 rounded-full bg-[#ECFDF5] flex items-center justify-center mb-2">
-                <Award className="w-4 h-4 text-[#10b981]" />
+            <div className="bg-gray-50 border border-gray-100 rounded-2xl p-3 flex flex-col items-center justify-center">
+              <div className="w-10 h-10 rounded-xl bg-primary-50 flex items-center justify-center mb-2 border border-primary-100">
+                <Award className="w-5 h-5 text-primary-500" />
               </div>
-              <span className="text-[10px] font-bold text-[#10b981] text-center leading-tight">Level 4<br/>Scholar</span>
+              <span className="text-[10px] font-bold text-primary-600 text-center leading-tight">Level {currentLevel}<br/>{getLevelTitle(currentLevel)}</span>
             </div>
             
             {/* Sessions */}
-            <div className="border border-gray-100 rounded-2xl p-3 flex flex-col items-center justify-center bg-gray-50/50">
-              <div className="w-8 h-8 rounded-full bg-[#F3F4F6] flex items-center justify-center mb-2">
-                <Calendar className="w-4 h-4 text-[#10b981]" />
+            <div className="bg-gray-50 border border-gray-100 rounded-2xl p-3 flex flex-col items-center justify-center">
+              <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center mb-2 border border-blue-100">
+                <Calendar className="w-5 h-5 text-blue-500" />
               </div>
-              <span className="text-sm font-black text-gray-800">12</span>
-              <span className="text-[10px] font-bold text-gray-500">Sessions</span>
+              <span className="text-base font-black text-gray-800">{userData?.totalSessions || 0}</span>
+              <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Sessions</span>
             </div>
             
             {/* Hours */}
-            <div className="border border-gray-100 rounded-2xl p-3 flex flex-col items-center justify-center bg-gray-50/50">
-              <div className="w-8 h-8 rounded-full bg-[#FFF7ED] flex items-center justify-center mb-2">
-                <Clock className="w-4 h-4 text-[#f97316]" />
+            <div className="bg-gray-50 border border-gray-100 rounded-2xl p-3 flex flex-col items-center justify-center">
+              <div className="w-10 h-10 rounded-xl bg-mentor-50 flex items-center justify-center mb-2 border border-mentor-100">
+                <Clock className="w-5 h-5 text-mentor-500" />
               </div>
-              <span className="text-sm font-black text-[#f97316]">45</span>
-              <span className="text-[10px] font-bold text-gray-500">Hours</span>
+              <span className="text-base font-black text-mentor-500">{userData?.totalHours || 0}</span>
+              <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Hours</span>
             </div>
 
           </div>
@@ -111,11 +127,11 @@ const StudentProfile = () => {
           {/* XP Bar */}
           <div className="relative z-10">
             <div className="flex justify-between items-end mb-2">
-              <span className="text-[10px] font-bold text-gray-900 tracking-wider">EXPERIENCE</span>
-              <span className="text-[10px] font-bold text-gray-900">450 <span className="text-gray-500">/ 600 XP</span></span>
+              <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Experience</span>
+              <span className="text-xs font-bold text-gray-900">{xp} <span className="text-gray-400">/ {xpForNextLevel} XP</span></span>
             </div>
-            <div className="w-full h-3 bg-gray-100 rounded-full overflow-hidden border border-gray-200">
-              <div className="h-full bg-[#064E3B] w-[75%] rounded-full"></div>
+            <div className="w-full h-3 bg-gray-100 rounded-full overflow-hidden">
+              <div className="h-full bg-gradient-to-r from-primary-500 to-primary-400 rounded-full transition-all duration-700" style={{ width: `${progressPercent}%` }}></div>
             </div>
           </div>
 
@@ -123,26 +139,7 @@ const StudentProfile = () => {
 
       </main>
 
-      {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-6 py-2 flex justify-between items-center z-50">
-        <button className="flex flex-col items-center gap-1 opacity-50" onClick={() => navigate('/dashboard/student')}>
-          <Home className="w-6 h-6 text-gray-600" />
-          <span className="text-[10px] font-medium text-gray-600">Home</span>
-        </button>
-        <button className="flex flex-col items-center gap-1 opacity-50">
-          <GraduationCap className="w-6 h-6 text-gray-600" />
-          <span className="text-[10px] font-medium text-gray-600">Learn</span>
-        </button>
-        <button className="flex flex-col items-center gap-1 opacity-50">
-          <Medal className="w-6 h-6 text-gray-600" />
-          <span className="text-[10px] font-medium text-gray-600">Achievements</span>
-        </button>
-        <button className="flex flex-col items-center gap-1 bg-[#f97316] text-white px-4 py-1.5 rounded-full shadow-sm">
-          <User className="w-5 h-5" />
-          <span className="text-[10px] font-bold">Profile</span>
-        </button>
-      </nav>
-
+      <BottomNav />
     </div>
   );
 };

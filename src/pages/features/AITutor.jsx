@@ -1,17 +1,16 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ArrowLeft, Send, Mic, Sparkles, BookOpen, FlaskConical, Atom, Leaf, PenLine, TrendingUp, Code2, Shield, Building2, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { StaggerContainer, StaggerItem, HoverCard, FadeIn } from '../../components/common/MotionWrapper';
 
 const tutors = [
-  { id: 'arya',    name: 'Arya',    subject: 'Mathematics',        emoji: '📐', icon: <BookOpen className="w-5 h-5" />, color: '#1E40AF', bg: '#EFF6FF',  desc: 'Calculus, Algebra, Geometry & Stats' },
-  { id: 'veda',    name: 'Veda',    subject: 'Physics',            emoji: '⚡', icon: <Atom className="w-5 h-5" />,     color: '#7C3AED', bg: '#F5F3FF',  desc: 'Mechanics, Waves, Modern Physics' },
-  { id: 'rasayan', name: 'Rasayan', subject: 'Chemistry',          emoji: '🧪', icon: <FlaskConical className="w-5 h-5" />, color: '#B45309', bg: '#FFF7ED', desc: 'Organic, Inorganic, Physical Chem' },
-  { id: 'jeev',    name: 'Jeev',    subject: 'Biology',            emoji: '🌿', icon: <Leaf className="w-5 h-5" />,     color: '#065F46', bg: '#ECFDF5',  desc: 'Botany, Zoology, Human Body' },
-  { id: 'lekhak',  name: 'Lekhak',  subject: 'English',            emoji: '✍️', icon: <PenLine className="w-5 h-5" />,  color: '#BE123C', bg: '#FFF1F2',  desc: 'Grammar, Comprehension, Writing' },
+  { id: 'arya',    name: 'Arya',    subject: 'Mathematics',        emoji: '📐', icon: <BookOpen className="w-5 h-5" />, color: '#1E40AF', bg: '#EFF6FF',  desc: 'Calculus, Algebra, Geometry' },
+  { id: 'veda',    name: 'Veda',    subject: 'Physics',            emoji: '⚡', icon: <Atom className="w-5 h-5" />,     color: '#7C3AED', bg: '#F5F3FF',  desc: 'Mechanics, Waves, Optics' },
+  { id: 'rasayan', name: 'Rasayan', subject: 'Chemistry',          emoji: '🧪', icon: <FlaskConical className="w-5 h-5" />, color: '#B45309', bg: '#FFF7ED', desc: 'Organic, Inorganic, Physical' },
+  { id: 'jeev',    name: 'Jeev',    subject: 'Biology',            emoji: '🌿', icon: <Leaf className="w-5 h-5" />,     color: '#065F46', bg: '#ECFDF5',  desc: 'Botany, Zoology, Anatomy' },
+  { id: 'lekhak',  name: 'Lekhak',  subject: 'English',            emoji: '✍️', icon: <PenLine className="w-5 h-5" />,  color: '#BE123C', bg: '#FFF1F2',  desc: 'Grammar, Writing Skills' },
   { id: 'arth',    name: 'Arth',    subject: 'Economics',          emoji: '📊', icon: <TrendingUp className="w-5 h-5" />, color: '#0F766E', bg: '#F0FDFA', desc: 'Micro, Macro, Indian Economy' },
-  { id: 'codebot', name: 'CodeBot', subject: 'Programming',        emoji: '💻', icon: <Code2 className="w-5 h-5" />,   color: '#374151', bg: '#F9FAFB',  desc: 'Python, C++, DSA, Web Dev' },
-  { id: 'sarkar',  name: 'Sarkar',  subject: 'Government Exams',   emoji: '🏛️', icon: <Shield className="w-5 h-5" />,  color: '#1E40AF', bg: '#EFF6FF',  desc: 'UP Police, SSC CGL, Banking, GK' },
+  { id: 'codebot', name: 'CodeBot', subject: 'Programming',        emoji: '💻', icon: <Code2 className="w-5 h-5" />,   color: '#374151', bg: '#F9FAFB',  desc: 'Python, C++, Web Dev' },
+  { id: 'sarkar',  name: 'Sarkar',  subject: 'Govt. Exams',        emoji: '🏛️', icon: <Shield className="w-5 h-5" />,  color: '#1E40AF', bg: '#EFF6FF',  desc: 'UP Police, SSC, Banking' },
   { id: 'shasan',  name: 'Shasan',  subject: 'UPSC',               emoji: '🏛', icon: <Building2 className="w-5 h-5" />, color: '#7C3AED', bg: '#F5F3FF', desc: 'Prelims, Mains, Current Affairs' },
 ];
 
@@ -49,7 +48,6 @@ const ChatView = ({ tutor, onBack }) => {
     setLoading(true);
 
     try {
-      // Build messages for API
       const apiMessages = updatedMessages.map((m) => ({
         role: m.role === 'assistant' ? 'model' : 'user',
         content: m.content
@@ -73,7 +71,6 @@ const ChatView = ({ tutor, onBack }) => {
       setMessages((prev) => [...prev, { role: 'assistant', content: reply }]);
     } catch (err) {
       console.error('Chat error:', err);
-      // Optional: Add local client fallback here if desired
       setMessages((prev) => [...prev, { role: 'assistant', content: 'Network error or function not available locally. Please try again!' }]);
     } finally {
       setLoading(false);
@@ -81,37 +78,37 @@ const ChatView = ({ tutor, onBack }) => {
   };
 
   return (
-    <FadeIn className="flex flex-col h-screen bg-[#F8FAF9] font-sans">
+    <div className="flex flex-col h-screen bg-gray-50 font-sans">
       {/* Chat Header */}
-      <header className="bg-white px-4 py-3 flex items-center gap-3 sticky top-0 z-50 border-b border-gray-100 shadow-sm">
-        <button onClick={onBack} className="p-1">
-          <X className="w-5 h-5 text-gray-700" />
+      <header className="bg-white px-5 py-4 flex items-center gap-4 sticky top-0 z-50 border-b border-gray-100 shadow-sm rounded-b-3xl">
+        <button onClick={onBack} className="p-2 -ml-2 rounded-full hover:bg-gray-100 transition-colors">
+          <ArrowLeft className="w-5 h-5 text-gray-700" />
         </button>
         <div
-          className="w-10 h-10 rounded-full flex items-center justify-center text-xl shrink-0"
+          className="w-12 h-12 rounded-full flex items-center justify-center text-2xl shrink-0 shadow-sm border-2 border-white"
           style={{ backgroundColor: tutor.bg }}
         >
           {tutor.emoji}
         </div>
         <div>
-          <p className="font-bold text-gray-900 leading-tight">{tutor.name}</p>
-          <p className="text-[10px] text-gray-500 font-medium">{tutor.subject} Expert</p>
+          <p className="font-extrabold text-gray-900 leading-tight">{tutor.name}</p>
+          <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">{tutor.subject} Expert</p>
         </div>
-        <div className="ml-auto flex items-center gap-1.5">
-          <div className="w-2 h-2 rounded-full bg-green-400"></div>
-          <span className="text-[10px] font-medium text-gray-500">Online</span>
+        <div className="ml-auto flex items-center gap-1.5 bg-green-50 px-3 py-1.5 rounded-full border border-green-100">
+          <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+          <span className="text-[10px] font-bold text-green-700 uppercase tracking-wider">Online</span>
         </div>
       </header>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3 pb-24">
+      <div className="flex-1 overflow-y-auto px-5 py-6 space-y-4 pb-24">
         {messages.map((msg, i) => (
           <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             <div
-              className={`max-w-[85%] px-4 py-3 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${
+              className={`max-w-[85%] px-5 py-3.5 rounded-3xl text-sm font-medium leading-relaxed whitespace-pre-wrap shadow-sm ${
                 msg.role === 'user'
-                  ? 'bg-[#10b981] text-white rounded-tr-sm'
-                  : 'bg-white border border-gray-100 text-gray-800 rounded-tl-sm shadow-sm'
+                  ? 'bg-primary-500 text-white rounded-br-sm'
+                  : 'bg-white border border-gray-100 text-gray-800 rounded-bl-sm'
               }`}
             >
               {msg.content}
@@ -121,11 +118,11 @@ const ChatView = ({ tutor, onBack }) => {
 
         {loading && (
           <div className="flex justify-start">
-            <div className="bg-white border border-gray-100 rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm">
-              <div className="flex gap-1 items-center">
-                <div className="w-2 h-2 bg-gray-300 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                <div className="w-2 h-2 bg-gray-300 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                <div className="w-2 h-2 bg-gray-300 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+            <div className="bg-white border border-gray-100 rounded-3xl rounded-bl-sm px-5 py-4 shadow-sm">
+              <div className="flex gap-1.5 items-center">
+                <div className="w-2 h-2 bg-primary-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                <div className="w-2 h-2 bg-primary-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                <div className="w-2 h-2 bg-primary-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
               </div>
             </div>
           </div>
@@ -134,31 +131,31 @@ const ChatView = ({ tutor, onBack }) => {
       </div>
 
       {/* Input Bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-3 py-2.5 flex items-end gap-2">
-        <div className="flex-1 bg-gray-50 border border-gray-200 rounded-2xl flex items-center px-4 py-1.5">
+      <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-t border-gray-100 p-4 pb-[env(safe-area-inset-bottom)] flex items-end gap-3 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+        <div className="flex-1 bg-gray-100 rounded-3xl flex items-center px-5 min-h-[56px]">
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
             placeholder="Apna sawaal poochho..."
-            className="flex-1 bg-transparent py-2 text-sm focus:outline-none text-gray-800 placeholder-gray-400"
+            className="flex-1 bg-transparent py-4 text-sm font-medium focus:outline-none text-gray-900 placeholder-gray-500"
           />
-          <button className="text-gray-400 p-1">
-            <Mic className="w-4 h-4" />
+          <button className="text-gray-400 p-2 -mr-2 hover:text-primary-500 transition-colors">
+            <Mic className="w-5 h-5" />
           </button>
         </div>
         <button
           onClick={sendMessage}
           disabled={!input.trim() || loading}
-          className={`w-11 h-11 rounded-full flex items-center justify-center shrink-0 transition-colors ${
-            input.trim() && !loading ? 'bg-[#10b981] text-white' : 'bg-gray-100 text-gray-300'
+          className={`w-14 h-14 rounded-full flex items-center justify-center shrink-0 transition-all shadow-md ${
+            input.trim() && !loading ? 'bg-primary-500 text-white shadow-primary-500/30 active:scale-95' : 'bg-gray-100 text-gray-300 shadow-none'
           }`}
         >
-          <Send className="w-4 h-4 ml-0.5" />
+          <Send className="w-6 h-6 ml-1" />
         </button>
       </div>
-    </FadeIn>
+    </div>
   );
 };
 
@@ -171,66 +168,66 @@ const AITutor = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FAF9] font-sans text-gray-900 pb-24">
+    <div className="min-h-screen bg-gray-50 font-sans text-gray-900 pb-24">
 
       {/* Header */}
-      <header className="bg-white px-4 py-4 sticky top-0 z-50 border-b border-gray-100">
-        <div className="flex items-center gap-3">
-          <button onClick={() => navigate(-1)} className="p-1">
+      <header className="bg-white px-5 py-4 sticky top-0 z-50 border-b border-gray-100 shadow-sm rounded-b-3xl">
+        <div className="flex items-center gap-4">
+          <button onClick={() => navigate(-1)} className="p-2 -ml-2 rounded-full hover:bg-gray-100 transition-colors">
             <ArrowLeft className="w-5 h-5 text-gray-700" />
           </button>
           <div>
-            <h1 className="text-lg font-bold text-gray-900 leading-tight">AI Tutors</h1>
-            <p className="text-[11px] text-gray-400">Powered by Gemini AI</p>
+            <h1 className="text-xl font-extrabold text-gray-900 leading-tight">AI Tutors</h1>
+            <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mt-0.5">Powered by Gemini AI</p>
           </div>
-          <div className="ml-auto">
-            <Sparkles className="w-5 h-5 text-[#10b981]" />
+          <div className="ml-auto bg-primary-50 p-2.5 rounded-xl border border-primary-100">
+            <Sparkles className="w-5 h-5 text-primary-500" />
           </div>
         </div>
       </header>
 
-      <main className="px-4 pt-5">
+      <main className="px-5 pt-6">
         {/* Banner */}
-        <FadeIn delay={0.1}>
-          <div className="bg-gradient-to-r from-[#064E3B] to-[#10b981] rounded-2xl p-4 mb-5 text-white shadow-md">
-            <div className="flex items-center gap-2 mb-1">
-              <Sparkles className="w-4 h-4" />
-              <span className="text-xs font-bold">AI-Powered Peer Mentors</span>
+        <div className="bg-gradient-to-br from-primary-600 to-primary-500 rounded-3xl p-6 mb-6 text-white shadow-lg shadow-primary-500/20 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10"></div>
+          <div className="relative z-10">
+            <div className="flex items-center gap-2 mb-2 bg-white/20 w-max px-3 py-1 rounded-full backdrop-blur-sm">
+              <Sparkles className="w-4 h-4 text-yellow-300" />
+              <span className="text-xs font-bold uppercase tracking-wider text-white">AI-Powered</span>
             </div>
-            <p className="text-xl font-black leading-tight">Learn in Hinglish,<br/>Anytime, Instantly</p>
-            <p className="text-xs opacity-70 mt-1">Choose your subject expert below</p>
+            <p className="text-2xl font-black leading-tight mb-2">Learn in Hinglish,<br/>Anytime, Instantly</p>
+            <p className="text-sm font-medium opacity-90">Choose your subject expert below</p>
           </div>
-        </FadeIn>
+        </div>
 
         {/* Tutor Grid */}
-        <StaggerContainer className="grid grid-cols-2 gap-3 pb-4" staggerDelay={0.05}>
+        <div className="grid grid-cols-2 gap-4 pb-4">
           {tutors.map((tutor) => (
-            <StaggerItem key={tutor.id}>
-              <HoverCard
-                onClick={() => setActiveTutor(tutor)}
-                className="p-4 text-left flex flex-col gap-3 h-full"
+            <div
+              key={tutor.id}
+              onClick={() => setActiveTutor(tutor)}
+              className="bg-white border border-gray-100 rounded-3xl p-5 text-left flex flex-col h-full cursor-pointer hover:border-primary-200 hover:shadow-md transition-all group"
+            >
+              <div
+                className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl shadow-sm mb-4 border border-white group-hover:scale-110 transition-transform"
+                style={{ backgroundColor: tutor.bg }}
               >
-                <div
-                  className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl shadow-sm"
-                  style={{ backgroundColor: tutor.bg }}
-                >
-                  {tutor.emoji}
-                </div>
-                <div>
-                  <p className="font-bold text-gray-900 text-sm">{tutor.name}</p>
-                  <p className="text-[10px] font-bold mb-1" style={{ color: tutor.color }}>{tutor.subject}</p>
-                  <p className="text-[10px] text-gray-400 leading-relaxed">{tutor.desc}</p>
-                </div>
-                <div
-                  className="w-full py-2 rounded-xl text-xs font-bold text-center text-white mt-auto shadow-sm"
-                  style={{ backgroundColor: tutor.color }}
-                >
-                  Start Chat →
-                </div>
-              </HoverCard>
-            </StaggerItem>
+                {tutor.emoji}
+              </div>
+              <div className="flex-1">
+                <p className="font-extrabold text-gray-900 text-base mb-1">{tutor.name}</p>
+                <p className="text-[10px] font-bold uppercase tracking-wider mb-2" style={{ color: tutor.color }}>{tutor.subject}</p>
+                <p className="text-[11px] font-medium text-gray-500 leading-relaxed line-clamp-2">{tutor.desc}</p>
+              </div>
+              <div
+                className="w-full py-2.5 rounded-xl text-xs font-bold text-center text-white mt-4 shadow-sm opacity-90 group-hover:opacity-100 transition-opacity"
+                style={{ backgroundColor: tutor.color }}
+              >
+                Start Chat →
+              </div>
+            </div>
           ))}
-        </StaggerContainer>
+        </div>
       </main>
     </div>
   );

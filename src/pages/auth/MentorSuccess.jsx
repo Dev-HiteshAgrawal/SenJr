@@ -1,85 +1,70 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Trophy, Copy, Share2 } from 'lucide-react';
+import { Trophy, Copy, Share2, ArrowRight } from 'lucide-react';
+import { useAuthContext } from '../../context/AuthContext';
 
 const MentorSuccess = () => {
   const navigate = useNavigate();
+  const { userData } = useAuthContext();
+  const username = userData?.username || 'new_mentor';
 
   return (
-    <div className="min-h-screen bg-[#F4F9FB] font-sans text-gray-900 flex flex-col items-center justify-center p-6 relative overflow-hidden">
+    <div className="min-h-screen bg-[#F5F9F7] font-sans text-gray-900 flex flex-col items-center justify-center p-6 relative overflow-hidden">
       
-      {/* Background Dots Pattern (Mockup approximation) */}
-      <div 
-        className="absolute inset-0 z-0 opacity-40 pointer-events-none"
-        style={{
-          backgroundImage: 'radial-gradient(#6EE7B7 2px, transparent 2px), radial-gradient(#FDBA74 2px, transparent 2px)',
-          backgroundSize: '40px 40px',
-          backgroundPosition: '0 0, 20px 20px'
-        }}
-      />
+      {/* Background blobs */}
+      <div className="absolute top-10 left-10 w-64 h-64 bg-mentor-200/40 rounded-full blur-[80px] pointer-events-none" />
+      <div className="absolute bottom-10 right-10 w-64 h-64 bg-primary-200/40 rounded-full blur-[80px] pointer-events-none" />
 
       <div className="w-full max-w-sm z-10 flex flex-col items-center text-center">
         
         {/* Trophy Icon */}
         <div className="relative mb-8 mt-12">
-          <div className="absolute inset-0 bg-gray-900 translate-y-2 translate-x-2 rounded-full"></div>
-          <div className="relative w-32 h-32 bg-[#6EE7B7] rounded-full flex items-center justify-center border-2 border-gray-900">
-            <Trophy className="w-12 h-12 text-gray-900" strokeWidth={2} />
+          <div className="w-32 h-32 bg-white rounded-full flex items-center justify-center shadow-xl shadow-mentor-500/10 border-4 border-white">
+            <Trophy className="w-12 h-12 text-mentor-500" strokeWidth={2} />
           </div>
+          {/* Confetti particles mock */}
+          <div className="absolute -top-4 -right-4 w-3 h-3 bg-yellow-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
+          <div className="absolute top-1/2 -left-6 w-2 h-2 bg-primary-400 rounded-full animate-bounce" style={{ animationDelay: '0.3s' }} />
+          <div className="absolute -bottom-2 right-4 w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.5s' }} />
         </div>
 
         {/* Title */}
-        <h1 className="text-2xl font-bold font-display leading-tight mb-4 px-4">
-          🎉 Congratulations!<br/>
-          You're now a verified<br/>
-          mentor!
+        <h1 className="text-3xl font-extrabold leading-tight mb-4 text-gray-900">
+          Congratulations!<br/>
+          You're a verified<br/>
+          <span className="text-mentor-500">mentor.</span>
         </h1>
 
         {/* Subtitle */}
-        <p className="text-sm font-medium text-gray-600 mb-12 px-6">
-          Your expertise is ready to be shared. Welcome to the Expert Peer community.
+        <p className="text-sm text-gray-500 mb-10 px-2 leading-relaxed">
+          Your expertise is ready to be shared. Welcome to the community of top-tier mentors.
         </p>
 
         {/* Profile Link Box */}
-        <div className="w-full relative group mb-8">
-          <div className="absolute inset-0 bg-gray-900 translate-y-1.5 translate-x-1.5 rounded-none"></div>
-          <div className="relative bg-white border-2 border-gray-900 rounded-none p-4 flex items-center justify-between">
-            <div className="text-left overflow-hidden">
-              <span className="block text-[10px] font-bold text-gray-500 mb-1">Your profile link:</span>
-              <span className="block text-sm font-medium text-gray-900 truncate">senjr.com/mentor/@userna...</span>
-            </div>
-            
-            <button className="relative shrink-0 ml-2">
-              <div className="absolute inset-0 bg-gray-900 translate-y-1 translate-x-1 rounded-none"></div>
-              <div className="relative bg-[#EBF4FF] border-2 border-gray-900 w-10 h-10 flex items-center justify-center active:translate-x-1 active:translate-y-1 transition-transform">
-                <Copy className="w-5 h-5 text-gray-900" />
-              </div>
-            </button>
+        <div className="w-full bg-white border border-gray-200 rounded-2xl p-4 flex items-center justify-between shadow-sm mb-8">
+          <div className="text-left overflow-hidden pr-3">
+            <span className="block text-xs font-semibold text-gray-500 mb-0.5">Your profile link:</span>
+            <span className="block text-sm font-medium text-gray-900 truncate">senjr.com/m/{username}</span>
           </div>
+          
+          <button className="shrink-0 w-10 h-10 bg-mentor-50 text-mentor-600 rounded-xl flex items-center justify-center hover:bg-mentor-100 transition-colors">
+            <Copy className="w-4 h-4" />
+          </button>
         </div>
 
         {/* Action Buttons */}
-        <div className="w-full space-y-4">
-          {/* Share Button */}
-          <button className="w-full relative block group">
-            <div className="absolute inset-0 bg-gray-900 translate-y-1.5 translate-x-1.5 rounded-none transition-transform group-active:translate-x-0 group-active:translate-y-0"></div>
-            <div className="relative bg-[#f97316] border-2 border-gray-900 text-gray-900 py-3.5 font-bold text-sm flex items-center justify-center gap-2 transition-transform group-active:translate-x-1.5 group-active:translate-y-1.5">
-              <Share2 className="w-4 h-4" /> Share
-            </div>
+        <div className="w-full space-y-3">
+          <button className="w-full py-4 rounded-2xl bg-mentor-500 text-white font-bold text-base hover:bg-mentor-600 active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-lg shadow-mentor-500/20">
+            <Share2 className="w-5 h-5" /> Share Profile
           </button>
 
-          {/* Go to Dashboard Button */}
           <button 
             onClick={() => navigate('/dashboard/mentor')}
-            className="w-full relative block group"
+            className="w-full py-4 rounded-2xl bg-white border border-gray-200 text-gray-900 font-bold text-base hover:bg-gray-50 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
           >
-            <div className="absolute inset-0 bg-gray-900 translate-y-1.5 translate-x-1.5 rounded-none transition-transform group-active:translate-x-0 group-active:translate-y-0"></div>
-            <div className="relative bg-white border-2 border-gray-900 text-gray-900 py-3.5 font-bold text-sm flex items-center justify-center transition-transform group-active:translate-x-1.5 group-active:translate-y-1.5">
-              Go to Dashboard
-            </div>
+            Go to Dashboard <ArrowRight className="w-5 h-5" />
           </button>
         </div>
-        
       </div>
     </div>
   );

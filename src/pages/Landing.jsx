@@ -1,33 +1,31 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { GraduationCap, ArrowRight, Star, Users, Zap, BookOpen, Briefcase } from 'lucide-react';
+import { GraduationCap, Star, Clock, User } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
-import { FadeIn, SlideUp, StaggerContainer, StaggerItem } from '../components/common/MotionWrapper';
+import BottomNav from '../components/common/BottomNav';
 
-const TRUST_COLLEGES = ['IIT', 'BITS', 'DU', 'VIT', 'NID', 'Oxford', 'MIT'];
-
-const FEATURES = [
+const LESSONS = [
   {
-    icon: <Users className="w-6 h-6" aria-hidden="true" />,
-    title: '1:1 Mentorship',
-    desc: 'Book sessions with alumni who have been exactly where you are.'
+    id: 1,
+    title: 'Mastering DSA for FAANG',
+    mentor: 'Rahul S.',
+    college: 'IIT Delhi \'24',
+    duration: '45 mins',
+    tags: ['Algorithms', 'Interview'],
+    image: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=400&auto=format&fit=crop&q=80',
+    color: '#f0fdf4',
   },
   {
-    icon: <Zap className="w-6 h-6" aria-hidden="true" />,
-    title: 'AI Tutor',
-    desc: 'Instant AI-powered explanations, practice sets, and study guides.'
+    id: 2,
+    title: 'UI/UX Basics for Devs',
+    mentor: 'Priya M.',
+    college: 'NID \'23',
+    duration: '1.5 hrs',
+    tags: ['Design', 'Figma'],
+    image: null,
+    color: '#fce7f3',
+    icon: '✏️',
   },
-  {
-    icon: <Briefcase className="w-6 h-6" aria-hidden="true" />,
-    title: 'Career Clarity',
-    desc: 'Internship guides, resume reviews, and interview simulations.'
-  },
-  {
-    icon: <BookOpen className="w-6 h-6" aria-hidden="true" />,
-    title: 'War Room',
-    desc: 'Curated prep packs for competitive exams and top-company interviews.'
-  }
 ];
 
 const Landing = () => {
@@ -44,162 +42,157 @@ const Landing = () => {
     }
   };
 
-  const ctaLabel = !user
-    ? 'Start Learning Free'
-    : userData?.role === 'mentor'
-    ? 'Open Mentor Hub'
-    : 'Continue Learning';
-
   return (
-    <div className="min-h-screen bg-white font-sans text-gray-900 overflow-x-hidden">
+    <div className="min-h-screen bg-white font-sans text-gray-900 pb-20">
+      {/* ===== HEADER ===== */}
+      <header className="flex items-center justify-between px-5 py-4">
+        <div className="flex items-center gap-2">
+          <GraduationCap className="w-6 h-6 text-primary-500" />
+          <span className="text-lg font-bold font-display tracking-tight uppercase">Senjr</span>
+        </div>
+        {!user ? (
+          <Link
+            to="/login"
+            className="px-5 py-2 rounded-full border border-gray-900 text-sm font-semibold hover:bg-gray-50 transition-colors"
+          >
+            Login
+          </Link>
+        ) : (
+          <Link
+            to={userData?.role === 'mentor' ? '/dashboard/mentor' : '/dashboard/student'}
+            className="px-5 py-2 rounded-full bg-primary-500 text-white text-sm font-semibold hover:bg-primary-600 transition-colors"
+          >
+            Dashboard
+          </Link>
+        )}
+      </header>
 
       {/* ===== HERO ===== */}
-      <section className="relative pt-28 pb-20 px-5 max-w-5xl mx-auto text-center">
-        {/* Decorative blobs */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-primary-500/8 rounded-full blur-[120px] pointer-events-none" />
-
-        <FadeIn delay={0.1}>
-          <span className="inline-flex items-center gap-2 px-4 py-1.5 bg-primary-50 text-primary-600 rounded-full text-sm font-semibold mb-8 border border-primary-100">
-            <Star className="w-3.5 h-3.5 fill-primary-500" aria-hidden="true" /> Mentorship without borders
+      <section className="px-5 pt-6 pb-8">
+        <h1 className="text-[2.1rem] leading-[1.15] font-extrabold text-gray-900 mb-6">
+          <span className="relative inline-block">
+            <span className="absolute -left-3 top-1 w-3 h-3 bg-primary-500 rounded-full" />
+            Learn from
           </span>
-        </FadeIn>
+          <br />
+          Seniors,
+          <br />
+          Not Teachers.
+        </h1>
 
-        <SlideUp delay={0.2}>
-          <h1 className="text-5xl md:text-7xl font-extrabold leading-[1.07] tracking-tight text-gray-900 mb-6">
-            Learn from Seniors,
-            <br />
-            <span className="relative inline-block">
-              <span className="relative z-10 text-primary-500">Not Teachers.</span>
-              <svg className="absolute -bottom-2 left-0 w-full" viewBox="0 0 300 12" fill="none">
-                <path d="M0 9 Q 150 0 300 9" stroke="#ed7d12" strokeWidth="3" strokeLinecap="round"/>
-              </svg>
-            </span>
-          </h1>
-        </SlideUp>
-
-        <SlideUp delay={0.3}>
-          <p className="text-xl text-gray-500 max-w-xl mx-auto mb-10 leading-relaxed">
-            Real guidance from people who cracked the same exams, landed the same internships, and built the careers you want.
-          </p>
-        </SlideUp>
-
-        <FadeIn delay={0.4}>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
-            <motion.button
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              onClick={handleCTA}
-              className="inline-flex items-center gap-2 bg-gray-900 text-white font-bold px-8 py-4 rounded-2xl shadow-xl shadow-gray-900/20 text-lg"
-            >
-              {ctaLabel} <ArrowRight className="w-5 h-5" aria-hidden="true" />
-            </motion.button>
-
-            {!user && (
-              <Link
-                to="/join"
-                className="inline-flex items-center gap-2 text-gray-700 font-semibold px-6 py-4 rounded-2xl border-2 border-gray-200 hover:border-gray-900 transition-colors text-base"
-              >
-                Become a Mentor
-              </Link>
-            )}
-          </div>
-
-          {/* Trust indicators */}
-          <div className="flex flex-col items-center gap-4">
-            <div className="flex -space-x-2">
-              {[1, 2, 3, 4, 5].map(i => (
-                <img
-                  key={i}
-                  src={`https://i.pravatar.cc/100?img=${i + 10}`}
-                  className="w-9 h-9 rounded-full border-2 border-white"
-                  alt="Student"
-                  loading="lazy"
-                  decoding="async"
-                />
-              ))}
-            </div>
-            <span className="text-sm text-gray-400 font-medium">
-              Joined by students from{' '}
-              {TRUST_COLLEGES.slice(0, 4).join(', ')} & more
-            </span>
-          </div>
-        </FadeIn>
-      </section>
-
-      {/* ===== HERO IMAGE ===== */}
-      <FadeIn delay={0.5}>
-        <div className="max-w-4xl mx-auto px-5 mb-24">
-          <div className="relative rounded-3xl overflow-hidden border border-gray-200 shadow-2xl shadow-gray-200/60">
-            <img
-              src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=1200&auto=format&fit=crop"
-              alt="Students collaborating with mentors"
-              className="w-full h-[340px] md:h-[440px] object-cover"
-              loading="lazy"
-              decoding="async"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-gray-900/30 to-transparent" />
-            <div className="absolute bottom-5 left-5 bg-white/95 backdrop-blur-sm px-4 py-2.5 rounded-2xl flex items-center gap-3 shadow-lg">
-              <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-              <span className="text-sm font-semibold text-gray-800">Mentors live now</span>
-            </div>
+        {/* Hero Image */}
+        <div className="relative rounded-2xl overflow-hidden mb-6">
+          <img
+            src="/images/hero-students.png"
+            alt="Students learning together"
+            className="w-full h-52 object-cover"
+            loading="eager"
+          />
+          <div className="absolute bottom-3 right-3 bg-white/95 backdrop-blur-sm px-3 py-1.5 rounded-full flex items-center gap-2 shadow-sm">
+            <div className="w-2 h-2 rounded-full bg-primary-500" />
+            <span className="text-xs font-semibold text-gray-700">Real advice</span>
           </div>
         </div>
-      </FadeIn>
 
-      {/* ===== FEATURES ===== */}
-      <section className="px-5 pb-24 max-w-5xl mx-auto">
-        <FadeIn>
-          <div className="text-center mb-14">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Everything you need to accelerate
-            </h2>
-            <p className="text-gray-400 text-lg max-w-md mx-auto">
-              Built for ambitious students who don't want to wait until graduation to figure things out.
-            </p>
+        {/* CTA Button */}
+        <button
+          onClick={handleCTA}
+          className="w-full py-3.5 rounded-full border-2 border-gray-900 text-center font-bold text-base hover:bg-gray-50 active:scale-[0.98] transition-all mb-5"
+        >
+          {!user ? 'Start Learning Free' : userData?.role === 'mentor' ? 'Open Mentor Hub' : 'Continue Learning'}
+        </button>
+
+        {/* Social Proof */}
+        <div className="flex items-center justify-center gap-3">
+          <div className="flex -space-x-2">
+            {[11, 12, 13].map(i => (
+              <img
+                key={i}
+                src={`https://i.pravatar.cc/80?img=${i}`}
+                className="w-8 h-8 rounded-full border-2 border-white"
+                alt="Student"
+                loading="lazy"
+              />
+            ))}
           </div>
-        </FadeIn>
+          <span className="text-sm text-gray-500 font-medium">500+ students joined</span>
+        </div>
+      </section>
 
-        <StaggerContainer staggerDelay={0.1} className="grid sm:grid-cols-2 gap-5">
-          {FEATURES.map((f) => (
-            <StaggerItem key={f.title}>
-              <div className="group p-6 rounded-2xl border border-gray-100 hover:border-primary-200 hover:shadow-lg hover:shadow-primary-500/5 transition-all duration-300 bg-white cursor-default">
-                <div className="w-12 h-12 bg-primary-50 text-primary-500 rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
-                  {f.icon}
+      {/* ===== POPULAR LESSONS ===== */}
+      <section className="px-5 pb-10">
+        <div className="flex items-center gap-2 mb-5">
+          <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
+          <h2 className="text-xl font-bold">Popular Lessons</h2>
+        </div>
+
+        <div className="space-y-4">
+          {LESSONS.map(lesson => (
+            <div key={lesson.id} className="rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
+              {/* Lesson Image */}
+              {lesson.image ? (
+                <div className="relative">
+                  <img
+                    src={lesson.image}
+                    alt={lesson.title}
+                    className="w-full h-40 object-cover"
+                    loading="lazy"
+                  />
+                  <div className="absolute bottom-3 left-3 bg-white/90 backdrop-blur-sm px-2.5 py-1 rounded-lg">
+                    <div className="flex items-center gap-1">
+                      <Clock className="w-3 h-3 text-gray-500" />
+                      <span className="text-xs font-semibold text-gray-700">{lesson.duration}</span>
+                    </div>
+                  </div>
+                  <div className="absolute top-3 right-3 w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center">
+                    <span className="text-white text-xs font-bold">▶</span>
+                  </div>
                 </div>
-                <h3 className="font-bold text-gray-900 text-lg mb-2">{f.title}</h3>
-                <p className="text-gray-500 text-sm leading-relaxed">{f.desc}</p>
+              ) : (
+                <div className="h-32 flex items-center justify-center" style={{ backgroundColor: lesson.color }}>
+                  <span className="text-4xl">{lesson.icon}</span>
+                  <div className="absolute bottom-3 left-3 bg-white/90 backdrop-blur-sm px-2.5 py-1 rounded-lg">
+                    <div className="flex items-center gap-1">
+                      <Clock className="w-3 h-3 text-gray-500" />
+                      <span className="text-xs font-semibold text-gray-700">{lesson.duration}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Lesson Info */}
+              <div className="p-4">
+                <h3 className="font-bold text-base mb-1">{lesson.title}</h3>
+                <div className="flex items-center gap-1.5 text-sm text-gray-500 mb-3">
+                  <User className="w-3.5 h-3.5" />
+                  <span>By {lesson.mentor}, {lesson.college}</span>
+                </div>
+                <div className="flex gap-2">
+                  {lesson.tags.map(tag => (
+                    <span key={tag} className="px-3 py-1 rounded-full border border-gray-200 text-xs font-medium text-gray-600">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
               </div>
-            </StaggerItem>
-          ))}
-        </StaggerContainer>
-      </section>
-
-      {/* ===== CTA BAND ===== */}
-      <section className="mx-5 mb-24">
-        <FadeIn>
-          <div className="max-w-4xl mx-auto bg-gray-900 rounded-3xl p-10 md:p-14 text-center relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-primary-500/10 rounded-full blur-[80px] pointer-events-none" />
-            <div className="relative z-10">
-              <h2 className="text-3xl md:text-4xl font-extrabold text-white mb-5 tracking-tight">
-                Built for ambitious students everywhere.
-              </h2>
-              <p className="text-gray-400 text-lg mb-8 max-w-sm mx-auto">
-                Stop Googling. Start talking to people who've actually done it.
-              </p>
-              <motion.button
-                whileHover={{ scale: 1.04 }}
-                whileTap={{ scale: 0.96 }}
-                onClick={handleCTA}
-                className="inline-flex items-center gap-2 bg-primary-500 text-white font-bold px-8 py-4 rounded-2xl shadow-lg shadow-primary-500/30 text-base"
-              >
-                {ctaLabel} <ArrowRight className="w-5 h-5" aria-hidden="true" />
-              </motion.button>
             </div>
-          </div>
-        </FadeIn>
+          ))}
+        </div>
       </section>
 
+      {/* ===== FOOTER ===== */}
+      <footer className="px-5 py-8 text-center border-t border-gray-100">
+        <p className="font-bold text-gray-900 mb-3">Senjr</p>
+        <div className="flex items-center justify-center gap-4 mb-4">
+          <Link to="/terms" className="text-sm text-gray-500 underline underline-offset-2">Terms</Link>
+          <Link to="/privacy" className="text-sm text-gray-500 underline underline-offset-2">Privacy</Link>
+          <Link to="/help" className="text-sm text-gray-500 underline underline-offset-2">Support</Link>
+        </div>
+        <p className="text-xs text-gray-400">© 2024 Senjr EdTech. Made in India 🇮🇳</p>
+      </footer>
 
+      {/* Bottom Navigation */}
+      <BottomNav />
     </div>
   );
 };

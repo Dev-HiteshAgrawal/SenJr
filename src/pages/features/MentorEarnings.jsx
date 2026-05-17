@@ -28,72 +28,75 @@ const MentorEarnings = () => {
   const pending = transactions.filter(t => t.status === 'pending').reduce((a, t) => a + t.amount, 0);
 
   return (
-    <div className="min-h-screen bg-[#F8FAF9] font-sans text-gray-900 pb-24">
+    <div className="min-h-screen bg-gray-50 font-sans text-gray-900 pb-24">
       
       {/* Header */}
-      <header className="bg-white px-4 py-4 sticky top-0 z-50 border-b border-gray-100">
+      <header className="bg-white px-5 py-4 sticky top-0 z-50 border-b border-gray-100 shadow-sm rounded-b-3xl">
         <div className="flex items-center gap-3">
-          <button onClick={() => navigate(-1)} className="p-1">
+          <button onClick={() => navigate(-1)} className="p-2 rounded-full hover:bg-gray-100 transition-colors">
             <ArrowLeft className="w-5 h-5 text-gray-700" />
           </button>
-          <h1 className="text-lg font-bold text-gray-900 flex-1">Earnings</h1>
-          <button className="p-2 bg-gray-50 rounded-xl border border-gray-200">
+          <h1 className="text-xl font-extrabold text-gray-900 flex-1">Earnings</h1>
+          <button className="p-2.5 bg-gray-50 hover:bg-gray-100 transition-colors rounded-xl border border-gray-200">
             <Download className="w-4 h-4 text-gray-600" />
           </button>
         </div>
       </header>
 
-      <main className="px-4 pt-5 space-y-5">
+      <main className="px-5 pt-6 space-y-6">
 
         {/* Earnings Overview Card */}
-        <div className="bg-gradient-to-br from-[#064E3B] to-[#10b981] rounded-2xl p-5 text-white">
-          <p className="text-xs font-bold opacity-70 mb-1">TOTAL EARNED</p>
-          <p className="text-4xl font-black mb-4">₹{totalEarned.toLocaleString()}</p>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="bg-white/10 rounded-xl p-3">
-              <p className="text-[10px] opacity-70 mb-1">THIS MONTH</p>
-              <p className="text-xl font-black">₹{thisMonth.toLocaleString()}</p>
-            </div>
-            <div className="bg-white/10 rounded-xl p-3">
-              <p className="text-[10px] opacity-70 mb-1">PENDING</p>
-              <p className="text-xl font-black">₹{pending}</p>
+        <div className="bg-gradient-to-br from-mentor-600 to-mentor-500 rounded-3xl p-6 text-white shadow-lg shadow-mentor-500/20 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10"></div>
+          <div className="relative z-10">
+            <p className="text-xs font-bold opacity-80 mb-1 tracking-wider uppercase">Total Earned</p>
+            <p className="text-4xl font-black mb-6">₹{totalEarned.toLocaleString()}</p>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-white/15 backdrop-blur-sm rounded-2xl p-4 border border-white/10">
+                <p className="text-[10px] opacity-80 mb-1 tracking-wider uppercase">This Month</p>
+                <p className="text-xl font-black">₹{thisMonth.toLocaleString()}</p>
+              </div>
+              <div className="bg-white/15 backdrop-blur-sm rounded-2xl p-4 border border-white/10">
+                <p className="text-[10px] opacity-80 mb-1 tracking-wider uppercase">Pending</p>
+                <p className="text-xl font-black">₹{pending}</p>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Withdraw Banner */}
-        <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm flex items-center justify-between">
-          <div>
+        <div className="bg-white border border-gray-100 rounded-3xl p-5 shadow-sm flex items-center justify-between relative overflow-hidden">
+          <div className="relative z-10">
             <p className="font-bold text-gray-900 mb-0.5">Available to Withdraw</p>
-            <p className="text-2xl font-black text-[#10b981]">₹{(thisMonth * 0.9).toFixed(0)}</p>
-            <p className="text-[10px] text-gray-400 mt-0.5">After 10% Senjr platform fee</p>
+            <p className="text-3xl font-black text-mentor-600">₹{(thisMonth * 0.9).toFixed(0)}</p>
+            <p className="text-[10px] font-semibold text-gray-400 mt-1">After 10% platform fee</p>
           </div>
-          <button className="bg-[#10b981] text-white px-5 py-3 rounded-xl font-bold text-sm flex items-center gap-2 shadow-sm">
-            <CreditCard className="w-4 h-4" /> Withdraw
+          <button className="bg-mentor-500 text-white px-5 py-3.5 rounded-2xl font-bold text-sm flex items-center gap-2 hover:bg-mentor-600 active:scale-[0.98] transition-all shadow-md shadow-mentor-500/20 relative z-10">
+            <CreditCard className="w-5 h-5" /> Withdraw
           </button>
         </div>
 
         {/* UPI Info */}
-        <div className="bg-blue-50 border border-blue-100 rounded-xl px-4 py-3 flex items-center gap-3">
-          <AlertCircle className="w-4 h-4 text-blue-600 shrink-0" />
+        <div className="bg-blue-50 border border-blue-100 rounded-2xl px-5 py-4 flex items-center gap-3">
+          <AlertCircle className="w-5 h-5 text-blue-500 shrink-0" />
           <div>
-            <p className="text-xs font-bold text-blue-800">UPI: rahul.sharma@okicici</p>
-            <p className="text-[10px] text-blue-600">Transfers process in 24 hrs</p>
+            <p className="text-sm font-bold text-blue-900">UPI: rahul.sharma@okicici</p>
+            <p className="text-xs font-medium text-blue-600 mt-0.5">Transfers process in 24 hrs</p>
           </div>
-          <button className="ml-auto text-xs font-bold text-blue-700">Edit</button>
+          <button className="ml-auto text-sm font-bold text-blue-700 bg-blue-100/50 px-3 py-1.5 rounded-lg hover:bg-blue-100 transition-colors">Edit</button>
         </div>
 
         {/* Bar Chart */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-bold text-gray-900">Monthly Breakdown</h2>
-            <div className="flex gap-1 bg-gray-100 p-1 rounded-lg">
+        <div className="bg-white rounded-3xl border border-gray-100 p-5 shadow-sm">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="font-bold text-gray-900 text-lg">Monthly Breakdown</h2>
+            <div className="flex gap-1 bg-gray-50 p-1 rounded-xl border border-gray-100">
               {['5M', '1Y'].map((p) => (
                 <button
                   key={p}
                   onClick={() => setPeriod(p)}
-                  className={`px-3 py-1 rounded-md text-xs font-bold transition-colors ${
-                    period === p ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'
+                  className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+                    period === p ? 'bg-white text-gray-900 shadow-sm border border-gray-200' : 'text-gray-500 hover:text-gray-700'
                   }`}
                 >
                   {p}
@@ -102,40 +105,42 @@ const MentorEarnings = () => {
             </div>
           </div>
           
-          <div className="flex items-end gap-2 h-28">
+          <div className="flex items-end gap-3 h-32">
             {earningsData.map((e, i) => (
-              <div key={e.month} className="flex-1 flex flex-col items-center gap-1">
-                <span className="text-[9px] font-bold text-gray-500">₹{(e.amount/1000).toFixed(1)}k</span>
+              <div key={e.month} className="flex-1 flex flex-col items-center gap-2 group cursor-pointer">
+                <span className="text-[10px] font-bold text-gray-400 group-hover:text-mentor-600 transition-colors">₹{(e.amount/1000).toFixed(1)}k</span>
                 <div
-                  className={`w-full rounded-t-lg ${i === earningsData.length - 1 ? 'bg-[#10b981]' : 'bg-[#D1FAE5]'}`}
-                  style={{ height: `${(e.amount / maxEarning) * 80}px` }}
+                  className={`w-full rounded-t-xl transition-all ${i === earningsData.length - 1 ? 'bg-mentor-500' : 'bg-mentor-100 group-hover:bg-mentor-200'}`}
+                  style={{ height: `${(e.amount / maxEarning) * 100}px` }}
                 ></div>
-                <span className="text-[10px] font-bold text-gray-500">{e.month}</span>
+                <span className="text-xs font-bold text-gray-500 group-hover:text-gray-900 transition-colors">{e.month}</span>
               </div>
             ))}
           </div>
         </div>
 
         {/* Recent Transactions */}
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="font-bold text-gray-900">Recent Payments</h2>
-            <button className="text-xs font-bold text-[#10b981]">View All</button>
+        <section>
+          <div className="flex items-center justify-between mb-4 px-1">
+            <h2 className="font-bold text-gray-900 text-lg">Recent Payments</h2>
+            <button className="text-sm font-bold text-mentor-600">View All</button>
           </div>
           <div className="space-y-3">
             {transactions.map((t) => (
-              <div key={t.id} className="bg-white rounded-xl border border-gray-100 shadow-sm px-4 py-3 flex items-center gap-3">
-                <div className="w-10 h-10 bg-[#ECFDF5] rounded-full flex items-center justify-center text-sm font-bold text-[#10b981]">
+              <div key={t.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm px-5 py-4 flex items-center gap-4 hover:border-mentor-100 transition-colors">
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold shrink-0 ${
+                  t.status === 'paid' ? 'bg-mentor-50 text-mentor-600' : 'bg-yellow-50 text-yellow-600'
+                }`}>
                   {t.student.charAt(0)}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-bold text-gray-900 truncate">{t.student}</p>
-                  <p className="text-[10px] text-gray-500 truncate">{t.subject} • {t.date}</p>
+                  <p className="text-base font-bold text-gray-900 truncate mb-0.5">{t.student}</p>
+                  <p className="text-xs font-medium text-gray-500 truncate">{t.subject} • {t.date}</p>
                 </div>
-                <div className="text-right">
-                  <p className="text-sm font-black text-gray-900">+₹{t.amount}</p>
-                  <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${
-                    t.status === 'paid' ? 'bg-[#ECFDF5] text-[#10b981]' : 'bg-yellow-50 text-yellow-700'
+                <div className="text-right shrink-0">
+                  <p className="text-base font-black text-gray-900 mb-1">+₹{t.amount}</p>
+                  <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full ${
+                    t.status === 'paid' ? 'bg-mentor-50 text-mentor-600' : 'bg-yellow-50 text-yellow-700'
                   }`}>
                     {t.status === 'paid' ? 'Received' : 'Pending'}
                   </span>
@@ -143,7 +148,7 @@ const MentorEarnings = () => {
               </div>
             ))}
           </div>
-        </div>
+        </section>
 
       </main>
     </div>

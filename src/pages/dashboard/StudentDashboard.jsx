@@ -1,16 +1,15 @@
 import React, { useMemo } from 'react';
-import { Menu, Bell, Search, BookOpen, Target, Trophy, Bot, Calendar, ChevronRight, LayoutDashboard, Users, User, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { Target, BookOpen, Trophy, Bot, Calendar, Loader2, Home, Users, User, LayoutDashboard, Search } from 'lucide-react';
 import { useAuthContext } from '../../context/AuthContext';
 import { useFirestoreQuery } from '../../hooks/useFirestoreQuery';
 import { calculateLevel, getXPForNextLevel } from '../../utils/gamification';
-import { FadeIn, SlideUp, StaggerContainer, StaggerItem, HoverCard, AccentButton, AnimatedProgressBar } from '../../components/common/MotionWrapper';
+import BottomNav from '../../components/common/BottomNav';
 
 const StudentDashboard = () => {
   const navigate = useNavigate();
   const { user, userData, loading: authLoading } = useAuthContext();
 
-  // Fetch upcoming session
   const sessionOpts = useMemo(() => ({
     filters: [['studentId', '==', user?.uid || ''], ['status', '==', 'upcoming']],
     sort: ['date', 'asc'], 
@@ -21,7 +20,6 @@ const StudentDashboard = () => {
   const { data: upcomingSessions, loading: sessionsLoading } = useFirestoreQuery('sessions', sessionOpts);
   const upcomingSession = upcomingSessions?.[0];
 
-  // Fetch leaderboard
   const leaderOpts = useMemo(() => ({
     sort: ['xp', 'desc'],
     limitCount: 3,
@@ -29,18 +27,17 @@ const StudentDashboard = () => {
   const { data: leaders, loading: leadersLoading } = useFirestoreQuery('users', leaderOpts);
 
   if (authLoading) {
-    return <div className="min-h-screen flex items-center justify-center bg-[#F8FAF9]"><Loader2 className="w-8 h-8 animate-spin text-[#10b981]" /></div>;
+    return <div className="min-h-screen flex items-center justify-center bg-gray-50"><Loader2 className="w-8 h-8 animate-spin text-primary-500" /></div>;
   }
 
   const studentName = userData?.displayName?.split(' ')[0] || 'Student';
   const xp = userData?.xp || 0;
-  
-  // Calculate Level using gamification utility
   const currentLevel = calculateLevel(xp);
   const xpForNextLevel = getXPForNextLevel(currentLevel);
   const prevLevelXP = currentLevel > 1 ? getXPForNextLevel(currentLevel - 1) : 0;
   const progressPercent = Math.max(0, Math.min(100, ((xp - prevLevelXP) / (xpForNextLevel - prevLevelXP)) * 100));
-  
+  const streak = userData?.streak || 0;
+
   const getLevelTitle = (level) => {
     if (level < 3) return 'Novice';
     if (level < 5) return 'Scholar';
@@ -48,225 +45,161 @@ const StudentDashboard = () => {
     return 'Master';
   };
 
-  const streak = userData?.streak || 0;
+  const navItems = [
+    { label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard/student' },
+    { label: 'Sessions', icon: BookOpen, path: '/sessions' },
+    { label: 'Community', icon: Users, path: '/community' },
+    { label: 'Profile', icon: User, path: '/profile/student/me' },
+  ];
 
   return (
-    <div className="min-h-screen bg-[#F8FAF9] font-sans text-gray-900 flex flex-col pb-20">
-      
-
-
-      <main className="flex-1 px-4 pt-6 space-y-6">
-        
-        {/* Greeting & XP */}
-        <div>
-          <div className="flex justify-between items-start mb-4">
-            <h2 className="text-3xl font-black font-display leading-tight">
+    <div className="min-h-screen bg-gray-50 font-sans text-gray-900 flex flex-col pb-24">
+      {/* Header Area */}
+      <div className="bg-white px-5 pt-6 pb-4 border-b border-gray-100 rounded-b-3xl shadow-sm">
+        <div className="flex justify-between items-start mb-5">
+          <div>
+            <h2 className="text-2xl font-extrabold text-gray-900 tracking-tight">
               Good morning,<br/>{studentName}! 👋
             </h2>
-            <div className="bg-[#E6F4F1] px-3 py-1.5 rounded-full mt-2">
-              <span className="text-xs font-bold text-[#10b981] text-center block leading-tight">Level {currentLevel}<br/>{getLevelTitle(currentLevel)}</span>
-            </div>
           </div>
-          
-          <div className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
-            <div className="flex justify-between text-xs font-bold text-gray-700 mb-2">
-              <span>Current XP</span>
-              <span>{xp} / {xpForNextLevel} XP</span>
+          <div className="flex flex-col items-end">
+            <div className="bg-primary-50 px-3 py-1.5 rounded-full mb-1">
+              <span className="text-xs font-bold text-primary-600 block">Level {currentLevel} • {getLevelTitle(currentLevel)}</span>
             </div>
-            <AnimatedProgressBar percent={progressPercent} colorClass="bg-[#10b981]" />
+            <div className="text-xs font-semibold text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+              🔥 {streak} Day Streak
+            </div>
           </div>
         </div>
 
+        {/* Progress Bar */}
+        <div className="bg-gray-50 rounded-2xl p-4">
+          <div className="flex justify-between text-xs font-bold text-gray-700 mb-2">
+            <span>Current Progress</span>
+            <span className="text-primary-600">{xp} / {xpForNextLevel} XP</span>
+          </div>
+          <div className="h-2.5 w-full bg-gray-200 rounded-full overflow-hidden">
+            <div className="h-full bg-primary-500 rounded-full transition-all duration-1000 ease-out" style={{ width: `${progressPercent}%` }} />
+          </div>
+        </div>
+      </div>
+
+      <main className="flex-1 px-5 pt-6 space-y-6">
+        
         {/* Action Grid */}
-        <StaggerContainer className="grid grid-cols-2 gap-3" staggerDelay={0.05}>
-          <StaggerItem>
-            <HoverCard onClick={() => navigate('/find-mentor')} className="p-4 flex flex-col items-center justify-center gap-3 h-full w-full">
-              <div className="w-10 h-10 rounded-full bg-orange-50 flex items-center justify-center">
-                <Target className="w-5 h-5 text-orange-500" />
-              </div>
-              <span className="text-xs font-bold text-gray-800">Find Mentor</span>
-            </HoverCard>
-          </StaggerItem>
+        <div className="grid grid-cols-2 gap-3">
+          <button onClick={() => navigate('/find-mentor')} className="bg-white p-4 rounded-2xl flex flex-col items-center justify-center gap-3 shadow-sm border border-gray-100 hover:border-orange-200 transition-colors">
+            <div className="w-12 h-12 rounded-full bg-orange-50 flex items-center justify-center text-orange-500">
+              <Target className="w-6 h-6" />
+            </div>
+            <span className="text-sm font-bold text-gray-800">Find Mentor</span>
+          </button>
           
-          <StaggerItem>
-            <HoverCard onClick={() => navigate('/sessions')} className="p-4 flex flex-col items-center justify-center gap-3 h-full w-full">
-              <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center">
-                <BookOpen className="w-5 h-5 text-indigo-500" />
-              </div>
-              <span className="text-xs font-bold text-gray-800">My Sessions</span>
-            </HoverCard>
-          </StaggerItem>
+          <button onClick={() => navigate('/sessions')} className="bg-white p-4 rounded-2xl flex flex-col items-center justify-center gap-3 shadow-sm border border-gray-100 hover:border-indigo-200 transition-colors">
+            <div className="w-12 h-12 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-500">
+              <BookOpen className="w-6 h-6" />
+            </div>
+            <span className="text-sm font-bold text-gray-800">My Sessions</span>
+          </button>
           
-          <StaggerItem>
-            <HoverCard onClick={() => navigate('/war-room')} className="p-4 flex flex-col items-center justify-center gap-3 h-full w-full border-[#ef4444] border-b-4">
-              <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center">
-                <Trophy className="w-5 h-5 text-red-500" />
-              </div>
-              <span className="text-xs font-bold text-gray-800">War Room</span>
-            </HoverCard>
-          </StaggerItem>
+          <button onClick={() => navigate('/war-room')} className="bg-white p-4 rounded-2xl flex flex-col items-center justify-center gap-3 shadow-sm border border-gray-100 hover:border-red-200 transition-colors relative overflow-hidden">
+            <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center text-red-500">
+              <Trophy className="w-6 h-6" />
+            </div>
+            <span className="text-sm font-bold text-gray-800">War Room</span>
+            <div className="absolute top-0 right-0 bg-red-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-bl-lg">LIVE</div>
+          </button>
           
-          <StaggerItem>
-            <HoverCard onClick={() => navigate('/ai-tutor')} className="p-4 flex flex-col items-center justify-center gap-3 h-full w-full">
-              <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center">
-                <Bot className="w-5 h-5 text-emerald-500" />
-              </div>
-              <span className="text-xs font-bold text-gray-800">AI Tutor</span>
-            </HoverCard>
-          </StaggerItem>
-        </StaggerContainer>
+          <button onClick={() => navigate('/ai-tutor')} className="bg-white p-4 rounded-2xl flex flex-col items-center justify-center gap-3 shadow-sm border border-gray-100 hover:border-primary-200 transition-colors">
+            <div className="w-12 h-12 rounded-full bg-primary-50 flex items-center justify-center text-primary-500">
+              <Bot className="w-6 h-6" />
+            </div>
+            <span className="text-sm font-bold text-gray-800">AI Tutor</span>
+          </button>
+        </div>
 
         {/* Upcoming Session */}
-        <FadeIn delay={0.2}>
+        <section>
+          <div className="flex justify-between items-end mb-3">
+            <h3 className="text-lg font-bold text-gray-900">Upcoming Session</h3>
+          </div>
+          
           {sessionsLoading ? (
-             <div className="bg-[#F8FAFC] border border-gray-200 rounded-2xl p-4 text-center">
-               <Loader2 className="w-5 h-5 animate-spin mx-auto text-[#10b981]" />
+             <div className="bg-white rounded-2xl p-6 text-center shadow-sm border border-gray-100">
+               <Loader2 className="w-6 h-6 animate-spin mx-auto text-primary-500" />
              </div>
           ) : upcomingSession ? (
-            <HoverCard className="bg-[#F8FAFC] p-4">
-              <h3 className="font-bold text-gray-900 mb-2">{upcomingSession.subject || 'Mentorship Session'} with {upcomingSession.mentorName}</h3>
-              <div className="flex items-center gap-3 text-sm mb-4">
-                <div className="flex items-center gap-1.5 text-gray-600 font-medium">
-                  <Calendar className="w-4 h-4" />
-                  {upcomingSession.date}, {upcomingSession.time}
+            <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 border-l-4 border-l-primary-500">
+              <div className="flex justify-between items-start mb-3">
+                <div>
+                  <h4 className="font-bold text-gray-900 text-base">{upcomingSession.subject || 'Mentorship Session'}</h4>
+                  <p className="text-sm text-gray-500 font-medium">with {upcomingSession.mentorName}</p>
+                </div>
+                <div className="bg-primary-50 text-primary-600 px-2 py-1 rounded-lg text-xs font-bold flex items-center gap-1">
+                  <Calendar className="w-3.5 h-3.5" />
+                  Today
                 </div>
               </div>
-              <AccentButton onClick={() => navigate(`/video-call/${upcomingSession.roomName || upcomingSession.id}`)} className="w-full">
-                Join Now
-              </AccentButton>
-            </HoverCard>
+              <div className="flex items-center justify-between mt-4">
+                <span className="text-sm font-bold text-gray-700">{upcomingSession.time}</span>
+                <button onClick={() => navigate(`/video-call/${upcomingSession.roomName || upcomingSession.id}`)} className="bg-primary-500 text-white px-5 py-2 rounded-xl text-sm font-bold hover:bg-primary-600 transition-colors">
+                  Join Call
+                </button>
+              </div>
+            </div>
           ) : (
-            <HoverCard className="p-5 text-center bg-white">
-              <p className="text-gray-500 text-sm font-medium mb-3">No upcoming sessions</p>
-              <AccentButton onClick={() => navigate('/find-mentor')} className="text-sm py-2 bg-[#10b981] shadow-none w-auto text-white">
+            <div className="bg-white rounded-2xl p-5 text-center shadow-sm border border-gray-100">
+              <div className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                <Calendar className="w-6 h-6 text-gray-400" />
+              </div>
+              <p className="text-gray-500 text-sm font-medium mb-4">No upcoming sessions</p>
+              <button onClick={() => navigate('/find-mentor')} className="bg-primary-500 text-white px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-primary-600 transition-colors">
                 Book a Mentor
-              </AccentButton>
-            </HoverCard>
+              </button>
+            </div>
           )}
-        </FadeIn>
-
-        {/* My Progress - Hardcoded visual for now as progress tracking is complex, but wired to UI */}
-        <div>
-          <h3 className="text-lg font-bold font-display mb-3">My Progress</h3>
-          <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 snap-x no-scrollbar">
-            
-            <div className="bg-white border border-gray-200 rounded-2xl p-4 min-w-[140px] flex flex-col items-center shrink-0 snap-start shadow-sm">
-              <div className="relative w-16 h-16 mb-2">
-                <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-                  <path strokeDasharray="100, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#E2E8F0" strokeWidth="3" />
-                  <path strokeDasharray="75, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#10b981" strokeWidth="3" strokeLinecap="round" />
-                </svg>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-sm font-bold text-gray-800">75%</span>
-                </div>
-              </div>
-              <span className="text-xs font-bold text-gray-700">Overall</span>
-            </div>
-
-            <div className="bg-white border border-gray-200 rounded-2xl p-4 min-w-[140px] flex flex-col items-center shrink-0 snap-start shadow-sm">
-              <div className="relative w-16 h-16 mb-2">
-                <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-                  <path strokeDasharray="100, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#E2E8F0" strokeWidth="3" />
-                  <path strokeDasharray={`${Math.min((streak / 7) * 100, 100)}, 100`} d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#f43f5e" strokeWidth="3" strokeLinecap="round" />
-                </svg>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-sm font-bold text-gray-800">{streak}</span>
-                </div>
-              </div>
-              <span className="text-xs font-bold text-gray-700">Day Streak</span>
-            </div>
-            
-          </div>
-        </div>
-
-        {/* Streak Banner */}
-        <div className="rounded-2xl p-5 border border-orange-100 shadow-sm relative overflow-hidden bg-gradient-to-br from-[#FFF4ED] via-white to-white">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-orange-100 rounded-full blur-3xl opacity-50 -mr-10 -mt-10"></div>
-          
-          <h3 className="text-lg font-black font-display text-center mb-4 relative z-10">
-            <span className="inline-block mr-2 animate-bounce">🔥</span>
-            {streak} Day Streak!
-          </h3>
-          
-          <div className="flex justify-between items-center relative z-10 px-2">
-            {/* Simple visual representation for now, assuming 1 is today, 2 is yesterday etc */}
-            {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, idx) => {
-              // Mock logic for visuals
-              const isToday = idx === 5; // e.g. Saturday
-              const isDone = idx < 5;
-              const isFuture = idx > 5;
-              
-              return (
-                <div key={idx} className="flex flex-col items-center gap-2">
-                  <span className="text-[10px] font-bold text-gray-400">{day}</span>
-                  {isDone && (
-                    <div className="w-6 h-6 rounded-full bg-[#D1FAE5] text-[#10b981] flex items-center justify-center">
-                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                      </svg>
-                    </div>
-                  )}
-                  {isToday && (
-                    <div className="w-7 h-7 rounded-full bg-[#f97316] text-white flex items-center justify-center shadow-md">
-                      <span className="text-sm">🔥</span>
-                    </div>
-                  )}
-                  {isFuture && (
-                    <div className="w-6 h-6 rounded-full border border-gray-300"></div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
+        </section>
 
         {/* Leaderboard */}
-        <div className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm mb-6">
-          <h3 className="text-lg font-bold font-display mb-4">Leaderboard</h3>
-          <div className="space-y-1">
-            
-            {leadersLoading && <div className="text-center"><Loader2 className="w-4 h-4 animate-spin mx-auto text-[#10b981]" /></div>}
-            
-            {!leadersLoading && leaders && leaders.map((leader, idx) => {
-              const isMe = leader.id === user?.uid;
-              return (
-                <div key={leader.id} className={`flex items-center gap-3 p-2 ${isMe ? 'bg-[#E6F4F1] rounded-r-xl border-l-4 border-[#10b981] relative -left-4 pl-7 pr-4 w-[calc(100%+32px)]' : 'rounded-xl'}`}>
-                  <span className="text-xs font-bold text-gray-500 w-4 text-center">{idx + 1}</span>
-                  <img src={leader.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(leader.displayName || 'U')}`} alt="Avatar" className="w-8 h-8 rounded-full bg-gray-200" />
-                  <span className={`flex-1 text-sm font-medium ${isMe ? 'font-bold text-gray-900' : 'text-gray-800'}`}>
-                    {isMe ? 'You' : (leader.displayName || 'Anonymous')}
-                  </span>
-                  <span className={`text-xs font-bold ${isMe || idx === 0 ? 'text-[#10b981]' : 'text-gray-500'}`}>
-                    {leader.xp || 0} XP
-                  </span>
-                </div>
-              );
-            })}
-            
+        <section>
+          <div className="flex justify-between items-end mb-3">
+            <h3 className="text-lg font-bold text-gray-900">Leaderboard</h3>
+            <button className="text-xs font-bold text-primary-600">View All</button>
           </div>
-        </div>
+          
+          <div className="bg-white rounded-2xl p-2 shadow-sm border border-gray-100">
+            {leadersLoading ? (
+              <div className="py-6 text-center"><Loader2 className="w-5 h-5 animate-spin mx-auto text-primary-500" /></div>
+            ) : (
+              <div className="space-y-1">
+                {leaders?.map((leader, idx) => {
+                  const isMe = leader.id === user?.uid;
+                  return (
+                    <div key={leader.id} className={`flex items-center gap-3 p-3 rounded-xl ${isMe ? 'bg-primary-50' : ''}`}>
+                      <div className={`w-6 text-center font-bold text-sm ${idx === 0 ? 'text-yellow-500' : idx === 1 ? 'text-gray-400' : idx === 2 ? 'text-amber-600' : 'text-gray-400'}`}>
+                        {idx + 1}
+                      </div>
+                      <img src={leader.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(leader.displayName || 'U')}&background=random`} alt="Avatar" className="w-10 h-10 rounded-full bg-gray-200" />
+                      <div className="flex-1">
+                        <h4 className={`text-sm font-bold ${isMe ? 'text-primary-700' : 'text-gray-900'}`}>
+                          {isMe ? 'You' : (leader.displayName || 'Anonymous')}
+                        </h4>
+                        <p className="text-xs font-medium text-gray-500">Level {calculateLevel(leader.xp || 0)}</p>
+                      </div>
+                      <span className={`text-sm font-bold ${isMe ? 'text-primary-600' : 'text-gray-700'}`}>
+                        {leader.xp || 0} XP
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </section>
 
       </main>
 
-      {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-6 py-2 flex justify-between items-center z-50">
-        <button onClick={() => navigate('/dashboard/student')} className="flex flex-col items-center gap-1 min-w-[44px] min-h-[44px] justify-center">
-          <LayoutDashboard className="w-6 h-6 text-[#10b981]" fill="#10b981" fillOpacity={0.2} />
-          <span className="text-xs font-bold text-[#10b981]">Dashboard</span>
-        </button>
-        <button onClick={() => navigate('/sessions')} className="flex flex-col items-center gap-1 opacity-50 min-w-[44px] min-h-[44px] justify-center">
-          <BookOpen className="w-6 h-6 text-gray-600" />
-          <span className="text-xs font-medium text-gray-600">Sessions</span>
-        </button>
-        <button onClick={() => navigate('/community')} className="flex flex-col items-center gap-1 opacity-50 min-w-[44px] min-h-[44px] justify-center">
-          <Users className="w-6 h-6 text-gray-600" />
-          <span className="text-xs font-medium text-gray-600">Community</span>
-        </button>
-        <button onClick={() => navigate('/profile/student/me')} className="flex flex-col items-center gap-1 opacity-50 min-w-[44px] min-h-[44px] justify-center">
-          <User className="w-6 h-6 text-gray-600" />
-          <span className="text-xs font-medium text-gray-600">Profile</span>
-        </button>
-      </nav>
+      <BottomNav items={navItems} />
     </div>
   );
 };

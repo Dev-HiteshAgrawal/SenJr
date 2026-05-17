@@ -67,28 +67,28 @@ const Courses = () => {
     : courses;
 
   return (
-    <div className="min-h-screen bg-[#F8FAF9] font-sans text-gray-900 pb-24">
+    <div className="min-h-screen bg-gray-50 font-sans text-gray-900 pb-24">
       
       {/* Header */}
-      <header className="bg-white px-4 py-4 sticky top-0 z-50 border-b border-gray-100">
-        <div className="flex items-center gap-3 mb-4">
-          <button onClick={() => navigate(-1)} className="p-1">
+      <header className="bg-white px-5 py-4 sticky top-0 z-50 border-b border-gray-100 shadow-sm rounded-b-3xl">
+        <div className="flex items-center gap-4 mb-5">
+          <button onClick={() => navigate(-1)} className="p-2 -ml-2 rounded-full hover:bg-gray-100 transition-colors">
             <ArrowLeft className="w-5 h-5 text-gray-700" />
           </button>
-          <h1 className="text-lg font-bold text-gray-900 flex-1">Courses</h1>
-          <div className="w-8 h-8 rounded-full overflow-hidden">
+          <h1 className="text-xl font-extrabold text-gray-900 flex-1">Courses</h1>
+          <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-white shadow-sm">
             <img src="https://i.pravatar.cc/100?img=11" alt="user" className="w-full h-full object-cover" />
           </div>
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 bg-gray-100 p-1 rounded-xl">
+        <div className="flex gap-1.5 bg-gray-100 p-1.5 rounded-2xl">
           {tabs.map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`flex-1 py-2 rounded-lg text-xs font-bold transition-colors ${
-                activeTab === tab ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'
+              className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                activeTab === tab ? 'bg-white text-gray-900 shadow-sm border border-gray-100' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50/50'
               }`}
             >
               {tab}
@@ -97,101 +97,110 @@ const Courses = () => {
         </div>
       </header>
 
-      <main className="px-4 pt-5 space-y-4">
+      <main className="px-5 pt-6 space-y-5">
 
         {activeTab === 'My Courses' && (
-          <div className="bg-gradient-to-r from-[#10b981] to-[#059669] rounded-2xl p-4 text-white mb-5">
-            <p className="text-xs font-bold opacity-80 mb-1">LEARNING PROGRESS</p>
-            <p className="text-2xl font-black">2 Active Courses</p>
-            <div className="mt-3 bg-white/20 rounded-full h-2">
-              <div className="bg-white h-2 rounded-full w-2/5"></div>
+          <div className="bg-gradient-to-br from-primary-600 to-primary-500 rounded-3xl p-5 text-white shadow-lg shadow-primary-500/20 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10"></div>
+            <div className="relative z-10">
+              <p className="text-[10px] font-bold opacity-80 mb-1 tracking-wider uppercase">Learning Progress</p>
+              <p className="text-3xl font-black mb-4">2 Active Courses</p>
+              <div className="bg-white/20 rounded-full h-2.5 overflow-hidden">
+                <div className="bg-white h-full rounded-full w-2/5 relative">
+                  <div className="absolute inset-0 bg-white/50 animate-pulse"></div>
+                </div>
+              </div>
+              <p className="text-xs mt-2 opacity-90 font-medium">40% of enrolled courses in progress</p>
             </div>
-            <p className="text-xs mt-1 opacity-80">40% of enrolled courses in progress</p>
           </div>
         )}
 
-        {displayCourses.map((course) => (
-          <div key={course.id} className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
-            
-            {/* Thumbnail */}
-            <div className="relative h-36 overflow-hidden">
-              <img src={course.thumbnail} alt={course.title} className="w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+        <div className="space-y-4">
+          {displayCourses.map((course) => (
+            <div key={course.id} className="bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-md hover:border-primary-100 transition-all group">
               
-              <div className="absolute top-3 left-3">
-                <span
-                  className="text-[10px] font-bold px-2 py-1 rounded-full"
-                  style={{ backgroundColor: course.tagBg, color: course.tagColor }}
-                >
-                  {course.tag}
-                </span>
-              </div>
+              {/* Thumbnail */}
+              <div className="relative h-44 overflow-hidden">
+                <img src={course.thumbnail} alt={course.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+                
+                <div className="absolute top-4 left-4">
+                  <span
+                    className="text-[10px] font-bold px-3 py-1.5 rounded-full uppercase tracking-wider shadow-sm"
+                    style={{ backgroundColor: course.tagBg, color: course.tagColor }}
+                  >
+                    {course.tag}
+                  </span>
+                </div>
 
-              {course.enrolled_by_me && course.progress > 0 && (
-                <div className="absolute bottom-3 left-3 right-3">
-                  <div className="flex justify-between text-xs text-white font-medium mb-1">
-                    <span>Progress</span>
-                    <span>{course.progress}%</span>
+                {course.enrolled_by_me && course.progress > 0 && (
+                  <div className="absolute bottom-4 left-4 right-4">
+                    <div className="flex justify-between text-[11px] text-white font-bold mb-1.5 uppercase tracking-wider">
+                      <span>Progress</span>
+                      <span>{course.progress}%</span>
+                    </div>
+                    <div className="bg-white/30 rounded-full h-2">
+                      <div
+                        className="bg-primary-500 h-full rounded-full shadow-sm"
+                        style={{ width: `${course.progress}%` }}
+                      ></div>
+                    </div>
                   </div>
-                  <div className="bg-white/30 rounded-full h-1.5">
-                    <div
-                      className="bg-[#10b981] h-1.5 rounded-full"
-                      style={{ width: `${course.progress}%` }}
-                    ></div>
-                  </div>
-                </div>
-              )}
+                )}
 
-              <button className="absolute right-3 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/90 rounded-full flex items-center justify-center shadow-md">
-                <Play className="w-5 h-5 text-[#10b981] ml-0.5" fill="#10b981" />
-              </button>
-            </div>
-
-            {/* Info */}
-            <div className="p-4">
-              <h3 className="font-bold text-gray-900 mb-2 leading-snug">{course.title}</h3>
-              
-              <div className="flex items-center gap-2 mb-3">
-                <div className="w-6 h-6 rounded-full overflow-hidden">
-                  <img src={course.mentorAvatar} alt={course.mentor} className="w-full h-full object-cover" />
-                </div>
-                <span className="text-xs font-medium text-gray-600">{course.mentor}</span>
-              </div>
-
-              <div className="flex items-center gap-3 text-xs text-gray-500 mb-3">
-                <div className="flex items-center gap-1">
-                  <BookOpen className="w-3.5 h-3.5" />
-                  <span>{course.lessons} lessons</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Clock className="w-3.5 h-3.5" />
-                  <span>{course.duration}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Star className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
-                  <span>{course.rating}</span>
-                </div>
-              </div>
-
-              {course.enrolled_by_me ? (
-                <button className="w-full bg-[#10b981] text-white py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2">
-                  <Play className="w-3.5 h-3.5" />
-                  {course.progress > 0 ? 'Continue Learning' : 'Start Course'}
+                <button className="absolute right-4 top-1/2 -translate-y-1/2 w-14 h-14 bg-white/95 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg active:scale-95 transition-transform hover:bg-white">
+                  <Play className="w-6 h-6 text-primary-500 ml-1" fill="currentColor" />
                 </button>
-              ) : (
-                <div className="flex items-center justify-between">
-                  <div>
-                    <span className="text-lg font-black text-gray-900">₹{course.price}</span>
-                    <span className="text-xs text-gray-400 ml-1">{course.enrolled.toLocaleString()} enrolled</span>
+              </div>
+
+              {/* Info */}
+              <div className="p-5">
+                <h3 className="font-bold text-gray-900 text-lg mb-3 leading-snug line-clamp-2">{course.title}</h3>
+                
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-8 h-8 rounded-full overflow-hidden border border-gray-100 bg-gray-50">
+                    <img src={course.mentorAvatar} alt={course.mentor} className="w-full h-full object-cover" />
                   </div>
-                  <button className="bg-[#10b981] text-white px-5 py-2.5 rounded-xl text-xs font-bold">
-                    Enroll Now
-                  </button>
+                  <span className="text-sm font-bold text-gray-700">{course.mentor}</span>
                 </div>
-              )}
+
+                <div className="flex items-center gap-4 text-xs text-gray-500 mb-5 bg-gray-50 p-3 rounded-2xl border border-gray-100">
+                  <div className="flex items-center gap-1.5 font-medium">
+                    <BookOpen className="w-4 h-4 text-gray-400" />
+                    <span>{course.lessons} lessons</span>
+                  </div>
+                  <div className="w-1 h-1 bg-gray-300 rounded-full"></div>
+                  <div className="flex items-center gap-1.5 font-medium">
+                    <Clock className="w-4 h-4 text-gray-400" />
+                    <span>{course.duration}</span>
+                  </div>
+                  <div className="w-1 h-1 bg-gray-300 rounded-full"></div>
+                  <div className="flex items-center gap-1 font-bold text-gray-700">
+                    <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                    <span>{course.rating}</span>
+                  </div>
+                </div>
+
+                {course.enrolled_by_me ? (
+                  <button className="w-full bg-primary-500 text-white py-3.5 rounded-2xl text-sm font-bold flex items-center justify-center gap-2 shadow-md shadow-primary-500/20 active:scale-[0.98] hover:bg-primary-600 transition-all">
+                    <Play className="w-4 h-4" />
+                    {course.progress > 0 ? 'Continue Learning' : 'Start Course'}
+                  </button>
+                ) : (
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="text-2xl font-black text-gray-900">₹{course.price}</span>
+                      <span className="text-[11px] font-bold text-gray-400 ml-2 block uppercase tracking-wider mt-0.5">{course.enrolled.toLocaleString()} enrolled</span>
+                    </div>
+                    <button className="bg-gray-900 text-white px-6 py-3.5 rounded-2xl text-sm font-bold shadow-md hover:bg-gray-800 active:scale-[0.98] transition-all">
+                      Enroll Now
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
 
       </main>
     </div>
