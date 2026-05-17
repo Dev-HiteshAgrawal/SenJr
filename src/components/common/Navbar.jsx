@@ -47,7 +47,7 @@ const Navbar = () => {
           <div className="flex items-center">
             <Link to="/" className="flex items-center space-x-2 group">
               <div className="w-8 h-8 bg-primary-500 rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform">
-                <GraduationCap className="h-5 w-5 text-white" />
+                <GraduationCap className="h-5 w-5 text-white" aria-hidden="true" />
               </div>
               <span className="text-xl font-display font-bold text-gray-900 tracking-tight">Senjr</span>
             </Link>
@@ -62,7 +62,7 @@ const Navbar = () => {
                   to={dashboardHref}
                   className="flex items-center space-x-2 px-4 py-2 rounded-xl bg-gray-900 text-white text-sm font-semibold hover:bg-gray-700 transition-colors"
                 >
-                  <LayoutDashboard className="h-4 w-4" />
+                  <LayoutDashboard className="h-4 w-4" aria-hidden="true" />
                   <span>{primaryActionLabel}</span>
                 </Link>
 
@@ -70,16 +70,16 @@ const Navbar = () => {
                 {userData?.role === 'student' && (
                   <>
                     <Link to="/sessions" className="px-3 py-2 rounded-lg text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors flex items-center gap-1.5">
-                      <Calendar className="h-4 w-4" /> Sessions
+                      <Calendar className="h-4 w-4" aria-hidden="true" /> Sessions
                     </Link>
                     <Link to="/find-mentor" className="px-3 py-2 rounded-lg text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors flex items-center gap-1.5">
-                      <Zap className="h-4 w-4" /> Find Mentor
+                      <Zap className="h-4 w-4" aria-hidden="true" /> Find Mentor
                     </Link>
                   </>
                 )}
                 {userData?.role === 'mentor' && (
                   <Link to="/sessions" className="px-3 py-2 rounded-lg text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors flex items-center gap-1.5">
-                    <Calendar className="h-4 w-4" /> Sessions
+                    <Calendar className="h-4 w-4" aria-hidden="true" /> Sessions
                   </Link>
                 )}
 
@@ -112,7 +112,7 @@ const Navbar = () => {
                           onClick={handleLogout}
                           className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
                         >
-                          <LogOut className="h-4 w-4" />
+                          <LogOut className="h-4 w-4" aria-hidden="true" />
                           Sign out
                         </button>
                       </motion.div>
@@ -142,7 +142,7 @@ const Navbar = () => {
               className="p-2 rounded-xl text-gray-600 hover:bg-gray-100 transition-colors"
               aria-label="Toggle menu"
             >
-              {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              {isOpen ? <X className="h-5 w-5" aria-hidden="true" /> : <Menu className="h-5 w-5" aria-hidden="true" />}
             </button>
           </div>
         </div>
@@ -174,22 +174,22 @@ const Navbar = () => {
                     to={dashboardHref}
                     className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-800 font-semibold bg-gray-900 text-white"
                   >
-                    <LayoutDashboard className="h-4 w-4" />
+                    <LayoutDashboard className="h-4 w-4" aria-hidden="true" />
                     {primaryActionLabel}
                   </Link>
                   <Link to="/sessions" className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-700 hover:bg-gray-100 transition-colors">
-                    <Calendar className="h-4 w-4" /> Sessions
+                    <Calendar className="h-4 w-4" aria-hidden="true" /> Sessions
                   </Link>
                   {userData?.role === 'student' && (
                     <Link to="/find-mentor" className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-700 hover:bg-gray-100 transition-colors">
-                      <Zap className="h-4 w-4" /> Find Mentor
+                      <Zap className="h-4 w-4" aria-hidden="true" /> Find Mentor
                     </Link>
                   )}
                   <button
                     onClick={handleLogout}
                     className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-red-600 hover:bg-red-50 transition-colors mt-2"
                   >
-                    <LogOut className="h-4 w-4" />
+                    <LogOut className="h-4 w-4" aria-hidden="true" />
                     Sign out
                   </button>
                 </>

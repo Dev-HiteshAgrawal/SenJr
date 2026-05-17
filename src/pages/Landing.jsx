@@ -9,22 +9,22 @@ const TRUST_COLLEGES = ['IIT', 'BITS', 'DU', 'VIT', 'NID', 'Oxford', 'MIT'];
 
 const FEATURES = [
   {
-    icon: <Users className="w-6 h-6" />,
+    icon: <Users className="w-6 h-6" aria-hidden="true" />,
     title: '1:1 Mentorship',
     desc: 'Book sessions with alumni who have been exactly where you are.'
   },
   {
-    icon: <Zap className="w-6 h-6" />,
+    icon: <Zap className="w-6 h-6" aria-hidden="true" />,
     title: 'AI Tutor',
     desc: 'Instant AI-powered explanations, practice sets, and study guides.'
   },
   {
-    icon: <Briefcase className="w-6 h-6" />,
+    icon: <Briefcase className="w-6 h-6" aria-hidden="true" />,
     title: 'Career Clarity',
     desc: 'Internship guides, resume reviews, and interview simulations.'
   },
   {
-    icon: <BookOpen className="w-6 h-6" />,
+    icon: <BookOpen className="w-6 h-6" aria-hidden="true" />,
     title: 'War Room',
     desc: 'Curated prep packs for competitive exams and top-company interviews.'
   }
@@ -60,7 +60,7 @@ const Landing = () => {
 
         <FadeIn delay={0.1}>
           <span className="inline-flex items-center gap-2 px-4 py-1.5 bg-primary-50 text-primary-600 rounded-full text-sm font-semibold mb-8 border border-primary-100">
-            <Star className="w-3.5 h-3.5 fill-primary-500" /> Mentorship without borders
+            <Star className="w-3.5 h-3.5 fill-primary-500" aria-hidden="true" /> Mentorship without borders
           </span>
         </FadeIn>
 
@@ -91,7 +91,7 @@ const Landing = () => {
               onClick={handleCTA}
               className="inline-flex items-center gap-2 bg-gray-900 text-white font-bold px-8 py-4 rounded-2xl shadow-xl shadow-gray-900/20 text-lg"
             >
-              {ctaLabel} <ArrowRight className="w-5 h-5" />
+              {ctaLabel} <ArrowRight className="w-5 h-5" aria-hidden="true" />
             </motion.button>
 
             {!user && (
@@ -192,30 +192,14 @@ const Landing = () => {
                 onClick={handleCTA}
                 className="inline-flex items-center gap-2 bg-primary-500 text-white font-bold px-8 py-4 rounded-2xl shadow-lg shadow-primary-500/30 text-base"
               >
-                {ctaLabel} <ArrowRight className="w-5 h-5" />
+                {ctaLabel} <ArrowRight className="w-5 h-5" aria-hidden="true" />
               </motion.button>
             </div>
           </div>
         </FadeIn>
       </section>
 
-      {/* ===== FOOTER ===== */}
-      <footer className="border-t border-gray-100 py-10 px-5 text-center">
-        <div className="flex items-center justify-center gap-2 mb-5">
-          <div className="w-6 h-6 bg-primary-500 rounded-lg flex items-center justify-center">
-            <GraduationCap className="w-4 h-4 text-white" />
-          </div>
-          <span className="font-bold text-gray-900">Senjr</span>
-        </div>
-        <div className="flex justify-center gap-6 text-sm text-gray-400 mb-5">
-          <a href="#" className="hover:text-gray-700 transition-colors">Terms</a>
-          <a href="#" className="hover:text-gray-700 transition-colors">Privacy</a>
-          <a href="#" className="hover:text-gray-700 transition-colors">Support</a>
-        </div>
-        <p className="text-xs text-gray-300">
-          © 2025 Senjr EdTech. Designed for the next generation of builders.
-        </p>
-      </footer>
+
     </div>
   );
 };

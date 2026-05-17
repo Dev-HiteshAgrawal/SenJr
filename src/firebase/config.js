@@ -20,6 +20,9 @@ export const db = getFirestore(app)
 export const storage = getStorage(app)
 
 // Analytics - only runs in browser, not SSR
+// TODO: Ensure 'senjr.vercel.app' (or your production Vercel domain) is whitelisted 
+// in the Firebase Console (Authentication -> Settings -> Authorized Domains) 
+// to prevent CORS failures on installations and webConfig endpoints.
 export const analytics = isSupported().then(yes => yes ? getAnalytics(app) : null)
 
 export default app

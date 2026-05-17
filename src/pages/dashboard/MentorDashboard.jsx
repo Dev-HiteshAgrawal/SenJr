@@ -55,22 +55,7 @@ const MentorDashboard = () => {
   return (
     <div className="min-h-screen bg-white font-sans text-gray-900 flex flex-col pb-24">
       
-      {/* Top App Bar */}
-      <header className="bg-white px-4 py-3 flex items-center justify-between sticky top-0 z-50 border-b border-gray-200">
-        <div className="flex items-center gap-3">
-          <Menu className="w-6 h-6 text-gray-900" />
-          <h1 className="text-xl font-bold font-display text-gray-900">Mentor Hub</h1>
-        </div>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-1 text-[#10b981] font-bold">
-            <span className="text-sm">₹{totalEarnings}</span>
-          </div>
-          <Bell className="w-5 h-5 text-gray-700" />
-          <div className="w-7 h-7 rounded-full bg-gray-200 overflow-hidden border border-gray-300">
-            <img src={userData?.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(mentorName)}`} alt="Profile" className="w-full h-full object-cover" />
-          </div>
-        </div>
-      </header>
+
 
       <main className="flex-1 px-4 pt-6 space-y-6">
         
@@ -303,21 +288,21 @@ const MentorDashboard = () => {
 
       {/* Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-6 py-2 flex justify-between items-center z-50">
-        <button onClick={() => navigate('/dashboard/mentor')} className="flex flex-col items-center gap-1 opacity-50">
+        <button onClick={() => navigate('/dashboard/mentor')} className="flex flex-col items-center gap-1 opacity-50 min-w-[44px] min-h-[44px] justify-center">
           <Home className="w-6 h-6 text-gray-600" />
-          <span className="text-[10px] font-medium text-gray-600">Home</span>
+          <span className="text-xs font-medium text-gray-600">Home</span>
         </button>
-        <button onClick={() => navigate('/mentor/availability')} className="flex flex-col items-center gap-1 opacity-50">
+        <button onClick={() => navigate('/mentor/availability')} className="flex flex-col items-center gap-1 opacity-50 min-w-[44px] min-h-[44px] justify-center">
           <Calendar className="w-6 h-6 text-gray-600" />
-          <span className="text-[10px] font-medium text-gray-600">Schedule</span>
+          <span className="text-xs font-medium text-gray-600">Schedule</span>
         </button>
-        <button onClick={() => navigate('/mentor/earnings')} className="flex flex-col items-center gap-1 border-t-2 border-[#10b981] pt-1 -mt-[9px]">
+        <button onClick={() => navigate('/mentor/earnings')} className="flex flex-col items-center gap-1 border-t-2 border-[#10b981] pt-1 -mt-[9px] min-w-[44px] min-h-[44px] justify-center">
           <IndianRupee className="w-6 h-6 text-[#10b981]" />
-          <span className="text-[10px] font-bold text-[#10b981]">Earnings</span>
+          <span className="text-xs font-bold text-[#10b981]">Earnings</span>
         </button>
-        <button onClick={() => navigate('/profile/mentor/me')} className="flex flex-col items-center gap-1 opacity-50">
+        <button onClick={() => navigate('/profile/mentor/me')} className="flex flex-col items-center gap-1 opacity-50 min-w-[44px] min-h-[44px] justify-center">
           <User className="w-6 h-6 text-gray-600" />
-          <span className="text-[10px] font-medium text-gray-600">Profile</span>
+          <span className="text-xs font-medium text-gray-600">Profile</span>
         </button>
       </nav>
 

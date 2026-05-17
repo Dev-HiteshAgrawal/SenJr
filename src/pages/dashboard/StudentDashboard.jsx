@@ -53,21 +53,7 @@ const StudentDashboard = () => {
   return (
     <div className="min-h-screen bg-[#F8FAF9] font-sans text-gray-900 flex flex-col pb-20">
       
-      {/* Top App Bar */}
-      <header className="bg-[#1e293b] px-4 py-3 flex items-center justify-between sticky top-0 z-50">
-        <div className="flex items-center gap-4">
-          <Menu className="w-6 h-6 text-[#10b981]" />
-          <h1 className="text-xl font-bold font-display text-[#10b981]">EduPulse</h1>
-        </div>
-        <div className="flex items-center gap-4">
-          <div className="relative">
-            <Bell className="w-6 h-6 text-gray-300" />
-          </div>
-          <div className="w-8 h-8 rounded-full bg-gray-300 overflow-hidden border-2 border-[#10b981]">
-            <img src={userData?.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(studentName)}&background=1e293b&color=10b981`} alt="Profile" className="w-full h-full object-cover" />
-          </div>
-        </div>
-      </header>
+
 
       <main className="flex-1 px-4 pt-6 space-y-6">
         
@@ -264,21 +250,21 @@ const StudentDashboard = () => {
 
       {/* Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-6 py-2 flex justify-between items-center z-50">
-        <button onClick={() => navigate('/dashboard/student')} className="flex flex-col items-center gap-1">
+        <button onClick={() => navigate('/dashboard/student')} className="flex flex-col items-center gap-1 min-w-[44px] min-h-[44px] justify-center">
           <LayoutDashboard className="w-6 h-6 text-[#10b981]" fill="#10b981" fillOpacity={0.2} />
-          <span className="text-[10px] font-bold text-[#10b981]">Dashboard</span>
+          <span className="text-xs font-bold text-[#10b981]">Dashboard</span>
         </button>
-        <button onClick={() => navigate('/sessions')} className="flex flex-col items-center gap-1 opacity-50">
+        <button onClick={() => navigate('/sessions')} className="flex flex-col items-center gap-1 opacity-50 min-w-[44px] min-h-[44px] justify-center">
           <BookOpen className="w-6 h-6 text-gray-600" />
-          <span className="text-[10px] font-medium text-gray-600">Sessions</span>
+          <span className="text-xs font-medium text-gray-600">Sessions</span>
         </button>
-        <button onClick={() => navigate('/community')} className="flex flex-col items-center gap-1 opacity-50">
+        <button onClick={() => navigate('/community')} className="flex flex-col items-center gap-1 opacity-50 min-w-[44px] min-h-[44px] justify-center">
           <Users className="w-6 h-6 text-gray-600" />
-          <span className="text-[10px] font-medium text-gray-600">Community</span>
+          <span className="text-xs font-medium text-gray-600">Community</span>
         </button>
-        <button onClick={() => navigate('/profile/student/me')} className="flex flex-col items-center gap-1 opacity-50">
+        <button onClick={() => navigate('/profile/student/me')} className="flex flex-col items-center gap-1 opacity-50 min-w-[44px] min-h-[44px] justify-center">
           <User className="w-6 h-6 text-gray-600" />
-          <span className="text-[10px] font-medium text-gray-600">Profile</span>
+          <span className="text-xs font-medium text-gray-600">Profile</span>
         </button>
       </nav>
     </div>

@@ -8,7 +8,7 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="col-span-1 md:col-span-2">
             <Link to="/" className="flex items-center space-x-2 mb-4">
-              <GraduationCap className="h-8 w-8 text-primary-400" />
+              <GraduationCap className="h-8 w-8 text-primary-400" aria-hidden="true" />
               <span className="text-2xl font-display font-bold">Senjr</span>
             </Link>
             <p className="text-gray-400 mb-4 max-w-md">
@@ -16,17 +16,17 @@ const Footer = () => {
               Your journey to knowledge starts here.
             </p>
             <div className="flex space-x-4">
-              <a href="#" className="text-gray-400 hover:text-white transition-colors">
-                <Twitter className="h-5 w-5" />
+              <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors">
+                <Twitter className="h-5 w-5" aria-hidden="true" />
               </a>
-              <a href="#" className="text-gray-400 hover:text-white transition-colors">
-                <Github className="h-5 w-5" />
+              <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors">
+                <Github className="h-5 w-5" aria-hidden="true" />
               </a>
-              <a href="#" className="text-gray-400 hover:text-white transition-colors">
-                <Linkedin className="h-5 w-5" />
+              <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors">
+                <Linkedin className="h-5 w-5" aria-hidden="true" />
               </a>
-              <a href="#" className="text-gray-400 hover:text-white transition-colors">
-                <Mail className="h-5 w-5" />
+              <a href="mailto:support@senjr.com" className="text-gray-400 hover:text-white transition-colors">
+                <Mail className="h-5 w-5" aria-hidden="true" />
               </a>
             </div>
           </div>
