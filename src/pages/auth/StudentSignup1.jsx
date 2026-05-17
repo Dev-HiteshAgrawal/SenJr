@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, User, Lock, Eye, EyeOff, Mail, AlertCircle } from 'lucide-react';
 import { registerWithEmail } from '../../firebase/auth';
+import SocialAuthButtons from '../../components/auth/SocialAuthButtons';
 
 const StudentSignup1 = () => {
   const navigate = useNavigate();
@@ -103,6 +104,8 @@ const StudentSignup1 = () => {
             {error}
           </div>
         )}
+
+        <SocialAuthButtons role="student" onError={setError} />
 
         <form onSubmit={handleContinue} className="space-y-4">
           {/* Full Name */}

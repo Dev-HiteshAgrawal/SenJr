@@ -1,6 +1,7 @@
 import { useAuthContext } from '../context/AuthContext'
-import { loginWithEmail, registerWithEmail, loginWithGoogle, logout, resetPassword } from '../firebase/auth'
+import { loginWithEmail, registerWithEmail, loginWithGoogle, loginWithApple, logout, resetPassword } from '../firebase/auth'
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => {
   const { user, userData, loading } = useAuthContext()
 
@@ -14,6 +15,10 @@ export const useAuth = () => {
 
   const signInWithGoogle = async () => {
     return await loginWithGoogle()
+  }
+
+  const signInWithApple = async () => {
+    return await loginWithApple()
   }
 
   const signOut = async () => {
@@ -31,6 +36,7 @@ export const useAuth = () => {
     login,
     register,
     signInWithGoogle,
+    signInWithApple,
     signOut,
     forgotPassword,
     isAuthenticated: !!user
