@@ -41,6 +41,10 @@ export const getXpToNextLevel = (xp = 0) => {
   return level * XP_PER_LEVEL - xp;
 };
 
+export const getXPForNextLevel = (level) => {
+  return level * XP_PER_LEVEL;
+};
+
 export const getLevelProgress = (xp = 0) => {
   const xpIntoLevel = xp % XP_PER_LEVEL;
   return Math.round((xpIntoLevel / XP_PER_LEVEL) * 100);
