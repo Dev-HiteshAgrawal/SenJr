@@ -1,3 +1,4 @@
+import React, { Suspense } from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import { AppProvider } from './context/AppContext'
@@ -18,23 +19,27 @@ import MentorSignup2 from './pages/auth/MentorSignup2'
 import MentorSignup3 from './pages/auth/MentorSignup3'
 import MentorSignup4 from './pages/auth/MentorSignup4'
 import MentorSuccess from './pages/auth/MentorSuccess'
-import StudentDashboard from './pages/dashboard/StudentDashboard'
-import MentorDashboard from './pages/dashboard/MentorDashboard'
-import StudentProfile from './pages/profile/StudentProfile'
-import MentorProfile from './pages/profile/MentorProfile'
-import FindMentor from './pages/features/FindMentor'
-import BookSession from './pages/features/BookSession'
-import WarRoom from './pages/features/WarRoom'
-import AITutor from './pages/features/AITutor'
-import AdminPanel from './pages/features/AdminPanel'
-import AIChat from './pages/features/AIChat'
-import AvailabilitySettings from './pages/features/AvailabilitySettings'
-import Courses from './pages/features/Courses'
-import Sessions from './pages/features/Sessions'
-import Community from './pages/features/Community'
-import MentorEarnings from './pages/features/MentorEarnings'
-import Payment from './pages/features/Payment'
-import VideoCall from './pages/features/VideoCall'
+
+// Lazy-loaded routes for performance optimization
+const StudentDashboard = React.lazy(() => import('./pages/dashboard/StudentDashboard'))
+const MentorDashboard = React.lazy(() => import('./pages/dashboard/MentorDashboard'))
+const StudentProfile = React.lazy(() => import('./pages/profile/StudentProfile'))
+const MentorProfile = React.lazy(() => import('./pages/profile/MentorProfile'))
+const FindMentor = React.lazy(() => import('./pages/features/FindMentor'))
+const BookSession = React.lazy(() => import('./pages/features/BookSession'))
+const WarRoom = React.lazy(() => import('./pages/features/WarRoom'))
+const AITutor = React.lazy(() => import('./pages/features/AITutor'))
+const AdminPanel = React.lazy(() => import('./pages/features/AdminPanel'))
+const AIChat = React.lazy(() => import('./pages/features/AIChat'))
+const AvailabilitySettings = React.lazy(() => import('./pages/features/AvailabilitySettings'))
+const Courses = React.lazy(() => import('./pages/features/Courses'))
+const Sessions = React.lazy(() => import('./pages/features/Sessions'))
+const Community = React.lazy(() => import('./pages/features/Community'))
+const MentorEarnings = React.lazy(() => import('./pages/features/MentorEarnings'))
+const Payment = React.lazy(() => import('./pages/features/Payment'))
+const VideoCall = React.lazy(() => import('./pages/features/VideoCall'))
+
+import Loader from './components/common/Loader'
 
 function App() {
   return (
@@ -44,109 +49,111 @@ function App() {
           <div className="min-h-screen flex flex-col">
             <Navbar />
             <main className="flex-1 pt-16">
-              <Routes>
-                <Route path="/" element={<Landing />} />
-                <Route path="/login" element={<Login />} />
-                
-                <Route path="/signup/student/1" element={<StudentSignup1 />} />
-                <Route path="/signup/student/2" element={<StudentSignup2 />} />
-                <Route path="/signup/student/3" element={<StudentSignup3 />} />
-                <Route path="/signup/student/4" element={<StudentSignup4 />} />
-                
-                <Route path="/signup/mentor/1" element={<MentorSignup1 />} />
-                <Route path="/signup/mentor/2" element={<MentorSignup2 />} />
-                <Route path="/signup/mentor/3" element={<MentorSignup3 />} />
-                <Route path="/signup/mentor/4" element={<MentorSignup4 />} />
-                <Route path="/signup/mentor/success" element={<MentorSuccess />} />
+              <Suspense fallback={<Loader fullScreen />}>
+                <Routes>
+                  <Route path="/" element={<Landing />} />
+                  <Route path="/login" element={<Login />} />
+                  
+                  <Route path="/signup/student/1" element={<StudentSignup1 />} />
+                  <Route path="/signup/student/2" element={<StudentSignup2 />} />
+                  <Route path="/signup/student/3" element={<StudentSignup3 />} />
+                  <Route path="/signup/student/4" element={<StudentSignup4 />} />
+                  
+                  <Route path="/signup/mentor/1" element={<MentorSignup1 />} />
+                  <Route path="/signup/mentor/2" element={<MentorSignup2 />} />
+                  <Route path="/signup/mentor/3" element={<MentorSignup3 />} />
+                  <Route path="/signup/mentor/4" element={<MentorSignup4 />} />
+                  <Route path="/signup/mentor/success" element={<MentorSuccess />} />
 
-                <Route path="/dashboard/student" element={
-                  <RoleRoute allowedRoles={['student']}>
-                    <StudentDashboard />
-                  </RoleRoute>
-                } />
-                <Route path="/dashboard/mentor" element={
-                  <RoleRoute allowedRoles={['mentor']}>
-                    <MentorDashboard />
-                  </RoleRoute>
-                } />
+                  <Route path="/dashboard/student" element={
+                    <RoleRoute allowedRoles={['student']}>
+                      <StudentDashboard />
+                    </RoleRoute>
+                  } />
+                  <Route path="/dashboard/mentor" element={
+                    <RoleRoute allowedRoles={['mentor']}>
+                      <MentorDashboard />
+                    </RoleRoute>
+                  } />
 
-                <Route path="/profile/student/:id" element={
-                  <RoleRoute allowedRoles={['student', 'mentor']}>
-                    <StudentProfile />
-                  </RoleRoute>
-                } />
-                <Route path="/profile/mentor/:id" element={
-                  <RoleRoute allowedRoles={['student', 'mentor']}>
-                    <MentorProfile />
-                  </RoleRoute>
-                } />
+                  <Route path="/profile/student/:id" element={
+                    <RoleRoute allowedRoles={['student', 'mentor']}>
+                      <StudentProfile />
+                    </RoleRoute>
+                  } />
+                  <Route path="/profile/mentor/:id" element={
+                    <RoleRoute allowedRoles={['student', 'mentor']}>
+                      <MentorProfile />
+                    </RoleRoute>
+                  } />
 
-                <Route path="/find-mentor" element={
-                  <RoleRoute allowedRoles={['student']}>
-                    <FindMentor />
-                  </RoleRoute>
-                } />
-                <Route path="/book/:mentorId" element={
-                  <RoleRoute allowedRoles={['student']}>
-                    <BookSession />
-                  </RoleRoute>
-                } />
-                <Route path="/war-room" element={
-                  <RoleRoute allowedRoles={['student']}>
-                    <WarRoom />
-                  </RoleRoute>
-                } />
-                <Route path="/ai-tutor" element={
-                  <RoleRoute allowedRoles={['student']}>
-                    <AITutor />
-                  </RoleRoute>
-                } />
-                <Route path="/chat/ai" element={
-                  <RoleRoute allowedRoles={['student']}>
-                    <AIChat />
-                  </RoleRoute>
-                } />
-                <Route path="/mentor/availability" element={
-                  <RoleRoute allowedRoles={['mentor']}>
-                    <AvailabilitySettings />
-                  </RoleRoute>
-                } />
-                <Route path="/courses" element={
-                  <RoleRoute allowedRoles={['student']}>
-                    <Courses />
-                  </RoleRoute>
-                } />
-                <Route path="/sessions" element={
-                  <ProtectedRoute>
-                    <Sessions />
-                  </ProtectedRoute>
-                } />
-                <Route path="/community" element={
-                  <ProtectedRoute>
-                    <Community />
-                  </ProtectedRoute>
-                } />
-                <Route path="/mentor/earnings" element={
-                  <RoleRoute allowedRoles={['mentor']}>
-                    <MentorEarnings />
-                  </RoleRoute>
-                } />
-                <Route path="/pay/:sessionId" element={
-                  <RoleRoute allowedRoles={['student']}>
-                    <Payment />
-                  </RoleRoute>
-                } />
-                <Route path="/video-call/:roomName" element={
-                  <ProtectedRoute>
-                    <VideoCall />
-                  </ProtectedRoute>
-                } />
-                <Route path="/admin" element={
-                  <RoleRoute allowedRoles={['admin']}>
-                    <AdminPanel />
-                  </RoleRoute>
-                } />
-              </Routes>
+                  <Route path="/find-mentor" element={
+                    <RoleRoute allowedRoles={['student']}>
+                      <FindMentor />
+                    </RoleRoute>
+                  } />
+                  <Route path="/book/:mentorId" element={
+                    <RoleRoute allowedRoles={['student']}>
+                      <BookSession />
+                    </RoleRoute>
+                  } />
+                  <Route path="/war-room" element={
+                    <RoleRoute allowedRoles={['student']}>
+                      <WarRoom />
+                    </RoleRoute>
+                  } />
+                  <Route path="/ai-tutor" element={
+                    <RoleRoute allowedRoles={['student']}>
+                      <AITutor />
+                    </RoleRoute>
+                  } />
+                  <Route path="/chat/ai" element={
+                    <RoleRoute allowedRoles={['student']}>
+                      <AIChat />
+                    </RoleRoute>
+                  } />
+                  <Route path="/mentor/availability" element={
+                    <RoleRoute allowedRoles={['mentor']}>
+                      <AvailabilitySettings />
+                    </RoleRoute>
+                  } />
+                  <Route path="/courses" element={
+                    <RoleRoute allowedRoles={['student']}>
+                      <Courses />
+                    </RoleRoute>
+                  } />
+                  <Route path="/sessions" element={
+                    <ProtectedRoute>
+                      <Sessions />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/community" element={
+                    <ProtectedRoute>
+                      <Community />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/mentor/earnings" element={
+                    <RoleRoute allowedRoles={['mentor']}>
+                      <MentorEarnings />
+                    </RoleRoute>
+                  } />
+                  <Route path="/pay/:sessionId" element={
+                    <RoleRoute allowedRoles={['student']}>
+                      <Payment />
+                    </RoleRoute>
+                  } />
+                  <Route path="/video-call/:roomName" element={
+                    <ProtectedRoute>
+                      <VideoCall />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/admin" element={
+                    <RoleRoute allowedRoles={['admin']}>
+                      <AdminPanel />
+                    </RoleRoute>
+                  } />
+                </Routes>
+              </Suspense>
             </main>
             <Footer />
             <Toast />
