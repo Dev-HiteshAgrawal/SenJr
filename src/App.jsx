@@ -29,6 +29,10 @@ import AITutor from './pages/features/AITutor'
 import AdminPanel from './pages/features/AdminPanel'
 import AIChat from './pages/features/AIChat'
 import AvailabilitySettings from './pages/features/AvailabilitySettings'
+import Courses from './pages/features/Courses'
+import Sessions from './pages/features/Sessions'
+import Community from './pages/features/Community'
+import MentorEarnings from './pages/features/MentorEarnings'
 
 function App() {
   return (
@@ -103,6 +107,26 @@ function App() {
                 <Route path="/mentor/availability" element={
                   <ProtectedRoute>
                     <AvailabilitySettings />
+                  </ProtectedRoute>
+                } />
+                <Route path="/courses" element={
+                  <ProtectedRoute>
+                    <Courses />
+                  </ProtectedRoute>
+                } />
+                <Route path="/sessions" element={
+                  <ProtectedRoute>
+                    <Sessions />
+                  </ProtectedRoute>
+                } />
+                <Route path="/community" element={
+                  <ProtectedRoute>
+                    <Community />
+                  </ProtectedRoute>
+                } />
+                <Route path="/mentor/earnings" element={
+                  <ProtectedRoute>
+                    <MentorEarnings />
                   </ProtectedRoute>
                 } />
                 <Route path="/admin" element={
