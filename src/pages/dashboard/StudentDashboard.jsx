@@ -3,6 +3,7 @@ import { Menu, Bell, Search, BookOpen, Target, Trophy, Bot, Calendar, ChevronRig
 import { useNavigate } from 'react-router-dom';
 import { useAuthContext } from '../../context/AuthContext';
 import { useFirestoreQuery } from '../../hooks/useFirestoreQuery';
+import { calculateLevel, getXPForNextLevel } from '../../utils/gamification';
 
 const StudentDashboard = () => {
   const navigate = useNavigate();
@@ -33,10 +34,11 @@ const StudentDashboard = () => {
   const studentName = userData?.displayName?.split(' ')[0] || 'Student';
   const xp = userData?.xp || 0;
   
-  // Calculate Level (Simple logic: Level = floor(XP / 500) + 1, Max XP for next level = Level * 500)
-  const currentLevel = Math.floor(xp / 500) + 1;
-  const xpForNextLevel = currentLevel * 500;
-  const progressPercent = (xp / xpForNextLevel) * 100;
+  // Calculate Level using gamification utility
+  const currentLevel = calculateLevel(xp);
+  const xpForNextLevel = getXPForNextLevel(currentLevel);
+  const prevLevelXP = currentLevel > 1 ? getXPForNextLevel(currentLevel - 1) : 0;
+  const progressPercent = Math.max(0, Math.min(100, ((xp - prevLevelXP) / (xpForNextLevel - prevLevelXP)) * 100));
   
   const getLevelTitle = (level) => {
     if (level < 3) return 'Novice';

@@ -3,6 +3,7 @@ import { Menu, Bell, Wallet, Calendar, User, Star, BarChart2, ArrowRight, Home, 
 import { useNavigate } from 'react-router-dom';
 import { useAuthContext } from '../../context/AuthContext';
 import { useFirestoreQuery } from '../../hooks/useFirestoreQuery';
+import { calculateLevel } from '../../utils/gamification';
 
 const MentorDashboard = () => {
   const navigate = useNavigate();
@@ -73,13 +74,18 @@ const MentorDashboard = () => {
       <main className="flex-1 px-4 pt-6 space-y-6">
         
         {/* Greeting */}
-        <div>
-          <h2 className="text-lg font-medium text-gray-800 mb-1">
-            Welcome back, {mentorName.split(' ')[0]}! 🎓
-          </h2>
-          <p className="text-gray-600 text-sm">
-            {sessionsLoading ? 'Loading schedule...' : `You have ${stats.todaysCount} sessions today`}
-          </p>
+        <div className="flex justify-between items-start">
+          <div>
+            <h2 className="text-lg font-medium text-gray-800 mb-1">
+              Welcome back, {mentorName.split(' ')[0]}! 🎓
+            </h2>
+            <p className="text-gray-600 text-sm">
+              {sessionsLoading ? 'Loading schedule...' : `You have ${stats.todaysCount} sessions today`}
+            </p>
+          </div>
+          <div className="bg-[#E6F4F1] px-3 py-1.5 rounded-full">
+            <span className="text-xs font-bold text-[#10b981] text-center block leading-tight">Level {calculateLevel(userData?.xp || 0)}<br/>Mentor</span>
+          </div>
         </div>
         
         {/* Stats Row */}
