@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ArrowLeft, Send, Mic, Sparkles, BookOpen, FlaskConical, Atom, Leaf, PenLine, TrendingUp, Code2, Shield, Building2, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { StaggerContainer, StaggerItem, HoverCard, FadeIn } from '../../components/common/MotionWrapper';
 
 const tutors = [
   { id: 'arya',    name: 'Arya',    subject: 'Mathematics',        emoji: '📐', icon: <BookOpen className="w-5 h-5" />, color: '#1E40AF', bg: '#EFF6FF',  desc: 'Calculus, Algebra, Geometry & Stats' },
@@ -80,7 +81,7 @@ const ChatView = ({ tutor, onBack }) => {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-[#F8FAF9] font-sans">
+    <FadeIn className="flex flex-col h-screen bg-[#F8FAF9] font-sans">
       {/* Chat Header */}
       <header className="bg-white px-4 py-3 flex items-center gap-3 sticky top-0 z-50 border-b border-gray-100 shadow-sm">
         <button onClick={onBack} className="p-1">
@@ -157,7 +158,7 @@ const ChatView = ({ tutor, onBack }) => {
           <Send className="w-4 h-4 ml-0.5" />
         </button>
       </div>
-    </div>
+    </FadeIn>
   );
 };
 
@@ -190,43 +191,46 @@ const AITutor = () => {
 
       <main className="px-4 pt-5">
         {/* Banner */}
-        <div className="bg-gradient-to-r from-[#064E3B] to-[#10b981] rounded-2xl p-4 mb-5 text-white">
-          <div className="flex items-center gap-2 mb-1">
-            <Sparkles className="w-4 h-4" />
-            <span className="text-xs font-bold">AI-Powered Peer Mentors</span>
+        <FadeIn delay={0.1}>
+          <div className="bg-gradient-to-r from-[#064E3B] to-[#10b981] rounded-2xl p-4 mb-5 text-white shadow-md">
+            <div className="flex items-center gap-2 mb-1">
+              <Sparkles className="w-4 h-4" />
+              <span className="text-xs font-bold">AI-Powered Peer Mentors</span>
+            </div>
+            <p className="text-xl font-black leading-tight">Learn in Hinglish,<br/>Anytime, Instantly</p>
+            <p className="text-xs opacity-70 mt-1">Choose your subject expert below</p>
           </div>
-          <p className="text-xl font-black leading-tight">Learn in Hinglish,<br/>Anytime, Instantly</p>
-          <p className="text-xs opacity-70 mt-1">Choose your subject expert below</p>
-        </div>
+        </FadeIn>
 
         {/* Tutor Grid */}
-        <div className="grid grid-cols-2 gap-3 pb-4">
+        <StaggerContainer className="grid grid-cols-2 gap-3 pb-4" staggerDelay={0.05}>
           {tutors.map((tutor) => (
-            <button
-              key={tutor.id}
-              onClick={() => setActiveTutor(tutor)}
-              className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 text-left active:scale-95 transition-transform flex flex-col gap-3"
-            >
-              <div
-                className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl"
-                style={{ backgroundColor: tutor.bg }}
+            <StaggerItem key={tutor.id}>
+              <HoverCard
+                onClick={() => setActiveTutor(tutor)}
+                className="p-4 text-left flex flex-col gap-3 h-full"
               >
-                {tutor.emoji}
-              </div>
-              <div>
-                <p className="font-bold text-gray-900 text-sm">{tutor.name}</p>
-                <p className="text-[10px] font-bold mb-1" style={{ color: tutor.color }}>{tutor.subject}</p>
-                <p className="text-[10px] text-gray-400 leading-relaxed">{tutor.desc}</p>
-              </div>
-              <div
-                className="w-full py-2 rounded-xl text-xs font-bold text-center text-white mt-auto"
-                style={{ backgroundColor: tutor.color }}
-              >
-                Start Chat →
-              </div>
-            </button>
+                <div
+                  className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl shadow-sm"
+                  style={{ backgroundColor: tutor.bg }}
+                >
+                  {tutor.emoji}
+                </div>
+                <div>
+                  <p className="font-bold text-gray-900 text-sm">{tutor.name}</p>
+                  <p className="text-[10px] font-bold mb-1" style={{ color: tutor.color }}>{tutor.subject}</p>
+                  <p className="text-[10px] text-gray-400 leading-relaxed">{tutor.desc}</p>
+                </div>
+                <div
+                  className="w-full py-2 rounded-xl text-xs font-bold text-center text-white mt-auto shadow-sm"
+                  style={{ backgroundColor: tutor.color }}
+                >
+                  Start Chat →
+                </div>
+              </HoverCard>
+            </StaggerItem>
           ))}
-        </div>
+        </StaggerContainer>
       </main>
     </div>
   );

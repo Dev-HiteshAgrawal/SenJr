@@ -1,9 +1,9 @@
 import React, { useMemo } from 'react';
 import { Menu, Bell, Wallet, Calendar, User, Star, BarChart2, ArrowRight, Home, IndianRupee, Loader2 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import { useAuthContext } from '../../context/AuthContext';
 import { useFirestoreQuery } from '../../hooks/useFirestoreQuery';
 import { calculateLevel } from '../../utils/gamification';
+import { StaggerContainer, StaggerItem, HoverCard, FadeIn, SlideUp, PrimaryButton } from '../../components/common/MotionWrapper';
 
 const MentorDashboard = () => {
   const navigate = useNavigate();
@@ -89,53 +89,61 @@ const MentorDashboard = () => {
         </div>
         
         {/* Stats Row */}
-        <div className="grid grid-cols-3 gap-3">
-          <div className="border border-gray-200 rounded-2xl py-3 flex flex-col items-center justify-center">
-            <span className="text-[10px] font-bold text-gray-500 tracking-wider mb-1">SESSIONS</span>
-            <span className="text-xl font-black text-blue-500">{stats.totalSessions}</span>
-          </div>
-          <div className="border border-gray-200 rounded-2xl py-3 flex flex-col items-center justify-center">
-            <span className="text-[10px] font-bold text-gray-500 tracking-wider mb-1">STUDENTS</span>
-            <span className="text-xl font-black text-[#10b981]">{stats.uniqueStudents}</span>
-          </div>
-          <div className="border border-gray-200 rounded-2xl py-3 flex flex-col items-center justify-center">
-            <span className="text-[10px] font-bold text-gray-500 tracking-wider mb-1">RATING</span>
-            <div className="flex items-center gap-1">
-              <span className="text-xl font-black text-gray-900">{rating}</span>
-              <span className="text-sm text-yellow-400">★</span>
-            </div>
-          </div>
-        </div>
+        <StaggerContainer className="grid grid-cols-3 gap-3" staggerDelay={0.05}>
+          <StaggerItem>
+            <HoverCard className="py-3 flex flex-col items-center justify-center">
+              <span className="text-[10px] font-bold text-gray-500 tracking-wider mb-1">SESSIONS</span>
+              <span className="text-xl font-black text-blue-500">{stats.totalSessions}</span>
+            </HoverCard>
+          </StaggerItem>
+          <StaggerItem>
+            <HoverCard className="py-3 flex flex-col items-center justify-center">
+              <span className="text-[10px] font-bold text-gray-500 tracking-wider mb-1">STUDENTS</span>
+              <span className="text-xl font-black text-[#10b981]">{stats.uniqueStudents}</span>
+            </HoverCard>
+          </StaggerItem>
+          <StaggerItem>
+            <HoverCard className="py-3 flex flex-col items-center justify-center">
+              <span className="text-[10px] font-bold text-gray-500 tracking-wider mb-1">RATING</span>
+              <div className="flex items-center gap-1">
+                <span className="text-xl font-black text-gray-900">{rating}</span>
+                <span className="text-sm text-yellow-400">★</span>
+              </div>
+            </HoverCard>
+          </StaggerItem>
+        </StaggerContainer>
 
         {/* Earnings Section */}
-        <div className="bg-[#F0FDF4] border border-[#D1FAE5] rounded-3xl p-5 relative overflow-hidden">
-          <div className="flex justify-between items-start mb-2">
-            <div className="flex items-center gap-2">
-              <span className="text-lg">💰</span>
-              <h3 className="font-bold text-gray-800">Earnings This Month</h3>
+        <FadeIn delay={0.1}>
+          <div className="bg-[#F0FDF4] border border-[#D1FAE5] rounded-3xl p-5 relative overflow-hidden">
+            <div className="flex justify-between items-start mb-2">
+              <div className="flex items-center gap-2">
+                <span className="text-lg">💰</span>
+                <h3 className="font-bold text-gray-800">Earnings This Month</h3>
+              </div>
+              <button onClick={() => navigate('/mentor/earnings')} className="text-[10px] font-bold text-gray-900 flex items-center gap-1">
+                View <ArrowRight className="w-3 h-3" />
+              </button>
             </div>
-            <button onClick={() => navigate('/mentor/earnings')} className="text-[10px] font-bold text-gray-900 flex items-center gap-1">
-              View <ArrowRight className="w-3 h-3" />
-            </button>
+            
+            <div className="text-3xl font-black text-gray-900 mb-6">₹{earningsThisMonth}</div>
+            
+            {/* Simple Bar Chart */}
+            <div className="flex items-end gap-2 h-16 mb-6">
+              <div className="flex-1 bg-[#34d399] rounded-t-sm h-[30%] hover:h-[35%] transition-all"></div>
+              <div className="flex-1 bg-[#34d399] rounded-t-sm h-[50%] hover:h-[55%] transition-all"></div>
+              <div className="flex-1 bg-[#34d399] rounded-t-sm h-[40%] hover:h-[45%] transition-all"></div>
+              <div className="flex-1 bg-[#34d399] rounded-t-sm h-[70%] hover:h-[75%] transition-all"></div>
+              <div className="flex-1 bg-[#10b981] rounded-t-sm h-[90%] hover:h-[95%] transition-all"></div>
+              <div className="flex-1 bg-[#34d399] rounded-t-sm h-[50%] hover:h-[55%] transition-all"></div>
+              <div className="flex-1 bg-[#34d399] rounded-t-sm h-[80%] hover:h-[85%] transition-all"></div>
+            </div>
+            
+            <PrimaryButton onClick={() => navigate('/mentor/earnings')} className="w-full bg-white border-2 border-[#10b981] text-[#10b981] font-bold py-3 hover:bg-green-50 shadow-none">
+              Withdraw to UPI
+            </PrimaryButton>
           </div>
-          
-          <div className="text-3xl font-black text-gray-900 mb-6">₹{earningsThisMonth}</div>
-          
-          {/* Simple Bar Chart */}
-          <div className="flex items-end gap-2 h-16 mb-6">
-            <div className="flex-1 bg-[#34d399] rounded-t-sm h-[30%]"></div>
-            <div className="flex-1 bg-[#34d399] rounded-t-sm h-[50%]"></div>
-            <div className="flex-1 bg-[#34d399] rounded-t-sm h-[40%]"></div>
-            <div className="flex-1 bg-[#34d399] rounded-t-sm h-[70%]"></div>
-            <div className="flex-1 bg-[#10b981] rounded-t-sm h-[90%]"></div>
-            <div className="flex-1 bg-[#34d399] rounded-t-sm h-[50%]"></div>
-            <div className="flex-1 bg-[#34d399] rounded-t-sm h-[80%]"></div>
-          </div>
-          
-          <button onClick={() => navigate('/mentor/earnings')} className="w-full bg-white border-2 border-[#10b981] text-[#10b981] font-bold py-3 rounded-full active:bg-green-50 transition-colors shadow-sm">
-            Withdraw to UPI
-          </button>
-        </div>
+        </FadeIn>
 
         {/* Schedule */}
         <div>
@@ -149,15 +157,19 @@ const MentorDashboard = () => {
             </button>
           </div>
           
-          <div className="space-y-3">
+          <StaggerContainer className="space-y-3" staggerDelay={0.05}>
             {sessionsLoading && <div className="text-center text-gray-500 py-4"><Loader2 className="w-5 h-5 animate-spin mx-auto" /></div>}
             {!sessionsLoading && stats.upcoming.length === 0 && stats.completed.length === 0 && (
-              <div className="text-center text-gray-500 py-4 bg-gray-50 rounded-2xl border border-gray-100">No sessions scheduled for today.</div>
+              <StaggerItem>
+                <div className="text-center text-gray-500 py-4 bg-gray-50 rounded-2xl border border-gray-100">No sessions scheduled for today.</div>
+              </StaggerItem>
             )}
 
             {/* Upcoming Sessions */}
             {stats.upcoming.map(session => (
-              <div key={session.id} className="border border-gray-200 rounded-2xl p-4 flex items-center justify-between border-l-4 border-l-[#10b981] shadow-sm">
+              <StaggerItem key={session.id}>
+                <HoverCard className="p-4 flex items-center justify-between border-l-4 border-l-[#10b981]">
+
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-sm font-bold text-gray-700">
                     {(session.studentName || 'U')[0]}
@@ -169,64 +181,76 @@ const MentorDashboard = () => {
                 </div>
                 <div className="flex flex-col items-end gap-2">
                   <span className="bg-[#FFF7ED] text-orange-600 px-2 py-0.5 rounded-full text-[10px] font-bold">Upcoming</span>
-                  <button onClick={() => navigate(`/video-call/${session.roomName || session.id}`)} className="bg-[#f97316] text-white text-xs font-bold px-4 py-1.5 rounded-full active:bg-orange-700 shadow-sm">
+                  <PrimaryButton onClick={() => navigate(`/video-call/${session.roomName || session.id}`)} className="text-xs px-4 py-1.5 rounded-full shadow-none">
                     Start
-                  </button>
+                  </PrimaryButton>
                 </div>
-              </div>
+              </HoverCard>
+             </StaggerItem>
             ))}
 
             {/* Completed Sessions */}
             {stats.completed.map(session => (
-              <div key={session.id} className="border border-gray-200 rounded-2xl p-4 flex items-center justify-between bg-gray-50/50">
-                <div className="flex items-center gap-3 opacity-60">
-                  <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-sm font-bold text-gray-700">
-                    {(session.studentName || 'U')[0]}
+              <StaggerItem key={session.id}>
+                <HoverCard className="p-4 flex items-center justify-between bg-gray-50/50">
+                  <div className="flex items-center gap-3 opacity-60">
+                    <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-sm font-bold text-gray-700">
+                      {(session.studentName || 'U')[0]}
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-sm text-gray-900">{session.studentName}</h4>
+                      <p className="text-xs text-gray-500 font-medium mt-0.5">{session.time} • {session.subject || 'Session'}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="font-bold text-sm text-gray-900">{session.studentName}</h4>
-                    <p className="text-xs text-gray-500 font-medium mt-0.5">{session.time} • {session.subject || 'Session'}</p>
+                  <div className="flex flex-col items-end gap-2">
+                    <span className="text-gray-400 px-2 py-0.5 text-[10px] font-medium">Completed</span>
+                    <span className="text-gray-900 text-xs font-medium px-4 py-1.5">Done</span>
                   </div>
-                </div>
-                <div className="flex flex-col items-end gap-2">
-                  <span className="text-gray-400 px-2 py-0.5 text-[10px] font-medium">Completed</span>
-                  <span className="text-gray-900 text-xs font-medium px-4 py-1.5">Done</span>
-                </div>
-              </div>
+                </HoverCard>
+              </StaggerItem>
             ))}
-          </div>
+          </StaggerContainer>
         </div>
 
         {/* Action Grid */}
-        <div className="grid grid-cols-2 gap-3">
-          <button onClick={() => navigate('/mentor/availability')} className="bg-white border border-gray-200 rounded-2xl p-4 flex flex-col items-center justify-center gap-3 shadow-sm active:bg-gray-50 transition-colors">
-            <div className="w-10 h-10 rounded-full flex items-center justify-center">
-              <Calendar className="w-6 h-6 text-blue-500" />
-            </div>
-            <span className="text-xs font-medium text-gray-700">Set Availability</span>
-          </button>
+        {/* Action Grid */}
+        <StaggerContainer className="grid grid-cols-2 gap-3" staggerDelay={0.05}>
+          <StaggerItem>
+            <HoverCard onClick={() => navigate('/mentor/availability')} className="p-4 flex flex-col items-center justify-center gap-3 h-full">
+              <div className="w-10 h-10 rounded-full flex items-center justify-center bg-blue-50">
+                <Calendar className="w-6 h-6 text-blue-500" />
+              </div>
+              <span className="text-xs font-medium text-gray-700">Set Availability</span>
+            </HoverCard>
+          </StaggerItem>
           
-          <button onClick={() => navigate('/profile/mentor/me')} className="bg-white border border-gray-200 rounded-2xl p-4 flex flex-col items-center justify-center gap-3 shadow-sm active:bg-gray-50 transition-colors">
-            <div className="w-10 h-10 rounded-full flex items-center justify-center">
-              <User className="w-6 h-6 text-blue-500" />
-            </div>
-            <span className="text-xs font-medium text-gray-700">My Profile</span>
-          </button>
+          <StaggerItem>
+            <HoverCard onClick={() => navigate('/profile/mentor/me')} className="p-4 flex flex-col items-center justify-center gap-3 h-full">
+              <div className="w-10 h-10 rounded-full flex items-center justify-center bg-blue-50">
+                <User className="w-6 h-6 text-blue-500" />
+              </div>
+              <span className="text-xs font-medium text-gray-700">My Profile</span>
+            </HoverCard>
+          </StaggerItem>
           
-          <button className="bg-white border border-gray-200 rounded-2xl p-4 flex flex-col items-center justify-center gap-3 shadow-sm active:bg-gray-50 transition-colors">
-            <div className="w-10 h-10 rounded-full flex items-center justify-center">
-              <Star className="w-6 h-6 text-blue-500" />
-            </div>
-            <span className="text-xs font-medium text-gray-700">View Reviews</span>
-          </button>
+          <StaggerItem>
+            <HoverCard className="p-4 flex flex-col items-center justify-center gap-3 h-full">
+              <div className="w-10 h-10 rounded-full flex items-center justify-center bg-blue-50">
+                <Star className="w-6 h-6 text-blue-500" />
+              </div>
+              <span className="text-xs font-medium text-gray-700">View Reviews</span>
+            </HoverCard>
+          </StaggerItem>
           
-          <button className="bg-white border border-gray-200 rounded-2xl p-4 flex flex-col items-center justify-center gap-3 shadow-sm active:bg-gray-50 transition-colors">
-            <div className="w-10 h-10 rounded-full flex items-center justify-center">
-              <BarChart2 className="w-6 h-6 text-blue-500" />
-            </div>
-            <span className="text-xs font-medium text-gray-700">Analytics</span>
-          </button>
-        </div>
+          <StaggerItem>
+            <HoverCard className="p-4 flex flex-col items-center justify-center gap-3 h-full">
+              <div className="w-10 h-10 rounded-full flex items-center justify-center bg-blue-50">
+                <BarChart2 className="w-6 h-6 text-blue-500" />
+              </div>
+              <span className="text-xs font-medium text-gray-700">Analytics</span>
+            </HoverCard>
+          </StaggerItem>
+        </StaggerContainer>
 
         {/* Recent Reviews (Mocked for layout placeholder as reviews coll is complex) */}
         <div className="pt-4">

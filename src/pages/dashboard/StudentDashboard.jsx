@@ -1,9 +1,9 @@
 import React, { useMemo } from 'react';
 import { Menu, Bell, Search, BookOpen, Target, Trophy, Bot, Calendar, ChevronRight, LayoutDashboard, Users, User, Loader2 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import { useAuthContext } from '../../context/AuthContext';
 import { useFirestoreQuery } from '../../hooks/useFirestoreQuery';
 import { calculateLevel, getXPForNextLevel } from '../../utils/gamification';
+import { FadeIn, SlideUp, StaggerContainer, StaggerItem, HoverCard, AccentButton, AnimatedProgressBar } from '../../components/common/MotionWrapper';
 
 const StudentDashboard = () => {
   const navigate = useNavigate();
@@ -86,70 +86,77 @@ const StudentDashboard = () => {
               <span>Current XP</span>
               <span>{xp} / {xpForNextLevel} XP</span>
             </div>
-            <div className="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden">
-              <div className="h-full bg-[#10b981] rounded-full transition-all duration-500" style={{ width: `${Math.min(progressPercent, 100)}%` }}></div>
-            </div>
+            <AnimatedProgressBar percent={progressPercent} colorClass="bg-[#10b981]" />
           </div>
         </div>
 
         {/* Action Grid */}
-        <div className="grid grid-cols-2 gap-3">
-          <button onClick={() => navigate('/find-mentor')} className="bg-white border border-gray-200 rounded-2xl p-4 flex flex-col items-center justify-center gap-3 shadow-sm active:scale-95 transition-transform">
-            <div className="w-10 h-10 rounded-full bg-orange-50 flex items-center justify-center">
-              <Target className="w-5 h-5 text-orange-500" />
-            </div>
-            <span className="text-xs font-bold text-gray-800">Find Mentor</span>
-          </button>
+        <StaggerContainer className="grid grid-cols-2 gap-3" staggerDelay={0.05}>
+          <StaggerItem>
+            <HoverCard onClick={() => navigate('/find-mentor')} className="p-4 flex flex-col items-center justify-center gap-3 h-full w-full">
+              <div className="w-10 h-10 rounded-full bg-orange-50 flex items-center justify-center">
+                <Target className="w-5 h-5 text-orange-500" />
+              </div>
+              <span className="text-xs font-bold text-gray-800">Find Mentor</span>
+            </HoverCard>
+          </StaggerItem>
           
-          <button onClick={() => navigate('/sessions')} className="bg-white border border-gray-200 rounded-2xl p-4 flex flex-col items-center justify-center gap-3 shadow-sm active:scale-95 transition-transform">
-            <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center">
-              <BookOpen className="w-5 h-5 text-indigo-500" />
-            </div>
-            <span className="text-xs font-bold text-gray-800">My Sessions</span>
-          </button>
+          <StaggerItem>
+            <HoverCard onClick={() => navigate('/sessions')} className="p-4 flex flex-col items-center justify-center gap-3 h-full w-full">
+              <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center">
+                <BookOpen className="w-5 h-5 text-indigo-500" />
+              </div>
+              <span className="text-xs font-bold text-gray-800">My Sessions</span>
+            </HoverCard>
+          </StaggerItem>
           
-          <button onClick={() => navigate('/war-room')} className="bg-white border border-gray-200 rounded-2xl p-4 flex flex-col items-center justify-center gap-3 shadow-sm active:scale-95 transition-transform">
-            <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center">
-              <Trophy className="w-5 h-5 text-red-400" />
-            </div>
-            <span className="text-xs font-bold text-gray-800">War Room</span>
-          </button>
+          <StaggerItem>
+            <HoverCard onClick={() => navigate('/war-room')} className="p-4 flex flex-col items-center justify-center gap-3 h-full w-full border-[#ef4444] border-b-4">
+              <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center">
+                <Trophy className="w-5 h-5 text-red-500" />
+              </div>
+              <span className="text-xs font-bold text-gray-800">War Room</span>
+            </HoverCard>
+          </StaggerItem>
           
-          <button onClick={() => navigate('/ai-tutor')} className="bg-white border border-gray-200 rounded-2xl p-4 flex flex-col items-center justify-center gap-3 shadow-sm active:scale-95 transition-transform">
-            <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center">
-              <Bot className="w-5 h-5 text-emerald-500" />
-            </div>
-            <span className="text-xs font-bold text-gray-800">AI Tutor</span>
-          </button>
-        </div>
+          <StaggerItem>
+            <HoverCard onClick={() => navigate('/ai-tutor')} className="p-4 flex flex-col items-center justify-center gap-3 h-full w-full">
+              <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center">
+                <Bot className="w-5 h-5 text-emerald-500" />
+              </div>
+              <span className="text-xs font-bold text-gray-800">AI Tutor</span>
+            </HoverCard>
+          </StaggerItem>
+        </StaggerContainer>
 
         {/* Upcoming Session */}
-        {sessionsLoading ? (
-           <div className="bg-[#F8FAFC] border border-gray-200 rounded-2xl p-4 text-center">
-             <Loader2 className="w-5 h-5 animate-spin mx-auto text-[#10b981]" />
-           </div>
-        ) : upcomingSession ? (
-          <div className="bg-[#F8FAFC] border border-gray-200 rounded-2xl p-4">
-            <h3 className="font-bold text-gray-900 mb-2">{upcomingSession.subject || 'Mentorship Session'} with {upcomingSession.mentorName}</h3>
-            <div className="flex items-center gap-3 text-sm mb-4">
-              <div className="flex items-center gap-1.5 text-gray-600 font-medium">
-                <Calendar className="w-4 h-4" />
-                {upcomingSession.date}, {upcomingSession.time}
+        <FadeIn delay={0.2}>
+          {sessionsLoading ? (
+             <div className="bg-[#F8FAFC] border border-gray-200 rounded-2xl p-4 text-center">
+               <Loader2 className="w-5 h-5 animate-spin mx-auto text-[#10b981]" />
+             </div>
+          ) : upcomingSession ? (
+            <HoverCard className="bg-[#F8FAFC] p-4">
+              <h3 className="font-bold text-gray-900 mb-2">{upcomingSession.subject || 'Mentorship Session'} with {upcomingSession.mentorName}</h3>
+              <div className="flex items-center gap-3 text-sm mb-4">
+                <div className="flex items-center gap-1.5 text-gray-600 font-medium">
+                  <Calendar className="w-4 h-4" />
+                  {upcomingSession.date}, {upcomingSession.time}
+                </div>
               </div>
-              {/* <span className="font-bold text-[#f97316]">Starts soon</span> */}
-            </div>
-            <button onClick={() => navigate(`/video-call/${upcomingSession.roomName || upcomingSession.id}`)} className="w-full bg-[#f97316] text-white font-bold py-3 rounded-full active:bg-[#ea580c] transition-colors">
-              Join Now
-            </button>
-          </div>
-        ) : (
-          <div className="bg-white border border-dashed border-gray-300 rounded-2xl p-5 text-center">
-            <p className="text-gray-500 text-sm font-medium mb-3">No upcoming sessions</p>
-            <button onClick={() => navigate('/find-mentor')} className="bg-[#10b981] text-white font-bold py-2 px-6 rounded-full text-xs">
-              Book a Mentor
-            </button>
-          </div>
-        )}
+              <AccentButton onClick={() => navigate(`/video-call/${upcomingSession.roomName || upcomingSession.id}`)} className="w-full">
+                Join Now
+              </AccentButton>
+            </HoverCard>
+          ) : (
+            <HoverCard className="p-5 text-center bg-white">
+              <p className="text-gray-500 text-sm font-medium mb-3">No upcoming sessions</p>
+              <AccentButton onClick={() => navigate('/find-mentor')} className="text-sm py-2 bg-[#10b981] shadow-none w-auto text-white">
+                Book a Mentor
+              </AccentButton>
+            </HoverCard>
+          )}
+        </FadeIn>
 
         {/* My Progress - Hardcoded visual for now as progress tracking is complex, but wired to UI */}
         <div>
