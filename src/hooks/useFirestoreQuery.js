@@ -43,6 +43,7 @@ export const useFirestoreQuery = (collectionName, options = {}) => {
 
   useEffect(() => {
     if (!enabled || !collectionName) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLoading(false);
       return;
     }

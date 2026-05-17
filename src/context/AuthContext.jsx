@@ -6,6 +6,7 @@ import { updateStreak } from '../utils/gamification'
 
 const AuthContext = createContext(null)
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuthContext = () => useContext(AuthContext)
 
 export const AuthProvider = ({ children }) => {

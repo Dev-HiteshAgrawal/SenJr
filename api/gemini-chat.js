@@ -14,6 +14,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  // eslint-disable-next-line no-undef
   const apiKey = process.env.VITE_GEMINI_API_KEY;
   if (!apiKey) {
     return res.status(500).json({ error: 'Gemini API key not configured' });

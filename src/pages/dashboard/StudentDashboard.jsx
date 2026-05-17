@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { Menu, Bell, Search, BookOpen, Target, Trophy, Bot, Calendar, ChevronRight, LayoutDashboard, Users, User, Loader2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useAuthContext } from '../../context/AuthContext';
 import { useFirestoreQuery } from '../../hooks/useFirestoreQuery';
 import { calculateLevel, getXPForNextLevel } from '../../utils/gamification';

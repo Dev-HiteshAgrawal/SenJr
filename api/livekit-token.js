@@ -21,7 +21,9 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'roomName and participantIdentity are required' });
   }
 
+  // eslint-disable-next-line no-undef
   const apiKey = process.env.LIVEKIT_API_KEY;
+  // eslint-disable-next-line no-undef
   const apiSecret = process.env.LIVEKIT_API_SECRET;
 
   if (!apiKey || !apiSecret) {

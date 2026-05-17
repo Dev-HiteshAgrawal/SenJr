@@ -62,7 +62,7 @@ const AIChat = () => {
         // 2. Fallback: Local client-side execution (if Vercel dev isn't running)
         console.warn('Falling back to client-side Gemini call:', fetchErr);
         const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-        if (!apiKey) throw new Error('No API Key');
+        if (!apiKey) throw new Error('No API Key', { cause: fetchErr });
         
         const genAI = new GoogleGenerativeAI(apiKey);
         const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });

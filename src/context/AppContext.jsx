@@ -2,6 +2,7 @@ import { createContext, useContext, useState } from 'react'
 
 const AppContext = createContext(null)
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAppContext = () => useContext(AppContext)
 
 export const AppProvider = ({ children }) => {
